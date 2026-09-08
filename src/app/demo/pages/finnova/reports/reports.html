@@ -1,0 +1,55 @@
+<div class="row">
+  <div class="col-md-6 col-xl-3">
+    <app-card cardTitle="Total Solicitudes">
+      <h3 class="mb-3">124</h3>
+      <p class="text-muted mb-0">En el último mes</p>
+    </app-card>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <app-card cardTitle="Solicitudes Cerradas">
+      <h3 class="mb-3">89</h3>
+      <p class="text-muted mb-0">71% de efectividad</p>
+    </app-card>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <app-card cardTitle="Citas Pendientes">
+      <h3 class="mb-3">12</h3>
+      <p class="text-muted mb-0">Para esta semana</p>
+    </app-card>
+  </div>
+  <div class="col-md-6 col-xl-3">
+    <app-card cardTitle="Nuevos Clientes">
+      <h3 class="mb-3">45</h3>
+      <p class="text-muted mb-0">Registrados este mes</p>
+    </app-card>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Generación de Reportes Específicos (RF014)">
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Tipo de Reporte</label>
+          <select class="form-select">
+            <option>Solicitudes por Asesor</option>
+            <option>Rendimiento de Servicios</option>
+            <option>Citas Atendidas</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Rango de Fechas</label>
+          <input type="date" class="form-control mb-2">
+          <input type="date" class="form-control">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button class="btn btn-primary w-100">Generar PDF</button>
+        </div>
+      </div>
+      <div class="text-center p-5 bg-light rounded text-muted">
+        <i class="anticon anticon-bar-chart fs-1 mb-2 d-block"></i>
+        Aquí se visualizará el gráfico o tabla del reporte generado.
+      </div>
+    </app-card>
+  </div>
+</div>

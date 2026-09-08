@@ -1,0 +1,52 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Gestión de Solicitudes (RF006, RF007, RF008, RF011, RF012)">
+      <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-primary">Nueva Solicitud</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Servicio</th>
+              <th>Fecha Registro</th>
+              <th>Asesor Asignado</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>SOL-001</td>
+              <td>María López</td>
+              <td>Asesoría AFP</td>
+              <td>08/09/2026</td>
+              <td>Juan Asesor</td>
+              <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+              <td>
+                <button class="btn btn-sm btn-outline-info me-1" title="Ver Detalle / Asignar"><i antIcon type="eye" theme="outline"></i></button>
+                <button class="btn btn-sm btn-outline-primary me-1" title="Registrar Asesoría"><i antIcon type="edit" theme="outline"></i></button>
+                <button class="btn btn-sm btn-outline-success" title="Cerrar Solicitud"><i antIcon type="check" theme="outline"></i></button>
+              </td>
+            </tr>
+            <tr>
+              <td>SOL-002</td>
+              <td>Carlos Pérez</td>
+              <td>Aseguradoras</td>
+              <td>07/09/2026</td>
+              <td>Sin asignar</td>
+              <td><span class="badge bg-danger">Nueva</span></td>
+              <td>
+                <button class="btn btn-sm btn-outline-info me-1" title="Ver Detalle / Asignar"><i antIcon type="eye" theme="outline"></i></button>
+                <button class="btn btn-sm btn-outline-primary me-1" title="Registrar Asesoría" disabled><i antIcon type="edit" theme="outline"></i></button>
+                <button class="btn btn-sm btn-outline-success" title="Cerrar Solicitud" disabled><i antIcon type="check" theme="outline"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </app-card>
+  </div>
+</div>

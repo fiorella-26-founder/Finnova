@@ -1,0 +1,36 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Gestión de Citas (RF009, RF010)">
+      <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-primary">Programar Nueva Cita</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Solicitud Relacionada</th>
+              <th>Cliente</th>
+              <th>Fecha y Hora</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CIT-001</td>
+              <td>SOL-001</td>
+              <td>María López</td>
+              <td>10/09/2026 10:00 AM</td>
+              <td><span class="badge bg-primary">Programada</span></td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary me-2"><i class="anticon anticon-edit"></i> Reprogramar</button>
+                <button class="btn btn-sm btn-outline-danger"><i class="anticon anticon-close"></i> Cancelar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </app-card>
+  </div>
+</div>

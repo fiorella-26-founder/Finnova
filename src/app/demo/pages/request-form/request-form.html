@@ -1,0 +1,67 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold text-primary" routerLink="/landing">
+      <i class="anticon anticon-bank me-2"></i>Finnova
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="btn btn-outline-secondary me-2" routerLink="/landing">Volver</a>
+        </li>
+        <li class="nav-item">
+          <a class="btn btn-primary" routerLink="/login">Iniciar Sesión</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<section class="py-5 bg-light min-vh-100 d-flex align-items-center">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4 p-md-5">
+            <h3 class="card-title text-center fw-bold mb-4">Solicitar Servicio</h3>
+            <form>
+              <div class="mb-3">
+                <label for="fullName" class="form-label">Nombre Completo</label>
+                <input type="text" class="form-control" id="fullName" placeholder="Ingresa tu nombre" required>
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-control" id="email" placeholder="nombre@ejemplo.com" required>
+              </div>
+              <div class="mb-3">
+                <label for="serviceType" class="form-label">Servicio de Interés</label>
+                <select class="form-select" id="serviceType" required>
+                  <option value="" disabled selected>Selecciona un servicio</option>
+                  <option value="afp">Asesoría AFP</option>
+                  <option value="onp">Asesoría ONP</option>
+                  <option value="aseguradoras">Aseguradoras</option>
+                  <option value="empresarial">Asesoramiento Empresarial</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label for="message" class="form-label">Mensaje o Detalles (Opcional)</label>
+                <textarea class="form-control" id="message" rows="4" placeholder="Cuéntanos un poco más sobre lo que necesitas..."></textarea>
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Enviar Solicitud</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-dark text-white text-center py-4">
+  <div class="container">
+    <p class="mb-0">&copy; 2026 Finnova. Todos los derechos reservados.</p>
+  </div>
+</footer>

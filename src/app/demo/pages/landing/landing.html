@@ -1,0 +1,110 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold text-primary" href="/landing">
+      <i class="anticon anticon-bank me-2"></i>Finnova
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-toggle="collapse"
+      data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="btn btn-primary" routerLink="/login">Iniciar Sesión</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<header class="hero-header text-white text-center py-5">
+  <div class="container py-5 my-5">
+    <h1 class="welcome-txt display-4 fw-bold">Bienvenido a Finnova</h1>
+    <p class="lead">Tu socio confiable en asesoramiento financiero, pensional y empresarial.</p>
+  </div>
+</header>
+
+<section class="py-5 bg-light">
+  <div class="container">
+    <h2 class="text-center mb-5 fw-bold text-dark">Nuestros Servicios</h2>
+    <div class="row g-4">
+      <!-- AFP -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0">
+          <img
+            src="https://elblogdelcontador.com/wp-content/uploads/2018/08/Las-AFP-y-la-evoluci%C3%B3n-de-su-rentabilidad.jpg"
+            class="card-img-top" alt="Asesoría AFP" style="height: 160px; object-fit: cover;">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="anticon anticon-safety-certificate fs-1 text-primary"></i>
+            </div>
+            <h5 class="card-title fw-bold">Asesoría AFP</h5>
+            <p class="card-text text-muted">Optimiza tus aportes y planifica tu futuro con las mejores Administradoras
+              de Fondos de Pensiones.</p>
+            <a routerLink="/request-form" [queryParams]="{ service: 'afp' }"
+              class="btn btn-outline-primary w-100 mt-auto">Solicitar Servicio</a>
+          </div>
+        </div>
+      </div>
+      <!-- ONP -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0">
+          <img src="https://ipe.org.pe/wp-content/uploads/2020/07/ONP_pensiones.jpg" class="card-img-top"
+            alt="Asesoría ONP" style="height: 160px; object-fit: cover;">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="anticon anticon-solution fs-1 text-primary"></i>
+            </div>
+            <h5 class="card-title fw-bold">Asesoría ONP</h5>
+            <p class="card-text text-muted">Te guiamos en tus trámites y beneficios dentro del Sistema Nacional de
+              Pensiones.</p>
+            <a routerLink="/request-form" [queryParams]="{ service: 'onp' }"
+              class="btn btn-outline-primary w-100 mt-auto">Solicitar Servicio</a>
+          </div>
+        </div>
+      </div>
+      <!-- Aseguradoras -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0">
+          <img
+            src="https://exactuserp.com/wp-content/uploads/2025/11/ERP-Peru-ERP-para-empresas-de-Seguros-Exactus-ERP-BCTS-Consulting.jpg"
+            class="card-img-top" alt="Aseguradoras" style="height: 160px; object-fit: cover;">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="anticon anticon-medicine-box fs-1 text-primary"></i>
+            </div>
+            <h5 class="card-title fw-bold">Aseguradoras</h5>
+            <p class="card-text text-muted">Encuentra los mejores seguros de vida, salud y corporativos adaptados a tus
+              necesidades.</p>
+            <a routerLink="/request-form" [queryParams]="{ service: 'aseguradoras' }"
+              class="btn btn-outline-primary w-100 mt-auto">Solicitar Servicio</a>
+          </div>
+        </div>
+      </div>
+      <!-- Asesoramiento Empresarial -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0">
+          <img
+            src="https://londoncg.com/hs-fs/hubfs/Imagenes%20MS%20(blog)/Enero_2025/C%C3%B3mo-impacta-la-asesor%C3%ADa-empresarial-en-el-desarrollo-de-tu-empresa/que-es-una-asesoria-empresarial.png?width=900&height=500&name=que-es-una-asesoria-empresarial.png"
+            class="card-img-top" alt="Asesoría Empresarial" style="height: 160px; object-fit: cover;">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="anticon anticon-line-chart fs-1 text-primary"></i>
+            </div>
+            <h5 class="card-title fw-bold">Asesoría Empresarial</h5>
+            <p class="card-text text-muted">Impulsa el crecimiento de tu empresa con nuestras estrategias financieras y
+              de mercado.</p>
+            <a routerLink="/request-form" [queryParams]="{ service: 'empresarial' }"
+              class="btn btn-outline-primary w-100 mt-auto">Solicitar Servicio</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-dark text-white text-center py-4">
+  <div class="container">
+    <p class="mb-0">&copy; 2026 Finnova. Todos los derechos reservados.</p>
+  </div>
+</footer>
