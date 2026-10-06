@@ -83,7 +83,7 @@ export class AuthLoginComponent implements OnInit {
         } else if (err.status === 403) {
           this.errorMessage = err?.error?.mensaje || err?.error?.error || 'Acceso restringido: Cuenta bloqueada temporalmente por intentos fallidos.';
         } else if (err.status === 0) {
-          this.errorMessage = 'No se pudo contactar al servidor Backend en http://localhost:3000. Asegúrate de que el backend esté corriendo con npm run dev.';
+          this.errorMessage = 'No se pudo conectar con el servidor Backend en Render. Si estaba en reposo (cold start), puede tardar unos segundos en responder. Por favor, reintenta en un momento.';
         } else {
           this.errorMessage = err?.error?.mensaje || err?.error?.error || 'Credenciales inválidas o error de autenticación.';
         }
