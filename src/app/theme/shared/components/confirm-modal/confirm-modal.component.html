@@ -1,0 +1,70 @@
+<ng-container *ngIf="confirmService.dialogState$ | async as dialog">
+  <div *ngIf="dialog.isOpen" class="custom-confirm-overlay fade show">
+    <div class="custom-confirm-backdrop" (click)="confirmService.onCancel()"></div>
+
+    <div class="custom-confirm-dialog animate-pop" role="dialog" aria-modal="true">
+      <div class="custom-confirm-content">
+        <!-- Icon Banner -->
+        <div class="custom-confirm-header" [ngClass]="'header-' + (dialog.type || 'danger')">
+          <div class="icon-bubble" [ngClass]="'bubble-' + (dialog.type || 'danger')">
+            <!-- Danger Icon (Trash / Alert) -->
+            <svg *ngIf="dialog.type === 'danger'" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5a.5.5 0 0 1 .471-.53m5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+            </svg>
+            <!-- Warning Icon -->
+            <svg *ngIf="dialog.type === 'warning'" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
+              <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+            </svg>
+            <!-- Info Icon -->
+            <svg *ngIf="dialog.type === 'info'" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+              <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+            </svg>
+            <!-- Success Icon -->
+            <svg *ngIf="dialog.type === 'success'" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="custom-confirm-body text-center px-4 py-3">
+          <h4 class="custom-confirm-title fw-bold text-dark mb-2">
+            {{ dialog.title }}
+          </h4>
+          
+          <div *ngIf="dialog.itemName" class="my-2">
+            <span class="badge bg-light text-dark border px-3 py-2 fs-6 rounded-pill fw-semibold">
+              {{ dialog.itemName }}
+            </span>
+          </div>
+
+          <p class="custom-confirm-message text-muted mb-4 fs-6">
+            {{ dialog.message }}
+          </p>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="custom-confirm-footer d-flex gap-2 p-3 bg-light rounded-bottom-4 border-top">
+          <button 
+            *ngIf="dialog.showCancelButton !== false"
+            type="button" 
+            class="btn btn-light border flex-grow-1 fw-semibold py-2 rounded-3 shadow-none" 
+            (click)="confirmService.onCancel()">
+            {{ dialog.cancelText || 'Cancelar' }}
+          </button>
+          <button type="button" class="btn flex-grow-1 fw-bold py-2 rounded-3 shadow-sm"
+            [ngClass]="{
+              'btn-danger': dialog.type === 'danger',
+              'btn-warning text-dark': dialog.type === 'warning',
+              'btn-primary': dialog.type === 'info' || !dialog.type,
+              'btn-success': dialog.type === 'success'
+            }"
+            (click)="confirmService.onConfirm()">
+            {{ dialog.confirmText || 'Aceptar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

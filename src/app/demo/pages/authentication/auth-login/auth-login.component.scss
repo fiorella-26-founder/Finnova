@@ -42,18 +42,19 @@
 
       .auth-form {
         flex-direction: column;
-        background: url('../../../../../assets/images/authentication/img-auth-bg.svg');
         min-height: 100vh;
         padding: 24px;
         background-repeat: no-repeat;
-        background-size: auto 82%;
-        background-position: left bottom;
+        background-size: cover;
+        background-position: center;
         position: relative;
-        justify-content: space-between;
-        > * {
+        justify-content: center;
+
+        >* {
           position: relative;
           z-index: 5;
         }
+
         &:after {
           content: '';
           position: absolute;
@@ -61,11 +62,12 @@
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba($white, 0.2);
-          backdrop-filter: blur(16px);
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(6px);
         }
       }
     }
+
     .auth-form {
       display: flex;
       align-items: center;
@@ -78,7 +80,7 @@
         box-shadow: none;
       }
 
-      img + span {
+      img+span {
         padding-left: 15px;
       }
 
@@ -88,10 +90,12 @@
         }
       }
     }
+
     .auth-footer,
     .auth-header {
       width: 100%;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: space-between;
     }

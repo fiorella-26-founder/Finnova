@@ -1,52 +1,441 @@
 <div class="row">
   <div class="col-sm-12">
-    <app-card cardTitle="Gestión de Solicitudes (RF006, RF007, RF008, RF011, RF012)">
-      <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-primary">Nueva Solicitud</button>
+    <app-card cardTitle="Gestión y Seguimiento de Solicitudes (F006 - F012)">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <p class="text-muted mb-0">Revisión, validación de pago, asignación de asesores y seguimiento de solicitudes de asesoría.</p>
+        <!-- Solo Administrador puede registrar solicitudes directamente desde este panel -->
+        <button *ngIf="(dataService.activeRole$ | async) === 'Administrador'"
+          class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" (click)="openNewRequestModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+          </svg>
+          Nueva Solicitud
+        </button>
       </div>
+
       <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
+        <table class="table table-hover align-middle border" style="min-width: 950px;">
+          <thead class="table-light">
             <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Servicio</th>
-              <th>Fecha Registro</th>
+              <th>Código / Cliente</th>
+              <th>Servicio Solicitado</th>
+              <th>Estado Pago</th>
               <th>Asesor Asignado</th>
-              <th>Estado</th>
-              <th>Acciones</th>
+              <th>Estado Atención</th>
+              <th class="text-end" style="min-width: 260px;">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>SOL-001</td>
-              <td>María López</td>
-              <td>Asesoría AFP</td>
-              <td>08/09/2026</td>
-              <td>Juan Asesor</td>
-              <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+            <tr *ngFor="let req of dataService.requests$ | async">
               <td>
-                <button class="btn btn-sm btn-outline-info me-1" title="Ver Detalle / Asignar"><i antIcon type="eye" theme="outline"></i></button>
-                <button class="btn btn-sm btn-outline-primary me-1" title="Registrar Asesoría"><i antIcon type="edit" theme="outline"></i></button>
-                <button class="btn btn-sm btn-outline-success" title="Cerrar Solicitud"><i antIcon type="check" theme="outline"></i></button>
+                <span class="badge bg-light text-primary border mb-1 fw-bold">{{ req.id }}</span>
+                <div class="fw-bold text-dark">{{ req.clientName }}</div>
+                <div class="small text-muted">DNI: {{ req.clientDni }} | {{ req.clientPhone }}</div>
               </td>
-            </tr>
-            <tr>
-              <td>SOL-002</td>
-              <td>Carlos Pérez</td>
-              <td>Aseguradoras</td>
-              <td>07/09/2026</td>
-              <td>Sin asignar</td>
-              <td><span class="badge bg-danger">Nueva</span></td>
               <td>
-                <button class="btn btn-sm btn-outline-info me-1" title="Ver Detalle / Asignar"><i antIcon type="eye" theme="outline"></i></button>
-                <button class="btn btn-sm btn-outline-primary me-1" title="Registrar Asesoría" disabled><i antIcon type="edit" theme="outline"></i></button>
-                <button class="btn btn-sm btn-outline-success" title="Cerrar Solicitud" disabled><i antIcon type="check" theme="outline"></i></button>
+                <div class="fw-semibold text-dark">{{ req.serviceTitle }}</div>
+                <div class="small text-muted">Tarifa: S/ {{ (req.servicePrecio || req.montoPagado || 0) | number:'1.2-2' }}</div>
+                <span *ngIf="req.proveedorNombre" class="badge bg-secondary-subtle text-secondary border mt-1">
+                  {{ req.proveedorNombre }}
+                </span>
+              </td>
+              <td>
+                <span [class]="req.estadoPago === 'Pagado' ? 'badge bg-success' : (req.estadoPago === 'Pendiente' ? 'badge bg-warning text-dark' : 'badge bg-danger')">
+                  {{ req.estadoPago }}
+                </span>
+              </td>
+              <td>
+                <span *ngIf="req.assignedAdvisorName" class="badge bg-info-subtle text-info border">
+                  {{ req.assignedAdvisorName }}
+                </span>
+                <span *ngIf="!req.assignedAdvisorName" class="badge bg-secondary-subtle text-secondary border">Sin Asignar</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-warning text-dark': req.estadoPago === 'Pendiente' || req.status === 'Pendiente de Validación de Pago',
+                  'bg-info text-dark': (req.status === 'Pendiente de Asignación' || req.status === 'Nueva') || (req.estadoPago === 'Pagado' && !req.assignedAdvisorName),
+                  'bg-primary': req.status === 'En Proceso' || (req.status === 'Pendiente' && req.assignedAdvisorName),
+                  'bg-info': req.status === 'Atendida',
+                  'bg-success': req.status === 'Finalizada',
+                  'bg-secondary': req.status === 'Nula / Abandonada' || req.status === 'Pago Rechazado'
+                }">
+                  {{ req.estadoPago === 'Pendiente' ? 'Pendiente Verificación Cobranza' : (req.assignedAdvisorName ? req.status : 'Pendiente de Asignación') }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="d-inline-flex flex-nowrap gap-1 justify-content-end align-items-center">
+                  <!-- Ver Detalle (Todos) -->
+                  <button class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1" (click)="openDetailModal(req)" title="Ver Detalle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-1.289 1.289-3.05 2.457-5.133 2.457s-3.844-1.168-5.133-2.457A13 13 0 0 1 1.172 8z"/>
+                      <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                    </svg>
+                    Ver
+                  </button>
+
+                  <!-- Asignar Asesor (Exclusivo Administrador) -->
+                  <button *ngIf="(dataService.activeRole$ | async) === 'Administrador'"
+                    class="btn btn-sm d-inline-flex align-items-center gap-1"
+                    [ngClass]="req.estadoPago === 'Pagado' ? 'btn-outline-primary' : 'btn-outline-secondary'"
+                    (click)="openAssignModal(req)"
+                    [title]="req.estadoPago === 'Pagado' ? 'Asignar Asesor' : 'Pago pendiente de verificación en Cobranzas'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                    </svg>
+                    Asesor
+                  </button>
+
+                  <!-- Acciones de Gestión de Solicitud (Administrador y Asesor) -->
+                  <ng-container *ngIf="(dataService.activeRole$ | async) === 'Administrador' || (dataService.activeRole$ | async) === 'Asesor'">
+                    <!-- Actualizar Estado -->
+                    <button class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" (click)="openStatusModal(req)" title="Actualizar Estado">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                      </svg>
+                      Estado
+                    </button>
+
+                    <!-- Registrar Sesión de Asesoría (Atención) -->
+                    <button class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1" (click)="openAdvisoryModal(req)" title="Registrar Sesión de Asesoría">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
+                        <path d="M4 4.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0 3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0 3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+                      </svg>
+                      Atención
+                    </button>
+
+                    <!-- Cierre de Solicitud -->
+                    <button *ngIf="req.status !== 'Finalizada' && req.status !== 'Nula / Abandonada'" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1" (click)="openCloseModal(req)" title="Cierre de Solicitud">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/>
+                      </svg>
+                      Cierre
+                    </button>
+                  </ng-container>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </app-card>
+  </div>
+</div>
+
+<!-- Modal Nueva Solicitud (F006) -->
+<div *ngIf="isNewRequestModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold text-white">Registrar Nueva Solicitud de Asesoría</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form (ngSubmit)="saveNewRequest()">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">DNI del Cliente <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="newClientDni" name="clientDni" placeholder="72345678" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Nombre Completo del Cliente <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="newClientName" name="clientName" placeholder="María López" required />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" [(ngModel)]="newClientEmail" name="clientEmail" placeholder="maria@ejemplo.com" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Teléfono / Celular</label>
+              <input type="text" class="form-control" [(ngModel)]="newClientPhone" name="clientPhone" placeholder="987654321" />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Servicio Financiero Requerido <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="newServiceId" name="serviceId" required>
+                <option *ngFor="let s of activeServices" [value]="s.id">
+                  {{ s.title }} (Tarifa: S/ {{ s.precio | number:'1.2-2' }}) {{ s.proveedorNombre ? '- ' + s.proveedorNombre : '' }}
+                </option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Notas o Detalle de la Solicitud</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="newNotes" name="notes" placeholder="Describa los requerimientos iniciales del cliente..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer px-0 pb-0 mt-4">
+            <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-4" [disabled]="isSaving">
+              {{ isSaving ? 'Guardando...' : 'Crear Solicitud' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registrar Cliente No Encontrado (Pre-Asignación) -->
+<div *ngIf="isCreateClientModalOpen && pendingAssignRequest" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.6);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-warning text-dark">
+        <div class="d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+          </svg>
+          <h5 class="modal-title fw-bold mb-0 text-dark">Cliente No Registrado - Registrar Cliente y Asignar</h5>
+        </div>
+        <button type="button" class="btn-close" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-info d-flex align-items-center gap-2 py-2 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/>
+          </svg>
+          <span class="small">
+            La solicitud <strong>{{ pendingAssignRequest.id }}</strong> proviene del DNI <strong>{{ clientModalDni }}</strong>, que aún no está en la base de datos de Clientes. Complete los datos y seleccione el asesor para registrar al cliente y asignar la solicitud en un solo paso.
+          </span>
+        </div>
+
+        <form (ngSubmit)="saveCreateClientAndAssign()">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">DNI del Cliente <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="clientModalDni" name="cModalDni" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="clientModalName" name="cModalName" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" [(ngModel)]="clientModalEmail" name="cModalEmail" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Teléfono / Celular</label>
+              <input type="text" class="form-control" [(ngModel)]="clientModalPhone" name="cModalPhone" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">Dirección de Domicilio (Opcional)</label>
+              <input type="text" class="form-control" [(ngModel)]="clientModalAddress" name="cModalAddress" placeholder="Av. Principal 123, Lima" />
+            </div>
+
+            <div class="col-12 border-top pt-3 mt-3">
+              <label class="form-label fw-bold text-primary">Asesor a Asignar para la Solicitud <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="clientModalAdvisorId" name="cModalAdvisor" required>
+                <option [ngValue]="null" disabled>Elige un asesor especialista...</option>
+                <option *ngFor="let adv of advisorsList" [value]="adv.id">
+                  {{ adv.name }} ({{ adv.email }})
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer px-0 pb-0 mt-4">
+            <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cancelar</button>
+            <button type="submit" class="btn btn-warning fw-bold text-dark px-4 shadow-sm" [disabled]="isSaving">
+              {{ isSaving ? 'Guardando y Asignando...' : 'Crear Cliente y Asignar Asesor' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Asignar Asesor (Admin - Cliente Ya Registrado) -->
+<div *ngIf="isAssignModalOpen && selectedRequest" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold text-white">Asignar Asesor Especialista</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+          <p class="mb-1"><strong>Solicitud:</strong> {{ selectedRequest.id }}</p>
+          <p class="mb-1"><strong>Cliente:</strong> {{ selectedRequest.clientName }} (DNI: {{ selectedRequest.clientDni }})</p>
+          <p class="mb-3"><strong>Servicio:</strong> {{ selectedRequest.serviceTitle }}</p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Seleccionar Asesor</label>
+          <select class="form-select" [(ngModel)]="selectedAdvisorId">
+            <option [ngValue]="null" disabled>Elige un asesor...</option>
+            <option *ngFor="let adv of advisorsList" [value]="adv.id">
+              {{ adv.name }} ({{ adv.email }})
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveAssignment()" [disabled]="isSaving">
+          {{ isSaving ? 'Guardando...' : 'Guardar Asignación' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Actualizar Estado (F008) -->
+<div *ngIf="isStatusModalOpen && selectedRequest" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold text-white">Actualizar Estado de Solicitud</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Estado Actual: </label>
+          <span class="badge bg-secondary ms-2">{{ selectedRequest.status }}</span>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Nuevo Estado:</label>
+          <select class="form-select" [(ngModel)]="updatedStatus">
+            <option value="Pendiente">Pendiente</option>
+            <option value="En Proceso">En Proceso</option>
+            <option value="Atendida">Atendida (Asesoría brindada)</option>
+            <option value="Finalizada">Finalizada</option>
+            <option value="Nula / Abandonada">Nula / Abandonada</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveStatus()" [disabled]="isSaving">
+          {{ isSaving ? 'Guardando...' : 'Actualizar Estado' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Registrar Sesión de Asesoría (RF011) -->
+<div *ngIf="isAdvisoryModalOpen && selectedRequest" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title fw-bold text-white">Registrar Sesión de Asesoría Realizada</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form (ngSubmit)="saveAdvisorySession()">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Observaciones y Diagnóstico de la Sesión <span class="text-danger">*</span></label>
+            <textarea class="form-control" rows="4" [(ngModel)]="advisoryNotes" name="advNotes"
+              placeholder="Detalle el estado financiero evaluado, montos de retiro AFP o coberturas tratadas..." required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Resultado / Acuerdos con el Cliente <span class="text-danger">*</span></label>
+            <textarea class="form-control" rows="3" [(ngModel)]="advisoryOutcome" name="advOutcome"
+              placeholder="Propuesta elegida, póliza contratada o trámite continuado..." required></textarea>
+          </div>
+          <div class="modal-footer px-0 pb-0">
+            <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cancelar</button>
+            <button type="submit" class="btn btn-info text-white px-4" [disabled]="isSaving">
+              {{ isSaving ? 'Guardando...' : 'Guardar Sesión' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cierre de Solicitud (F012) -->
+<div *ngIf="isCloseModalOpen && selectedRequest" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title fw-bold text-white">Cierre Formal de Solicitud ({{ selectedRequest.id }})</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form (ngSubmit)="saveClosure()">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Resultado / Estado de Cierre <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="closureStatus" name="closureStatus">
+              <option value="Finalizada">Finalizada (Concretada con Éxito)</option>
+              <option value="Nula / Abandonada">Nula / Abandonada (No Concretada - 0% Comisión Broker)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Conclusión / Resumen de Cierre <span class="text-danger">*</span></label>
+            <textarea class="form-control" rows="3" [(ngModel)]="closureNotes" name="closeNotes"
+              placeholder="Indica el motivo de finalización o razón de anulación..." required></textarea>
+          </div>
+
+          <div class="modal-footer px-0 pb-0">
+            <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cancelar</button>
+            <button type="submit" [class]="closureStatus === 'Nula / Abandonada' ? 'btn btn-secondary px-4' : 'btn btn-success px-4'" [disabled]="isSaving">
+              {{ isSaving ? 'Cerrando...' : (closureStatus === 'Nula / Abandonada' ? 'Cerrar como Nula / Abandonada' : 'Finalizar y Cerrar Solicitud') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle Completo de Solicitud -->
+<div *ngIf="isDetailModalOpen && selectedRequest" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title fw-bold text-white">Detalle de Solicitud ({{ selectedRequest.id }})</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <h6 class="fw-bold text-primary">Información del Cliente</h6>
+            <p class="mb-1"><strong>Nombre:</strong> {{ selectedRequest.clientName }}</p>
+            <p class="mb-1"><strong>DNI:</strong> {{ selectedRequest.clientDni }}</p>
+            <p class="mb-1"><strong>Email:</strong> {{ selectedRequest.clientEmail }}</p>
+            <p class="mb-0"><strong>Teléfono:</strong> {{ selectedRequest.clientPhone }}</p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="fw-bold text-primary">Información de la Solicitud y Pago</h6>
+            <p class="mb-1"><strong>Servicio:</strong> {{ selectedRequest.serviceTitle }}</p>
+            <p class="mb-1"><strong>Fecha Registro:</strong> {{ selectedRequest.date }}</p>
+            <p class="mb-1"><strong>Estado Pago:</strong> <span [class]="selectedRequest.estadoPago === 'Pagado' ? 'badge bg-success' : 'badge bg-warning text-dark'">{{ selectedRequest.estadoPago }}</span></p>
+            <p class="mb-1" *ngIf="selectedRequest.numeroOperacionYape"><strong>N° Op. Yape/Plin:</strong> <code>{{ selectedRequest.numeroOperacionYape }}</code></p>
+            <p class="mb-1" *ngIf="selectedRequest.comisionAliadoPct">
+              <strong>Comisión Aliado Broker:</strong>
+              <span class="badge bg-info-subtle text-primary border ms-1">{{ selectedRequest.comisionAliadoPct }}% Aliado (S/ {{ (selectedRequest.montoComisionBroker || 0) | number:'1.2-2' }})</span>
+            </p>
+            <p class="mb-0"><strong>Asesor Asignado:</strong> {{ selectedRequest.assignedAdvisorName || 'Sin asignar' }}</p>
+          </div>
+
+          <div class="col-12 border-top pt-3" *ngIf="selectedRequest.notes">
+            <h6 class="fw-bold text-secondary">Consulta Inicial:</h6>
+            <div class="p-3 bg-light rounded text-dark">{{ selectedRequest.notes }}</div>
+          </div>
+
+          <div class="col-12 border-top pt-3" *ngIf="selectedRequest.advisoryNotes">
+            <h6 class="fw-bold text-info">Observaciones de Atención:</h6>
+            <div class="p-3 bg-info-subtle border border-info rounded text-dark">{{ selectedRequest.advisoryNotes }}</div>
+            <div *ngIf="selectedRequest.advisoryOutcome" class="mt-2 p-2 bg-success-subtle border border-success rounded small text-dark">
+              <strong>Resultado:</strong> {{ selectedRequest.advisoryOutcome }}
+            </div>
+          </div>
+
+          <div class="col-12 border-top pt-3" *ngIf="selectedRequest.closureNotes">
+            <h6 class="fw-bold text-success">Resumen de Cierre:</h6>
+            <div class="p-3 bg-success-subtle border border-success rounded text-dark">{{ selectedRequest.closureNotes }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cerrar</button>
+      </div>
+    </div>
   </div>
 </div>

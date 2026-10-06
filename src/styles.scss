@@ -36,3 +36,263 @@ File: style.css
 @import 'scss/themes/layouts/footer/footer.scss';
 
 @import 'scss/themes/preset-style.scss';
+
+/* ==========================================================================
+   FINNOVA PREMIUM STYLING ENHANCEMENTS
+   ========================================================================== */
+
+:root {
+  --finnova-primary: #1890ff;
+  --finnova-primary-hover: #096dd9;
+  --finnova-gradient: linear-gradient(135deg, #1890ff 0%, #0050b3 100%);
+  --finnova-card-bg: #ffffff;
+  --finnova-radius: 14px;
+}
+
+body {
+  font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f8fafc;
+}
+
+/* Polished Cards */
+.card, .app-card, .tbl-card {
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: var(--finnova-radius) !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &.transition-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12) !important;
+  }
+}
+
+.card-header {
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #ffffff;
+  border-top-left-radius: var(--finnova-radius) !important;
+  border-top-right-radius: var(--finnova-radius) !important;
+}
+
+/* Polished Buttons */
+.btn-primary {
+  background: var(--finnova-gradient) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.25);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(24, 144, 255, 0.38) !important;
+  }
+}
+
+.btn-outline-primary {
+  border-radius: 10px !important;
+  font-weight: 500;
+}
+
+.btn-outline-info, .btn-outline-danger, .btn-outline-success, .btn-outline-secondary {
+  border-radius: 8px !important;
+}
+
+/* Polished Tables */
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 12px 16px;
+  }
+
+  tbody tr {
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: #f1f5f9 !important;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+  }
+}
+
+/* Polished Badges */
+.badge {
+  padding: 6px 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  letter-spacing: 0.02em;
+}
+
+/* Polished Modals */
+.modal-content {
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2) !important;
+}
+
+.modal-header {
+  padding: 18px 24px;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  background-color: #f8fafc;
+}
+
+/* Input Fields */
+.form-control, .form-select {
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  padding: 10px 14px;
+
+  &:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.15);
+  }
+}
+
+/* ==========================================================================
+   BLUE HEADER & SIDEBAR THEME
+   ========================================================================== */
+
+.pc-header {
+  background: linear-gradient(135deg, #002766 0%, #003a8c 50%, #0050b3 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(0, 39, 102, 0.25) !important;
+  height: 60px !important;
+
+  .header-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 100% !important;
+  }
+
+  .pc-h-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  .pc-head-link {
+    background: transparent !important;
+    color: #ffffff !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
+  .dropdown-menu {
+    background-color: #ffffff !important;
+    
+    h1, h2, h3, h4, h5, h6, p, span, small, label, div, button {
+      color: #334155 !important;
+    }
+
+    .text-danger, .text-danger * {
+      color: #ff4d4f !important;
+    }
+
+    .text-dark {
+      color: #0f172a !important;
+    }
+
+    .badge.text-primary {
+      color: #1890ff !important;
+    }
+  }
+}
+
+.pc-sidebar {
+  background: linear-gradient(180deg, #001d4a 0%, #002766 40%, #003a8c 100%) !important;
+  color: #ffffff !important;
+
+  .m-header {
+    background: #001330 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    .b-title, .logo, span, h3, h4, h5, h6, b {
+      color: #ffffff !important;
+    }
+  }
+
+  .navbar-content {
+    background: transparent !important;
+  }
+
+  .coded-inner-navbar {
+    .coded-menu-caption label {
+      color: rgba(255, 255, 255, 0.65) !important;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    li {
+      > a.nav-link {
+        color: rgba(255, 255, 255, 0.85) !important;
+        font-weight: 500;
+        border-radius: 8px;
+        margin: 2px 10px;
+        transition: all 0.2s ease;
+
+        &:hover {
+          color: #ffffff !important;
+          background: rgba(255, 255, 255, 0.18) !important;
+        }
+      }
+
+      &.active > a.nav-link {
+        color: #ffffff !important;
+        background: #1890ff !important;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+      }
+    }
+  }
+
+  /* Role Switcher Card */
+  .card.bg-light {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+
+    h6, p, small {
+      color: #ffffff !important;
+    }
+
+    .btn-outline-primary {
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.4) !important;
+      background: transparent !important;
+
+      &.active, &:hover {
+        background: #ffffff !important;
+        color: #002766 !important;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+

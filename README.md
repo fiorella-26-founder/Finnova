@@ -132,8 +132,8 @@ The [Pro version](https://codedthemes.com/item/mantis-angular-admin-template/) o
 Please generate a [Github issue](https://github.com/codedthemes/mantis-free-angular-admin-template/issues) if you found a bug in any version. We are try our best to resolve the issue.
 
 ## License 
-- Licensed under [MIT](https://github.com/codedthemes/mantis-free-angular-admin-template/blob/master/LICENSE)
-- Copyright © [CodedThemes](https://codedthemes.com/)
+<!-- - Licensed under [MIT](https://github.com/codedthemes/mantis-free-angular-admin-template/blob/master/LICENSE)
+- Copyright © [CodedThemes](https://codedthemes.com/) -->
 
 ## Community and Support
  

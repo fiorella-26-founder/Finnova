@@ -1,0 +1,221 @@
+<!-- Metricas de Cobranzas -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm bg-primary text-white p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="text-white-50 text-uppercase fw-bold small">Total Recaudado</span>
+          <h3 class="fw-bold mb-0 text-white mt-1">S/ {{ totalRecaudado | number:'1.2-2' }}</h3>
+        </div>
+        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.685v-1.193c2.325-.154 3.82-1.383 3.82-3.261 0-1.566-.999-2.458-3.006-2.938l-.744-.176c-1.242-.294-1.63-.675-1.63-1.229 0-.583.504-.972 1.344-.972.843 0 1.391.417 1.488 1.139h1.75c-.092-1.657-1.487-2.827-3.52-2.981V3h-1.686v1.176c-2.186.16-3.69 1.328-3.69 3.12 0 1.487.973 2.378 2.843 2.83l.797.195c1.47.356 1.83.743 1.83 1.328 0 .686-.605 1.092-1.571 1.092-.98 0-1.565-.436-1.674-1.189z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm bg-warning text-dark p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="text-dark-50 text-uppercase fw-bold small">Pagos Pendientes</span>
+          <h3 class="fw-bold mb-0 mt-1">{{ countPendientes }}</h3>
+        </div>
+        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: rgba(0,0,0,0.1);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm bg-success text-white p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="text-white-50 text-uppercase fw-bold small">Pagos Validados</span>
+          <h3 class="fw-bold mb-0 text-white mt-1">{{ countPagados }}</h3>
+        </div>
+        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l4.992-5.99a.75.75 0 0 0-.018-1.042"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm bg-danger text-white p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="text-white-50 text-uppercase fw-bold small">Pagos Rechazados</span>
+          <h3 class="fw-bold mb-0 text-white mt-1">{{ countRechazados }}</h3>
+        </div>
+        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <app-card cardTitle="Validación de Cobranzas y Pagos Digitales (Yape / Plin)">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+          <h5 class="mb-1 text-dark fw-bold">Módulo de Verificación de Transferencias</h5>
+          <p class="text-muted mb-0 small">Revisa el comprobante y número de operación registrado por el cliente para validar el pago y posibilitar la asignación de asesor en Solicitudes.</p>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" [class]="activeFilter === 'Pendiente' ? 'btn-warning fw-bold' : 'btn-outline-secondary'" (click)="setFilter('Pendiente')">
+            Pendientes ({{ countPendientes }})
+          </button>
+          <button class="btn" [class]="activeFilter === 'Pagado' ? 'btn-success fw-bold' : 'btn-outline-secondary'" (click)="setFilter('Pagado')">
+            Validados ({{ countPagados }})
+          </button>
+          <button class="btn" [class]="activeFilter === 'Rechazado' ? 'btn-danger fw-bold' : 'btn-outline-secondary'" (click)="setFilter('Rechazado')">
+            Rechazados ({{ countRechazados }})
+          </button>
+          <button class="btn" [class]="activeFilter === 'Todos' ? 'btn-primary fw-bold' : 'btn-outline-secondary'" (click)="setFilter('Todos')">
+            Todos ({{ allRequests.length }})
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle border" style="min-width: 950px;">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Solicitud / Cliente</th>
+              <th scope="col">Servicio Requerido</th>
+              <th scope="col">Monto Tarifa</th>
+              <th scope="col">N° Operación Yape/Plin</th>
+              <th scope="col">Comprobante / Voucher</th>
+              <th scope="col">Estado Pago</th>
+              <th scope="col" class="text-end" style="min-width: 220px;">Acciones Cobranzas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let req of filteredRequests">
+              <td>
+                <span class="badge bg-light text-primary border mb-1 fw-bold">{{ req.id }}</span>
+                <div class="fw-bold text-dark">{{ req.clientName }}</div>
+                <div class="small text-muted">DNI: {{ req.clientDni }} | {{ req.clientPhone }}</div>
+              </td>
+              <td>
+                <span class="badge bg-primary-subtle text-primary border mb-1">{{ req.serviceTitle }}</span>
+                <div *ngIf="req.proveedorNombre" class="small text-muted">{{ req.proveedorNombre }}</div>
+              </td>
+              <td>
+                <span class="fw-bold text-dark fs-6">S/ {{ (req.montoPagado || req.servicePrecio || 0) | number:'1.2-2' }}</span>
+              </td>
+              <td>
+                <span class="badge bg-dark px-2 py-1 fs-6 font-monospace">{{ req.numeroOperacionYape || 'Sin Registro' }}</span>
+              </td>
+              <td>
+                <button *ngIf="req.urlVoucherImagen" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1" (click)="openVoucherModal(req)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                    <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
+                  </svg>
+                  Ver Voucher
+                </button>
+                <span *ngIf="!req.urlVoucherImagen" class="small text-muted fst-italic">Sin imagen adjunta</span>
+              </td>
+              <td>
+                <span [class]="req.estadoPago === 'Pagado' ? 'badge bg-success fs-6' : (req.estadoPago === 'Pendiente' ? 'badge bg-warning text-dark fs-6' : 'badge bg-danger fs-6')">
+                  {{ req.estadoPago }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div *ngIf="req.estadoPago === 'Pendiente'" class="d-inline-flex flex-nowrap gap-1 align-items-center justify-content-end">
+                  <button class="btn btn-sm btn-success d-inline-flex align-items-center gap-1 shadow-sm" (click)="validatePayment(req)" [disabled]="isValidating">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l4.992-5.99a.75.75 0 0 0-.018-1.042"/>
+                    </svg>
+                    Validar
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" (click)="rejectPayment(req)" [disabled]="isValidating">
+                    Rechazar
+                  </button>
+                </div>
+                <div *ngIf="req.estadoPago === 'Pagado'" class="text-success small fw-bold d-inline-flex align-items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
+                  </svg>
+                  Pago Aprobado
+                </div>
+                <div *ngIf="req.estadoPago === 'Rechazado'" class="text-danger small fw-bold">
+                  Pago Rechazado
+                </div>
+              </td>
+            </tr>
+
+            <tr *ngIf="filteredRequests.length === 0">
+              <td colspan="7" class="text-center py-5 text-muted">
+                No hay cobranzas registradas en esta categoría.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </app-card>
+  </div>
+</div>
+
+<!-- Modal para Visualización de Voucher en Alta Resolución -->
+<div *ngIf="isVoucherModalOpen && selectedRequest" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.65);">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title text-white fw-bold">Comprobante de Pago - Solicitud {{ selectedRequest.id }}</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeVoucherModal()"></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <div class="row text-start mb-3 bg-light p-3 rounded border">
+          <div class="col-md-6 mb-2 mb-md-0">
+            <span class="text-muted small d-block">Cliente Solicitante:</span>
+            <strong class="text-dark">{{ selectedRequest.clientName }} (DNI: {{ selectedRequest.clientDni }})</strong>
+          </div>
+          <div class="col-md-3 mb-2 mb-md-0">
+            <span class="text-muted small d-block">N° Operación Yape/Plin:</span>
+            <strong class="text-primary font-monospace fs-5">{{ selectedRequest.numeroOperacionYape || 'N/A' }}</strong>
+          </div>
+          <div class="col-md-3">
+            <span class="text-muted small d-block">Monto Reportado:</span>
+            <strong class="text-success fs-5">S/ {{ (selectedRequest.montoPagado || selectedRequest.servicePrecio || 0) | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="p-2 border rounded bg-white mb-3 shadow-inner">
+          <img *ngIf="selectedRequest.urlVoucherImagen" [src]="selectedRequest.urlVoucherImagen" alt="Voucher Alta Resolución" class="img-fluid rounded" style="max-height: 400px; object-fit: contain;">
+          <div *ngIf="!selectedRequest.urlVoucherImagen" class="py-5 text-muted fst-italic">
+            No se adjuntó imagen del comprobante para esta operación.
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="small text-muted">Estado actual: <strong>{{ selectedRequest.estadoPago }}</strong></span>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary" (click)="closeVoucherModal()">Cerrar</button>
+            <button *ngIf="selectedRequest.estadoPago === 'Pendiente'" type="button" class="btn btn-danger" (click)="rejectPayment(selectedRequest)" [disabled]="isValidating">
+              Rechazar Pago
+            </button>
+            <button *ngIf="selectedRequest.estadoPago === 'Pendiente'" type="button" class="btn btn-success px-4" (click)="validatePayment(selectedRequest)" [disabled]="isValidating">
+              Validar Pago Formalmente
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

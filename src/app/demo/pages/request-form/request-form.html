@@ -1,20 +1,14 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
   <div class="container">
-    <a class="navbar-brand fw-bold text-primary" routerLink="/landing">
-      <i class="anticon anticon-bank me-2"></i>Finnova
+    <a class="navbar-brand fw-bold text-primary fs-4 d-flex align-items-center gap-2" routerLink="/landing">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16">
+        <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.446L8 1.183zM2 6v7h3V6zm4 0v7h4V6zm5 0v7h3V6zM1.5 4h13V4h-13z"/>
+      </svg>
+      Finnova
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="btn btn-outline-secondary me-2" routerLink="/landing">Volver</a>
-        </li>
-        <li class="nav-item">
-          <a class="btn btn-primary" routerLink="/login">Iniciar Sesión</a>
-        </li>
-      </ul>
+    <div class="ms-auto d-flex gap-2">
+      <a class="btn btn-outline-secondary" routerLink="/landing">Volver al Inicio</a>
+      <a class="btn btn-primary" routerLink="/login">Iniciar Sesión</a>
     </div>
   </div>
 </nav>
@@ -22,35 +16,147 @@
 <section class="py-5 bg-light min-vh-100 d-flex align-items-center">
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-lg-6 col-md-8">
-        <div class="card shadow-sm border-0">
+      <div class="col-lg-8 col-md-10">
+        <div class="card shadow-lg border-0">
           <div class="card-body p-4 p-md-5">
-            <h3 class="card-title text-center fw-bold mb-4">Solicitar Servicio</h3>
-            <form>
-              <div class="mb-3">
-                <label for="fullName" class="form-label">Nombre Completo</label>
-                <input type="text" class="form-control" id="fullName" placeholder="Ingresa tu nombre" required>
-              </div>
-              <div class="mb-3">
-                <label for="email" class="form-label">Correo Electrónico</label>
-                <input type="email" class="form-control" id="email" placeholder="nombre@ejemplo.com" required>
-              </div>
-              <div class="mb-3">
-                <label for="serviceType" class="form-label">Servicio de Interés</label>
-                <select class="form-select" id="serviceType" required>
-                  <option value="" disabled selected>Selecciona un servicio</option>
-                  <option value="afp">Asesoría AFP</option>
-                  <option value="onp">Asesoría ONP</option>
-                  <option value="aseguradoras">Aseguradoras</option>
-                  <option value="empresarial">Asesoramiento Empresarial</option>
-                </select>
-              </div>
-              <div class="mb-4">
-                <label for="message" class="form-label">Mensaje o Detalles (Opcional)</label>
-                <textarea class="form-control" id="message" rows="4" placeholder="Cuéntanos un poco más sobre lo que necesitas..."></textarea>
-              </div>
-              <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">Enviar Solicitud</button>
+            <h3 class="card-title text-center fw-bold mb-1 text-primary">Solicitar Asesoría Financiera</h3>
+            <p class="text-center text-muted mb-4">Completa tus datos personales y registra tu pago digital por Yape / Plin.</p>
+
+            <form (ngSubmit)="submitRequest()">
+              <div class="row g-3">
+                <!-- Información del Cliente -->
+                <div class="col-12">
+                  <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">1. Datos del Solicitante</h5>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">DNI / Documento <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" [(ngModel)]="clientDni" name="dni" placeholder="72345678" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Teléfono / Celular <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" [(ngModel)]="clientPhone" name="phone" placeholder="987654321" required>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" [(ngModel)]="clientName" name="name" placeholder="María López" required>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
+                  <input type="email" class="form-control" [(ngModel)]="clientEmail" name="email" placeholder="maria@ejemplo.com" required>
+                </div>
+
+                <!-- Selección de Servicio -->
+                <div class="col-12 mt-4">
+                  <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">2. Servicio Financiero y Entidad Aliada</h5>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold">Seleccionar Servicio Financiero <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-lg shadow-sm" [(ngModel)]="selectedServiceId" name="serviceId" required>
+                    <option *ngFor="let service of servicesList" [value]="service.id">
+                      {{ service.title }} - S/ {{ service.precio | number:'1.2-2' }}{{ service.proveedorNombre ? ' (' + service.proveedorNombre + ')' : '' }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Tarjeta Dinámica en Cascada (Servicio -> Proveedor -> Precio & Comisión) -->
+                <div *ngIf="selectedServiceObj" class="col-12">
+                  <div class="card bg-white border border-primary p-3 shadow-sm rounded-3">
+                    <div class="row align-items-center g-3">
+                      <div class="col-md-3 text-center">
+                        <img [src]="selectedServiceObj.imageUrl || 'assets/images/afp.jpg'" [alt]="selectedServiceObj.title" class="img-fluid rounded border shadow-sm"
+                          style="max-height: 90px; object-fit: contain; background: #fcfcfc; padding: 6px;" />
+                      </div>
+                      <div class="col-md-9">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+                          <h5 class="mb-0 fw-bold text-dark">{{ selectedServiceObj.title }}</h5>
+                          <span class="badge bg-success fs-5 px-3 py-1 shadow-sm">Tarifa: S/ {{ selectedServiceObj.precio | number:'1.2-2' }}</span>
+                        </div>
+
+                        <p class="mb-2 text-muted small">{{ selectedServiceObj.description }}</p>
+
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fs-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                              <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5zM9 2.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5zM10.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5z"/>
+                            </svg>
+                            Proveedor Aliado: <strong>{{ selectedServiceObj.proveedorNombre }}</strong>
+                          </span>
+
+                          <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">
+                            Categoría: {{ selectedServiceObj.category }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold">Mensaje o Detalles Adicionales</label>
+                  <textarea class="form-control" rows="2" [(ngModel)]="message" name="notes"
+                    placeholder="Cuéntanos un poco más sobre lo que necesitas..."></textarea>
+                </div>
+
+                <!-- Pago Digital Yape / Plin -->
+                <div class="col-12 mt-4">
+                  <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">3. Registro de Pago (Yape / Plin)</h5>
+                </div>
+
+                <div class="col-12">
+                  <div class="alert alert-info border-info d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; min-width: 52px;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2 2h4v4H2zM1 1v6h6V1zm10 1h4v4h-4zM10 1v6h6V1zM2 10h4v4H2zm-1 5v-6h6v6zm12-1h2v2h-2zm-3 0h1v1h-1zm1-2h1v1h-1zm-1-1h1v1h-1zm2 0h1v1h-1zm-1 2h1v1h-1zm1 1h1v1h-1zm-2 0h1v1h-1zm0-2h1v1h-1zm-1-1h1v1h-1zm0 2h1v1h-1zm1-3h1v1h-1zm-3-1h1v1h-1zm1 1h1v1h-1z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold mb-1 text-dark">Instrucciones de Pago Digital</h6>
+                      <p class="mb-0 small text-dark">
+                        Realiza el Yape o Plin por el monto exacto de 
+                        <strong class="text-primary fs-6">S/ {{ selectedServiceObj?.precio | number:'1.2-2' }}</strong> 
+                        al número <strong class="text-dark">987 654 321</strong> (Titular: <strong>FINNOVA PERU S.A.C.</strong>).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Número de Operación Yape / Plin <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" [(ngModel)]="numeroOperacionYape" name="numeroOperacion"
+                    placeholder="Ej. 984210" required>
+                  <div class="form-text">Código numérico de 6 a 8 dígitos emitido por la app.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Adjuntar Comprobante (Voucher) <span class="text-danger">*</span></label>
+                  <input type="file" class="form-control" (change)="onVoucherSelected($event)" accept="image/*">
+                  <div class="form-text">Sube una foto o captura clara del voucher.</div>
+                </div>
+
+                <!-- Previsualizador de Voucher (sólo visible al adjuntar un archivo) -->
+                <div class="col-12" *ngIf="urlVoucherImagen">
+                  <div class="card border p-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="small fw-bold text-dark d-flex align-items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-success" viewBox="0 0 16 16">
+                          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l4.992-5.99a.75.75 0 0 0-.018-1.042"/>
+                        </svg>
+                        Comprobante Adjuntado Exitosamente:
+                      </span>
+                    </div>
+                    <div class="text-center">
+                      <img [src]="urlVoucherImagen" alt="Voucher Pago" class="img-fluid rounded border shadow-sm" style="max-height: 220px; object-fit: contain;">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 d-grid mt-4">
+                  <button type="submit" class="btn btn-primary btn-lg shadow">Registrar Solicitud y Enviar Pago</button>
+                </div>
               </div>
             </form>
           </div>
@@ -60,8 +166,44 @@
   </div>
 </section>
 
+<!-- Modal de Confirmación y Estructura del Objeto Payload -->
+<div *ngIf="isSuccessModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.6);">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg border-0 text-center p-4">
+      <div class="modal-body">
+        <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center mx-auto mb-3 p-3 shadow-sm" style="width: 76px; height: 76px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+          </svg>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">¡Solicitud Registrada - Pago en Validación!</h4>
+        <p class="text-muted mb-2">Tu solicitud ha sido ingresada correctamente con el código:</p>
+        <span class="badge bg-primary fs-4 px-4 py-2 mb-3 shadow-sm">{{ createdRequestId }}</span>
+        
+        <div class="alert alert-warning border-warning text-start mx-auto my-3" style="max-width: 650px;">
+          <div class="d-flex gap-3 align-items-center mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="text-warning flex-shrink-0" viewBox="0 0 16 16">
+              <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l.451-.081H8.93zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/>
+            </svg>
+            <div>
+              <h6 class="fw-bold mb-1 text-dark">Estado del Pago: En Proceso de Validación (Pendiente)</h6>
+              <p class="mb-0 small text-dark">
+                Registramos tu N° de Operación <strong>{{ numeroOperacionYape }}</strong>. El área de Administración verificará la transferencia por 
+                <strong>S/ {{ selectedServiceObj?.precio | number:'1.2-2' }}</strong> y habilitará tu solicitud para asignarte un Asesor.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary px-5 py-2 fw-bold mt-4" (click)="closeSuccessModal()">Entendido y Volver al Inicio</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer class="bg-dark text-white text-center py-4">
   <div class="container">
-    <p class="mb-0">&copy; 2026 Finnova. Todos los derechos reservados.</p>
+    <p class="mb-0">&copy; 2026 Finnova</p>
   </div>
 </footer>

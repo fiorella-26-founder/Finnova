@@ -1,0 +1,280 @@
+/* ==========================================================================
+   FINNOVA REPORTS & ANALYTICS MODULE STYLES
+   Modern, zero-inline-style responsive reporting layout
+   ========================================================================== */
+
+.reports-container {
+  padding-bottom: 2rem;
+}
+
+/* KPI CARDS */
+.report-kpi-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  &.border-kpi-success {
+    border-left: 4px solid #198754;
+  }
+  &.border-kpi-primary {
+    border-left: 4px solid #0d6efd;
+  }
+  &.border-kpi-info {
+    border-left: 4px solid #0dcaf0;
+  }
+  &.border-kpi-warning {
+    border-left: 4px solid #ffc107;
+  }
+  &.border-kpi-purple {
+    border-left: 4px solid #6f42c1;
+  }
+  &.border-kpi-dark {
+    border-left: 4px solid #212529;
+  }
+}
+
+.report-kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.report-kpi-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+}
+
+.report-kpi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.icon-success {
+    background-color: rgba(25, 135, 84, 0.12);
+    color: #198754;
+  }
+  &.icon-primary {
+    background-color: rgba(13, 110, 253, 0.12);
+    color: #0d6efd;
+  }
+  &.icon-info {
+    background-color: rgba(13, 202, 240, 0.12);
+    color: #0aa2c0;
+  }
+  &.icon-warning {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #d39e00;
+  }
+  &.icon-purple {
+    background-color: rgba(111, 66, 193, 0.12);
+    color: #6f42c1;
+  }
+  &.icon-dark {
+    background-color: rgba(33, 37, 41, 0.08);
+    color: #212529;
+  }
+}
+
+.report-kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+  font-family: inherit;
+
+  .report-kpi-unit {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6c757d;
+  }
+}
+
+.text-purple {
+  color: #6f42c1 !important;
+}
+
+.report-kpi-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.report-kpi-note {
+  font-size: 0.78rem;
+  color: #6c757d;
+}
+
+/* SUBTLE BADGES */
+.badge-subtle-success {
+  background-color: rgba(25, 135, 84, 0.12);
+  color: #198754;
+  border: 1px solid rgba(25, 135, 84, 0.2);
+  font-weight: 600;
+}
+
+.badge-subtle-primary {
+  background-color: rgba(13, 110, 253, 0.12);
+  color: #0d6efd;
+  border: 1px solid rgba(13, 110, 253, 0.2);
+  font-weight: 600;
+}
+
+.badge-subtle-info {
+  background-color: rgba(13, 202, 240, 0.12);
+  color: #0aa2c0;
+  border: 1px solid rgba(13, 202, 240, 0.25);
+  font-weight: 600;
+}
+
+.badge-subtle-warning {
+  background-color: rgba(255, 193, 7, 0.15);
+  color: #997404;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  font-weight: 600;
+}
+
+.badge-subtle-secondary {
+  background-color: rgba(108, 117, 125, 0.12);
+  color: #6c757d;
+  border: 1px solid rgba(108, 117, 125, 0.2);
+  font-weight: 600;
+}
+
+.badge-aliado-tag {
+  background-color: #f1f3f5;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+/* FILTER PANEL */
+.period-button-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #edf2f7;
+
+  .period-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #495057;
+    margin-right: 0.25rem;
+  }
+}
+
+.form-label-bold {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #343a40;
+  margin-bottom: 0.35rem;
+}
+
+.filter-action-buttons {
+  padding-top: 0.5rem;
+  border-top: 1px dashed #e9ecef;
+}
+
+/* REPORT TABLES */
+.report-results-header {
+  border-bottom: 1px solid #f0f2f5;
+  padding-bottom: 0.75rem;
+}
+
+.report-data-table {
+  min-width: 950px;
+  border-radius: 8px;
+  overflow: hidden;
+
+  thead th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 700;
+    color: #495057;
+    background-color: #f8f9fa;
+    padding: 0.85rem 0.75rem;
+  }
+
+  tbody td {
+    padding: 0.85rem 0.75rem;
+    font-size: 0.88rem;
+  }
+}
+
+.table-totals-footer {
+  background-color: #f8f9fa;
+  border-top: 2px solid #dee2e6;
+
+  td {
+    padding: 0.9rem 0.75rem;
+    font-size: 0.92rem;
+  }
+}
+
+/* PRINT & PDF MEDIA STYLES */
+@media print {
+  body {
+    background: #ffffff !important;
+    font-size: 10pt;
+  }
+
+  .period-button-bar,
+  .filter-form,
+  .filter-action-buttons,
+  .export-btn-group,
+  nav,
+  aside,
+  header {
+    display: none !important;
+  }
+
+  .reports-container {
+    padding: 0 !important;
+  }
+
+  .report-kpi-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    page-break-inside: avoid;
+  }
+
+  .report-data-table {
+    min-width: 100% !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+
+    th, td {
+      padding: 4px 8px !important;
+    }
+  }
+
+  app-card {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}

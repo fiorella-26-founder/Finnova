@@ -1,70 +1,94 @@
 <div class="auth-main">
   <div class="auth-wrapper v3">
-    <div class="auth-form">
-      <div class="auth-header">
-        <!-- <a [routerLink]="['/']"><img src="assets/images/logo-dark.svg" alt="logo" /></a> -->
-        <h3 class="mb-0"><b>Finnova</b></h3>
+    <div class="auth-form"
+      style="background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url('assets/images/landing1.jpg'); background-size: cover; background-position: center; min-height: 100vh;">
+      <div class="auth-header justify-content-center text-center mb-4">
+        <h2 class="mb-1 text-white fw-bold"><b>Finnova</b></h2>
+        <p class="text-white-50">Sistema de Gestión e Inversiones Financieras</p>
       </div>
-      <div class="card my-5">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-end mb-4">
-            <h3 class="mb-0"><b>Login</b></h3>
-            <a [routerLink]="['/register']" class="link-primary">Don't have an account?</a>
+      <div class="card shadow-lg border-0 my-3"
+        style="max-width: 480px; width: 100%; margin: 0 auto; border-radius: 1rem;">
+        <div class="card-body p-4">
+          <div class="mb-4 text-center">
+            <h4 class="mb-1 fw-bold text-dark">Iniciar Sesión</h4>
+            <p class="text-muted small">Accede de forma segura con tu cuenta</p>
           </div>
-          <div class="form-group mb-3">
-            <label class="form-label" for="email">Email Address</label>
-            <input type="email" class="form-control" id="email" placeholder="Email Address"
-              value="info@codedthemes.com" />
-          </div>
-          <div class="form-group mb-3">
-            <label class="form-label" for="password">Password</label>
-            <input type="password" class="form-control" id="password" placeholder="Password" value="123456789" />
-          </div>
-          <div class="d-flex mt-1 justify-content-between">
-            <div class="form-check">
-              <input class="form-check-input input-primary" type="checkbox" id="customCheckc1" checked="" />
-              <label class="form-check-label text-muted" for="customCheckc1">Keep me sign in</label>
-            </div>
-            <h5 class="text-secondary f-w-400"><button type="button"
-                class="btn btn-link text-secondary p-0 text-decoration-none"
-                style="font-size: inherit; font-weight: inherit; line-height: inherit; vertical-align: baseline;">Forgot
-                Password?</button></h5>
-          </div>
-          <div class="d-grid mt-4">
-            <button type="button" class="btn btn-primary">Login</button>
-          </div>
-          <div class="saprator mt-3">
-            <span>Login with</span>
-          </div>
-          <div class="row">
-            @for (item of SignInOptions; track item) {
-            <div class="col-4">
-              <div class="d-grid">
-                <button type="button" class="btn mt-2 btn-light-primary bg-light text-muted">
-                  <img src="{{ item.image }}" alt="google img" />
-                  <span class="d-none d-sm-inline-block">{{ item.name }}</span>
-                </button>
+
+          <!-- Mensaje de Error / Alerta Destacada -->
+          <div *ngIf="errorMessage"
+            class="alert alert-danger d-flex align-items-start justify-content-between p-3 mb-3 text-start border-danger shadow-sm rounded-3"
+            role="alert" style="background-color: #fef2f2; border: 1.5px solid #ef4444;">
+            <div class="d-flex align-items-start gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#dc2626" class="flex-shrink-0 mt-1"
+                viewBox="0 0 16 16">
+                <path
+                  d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+              </svg>
+              <div>
+                <strong class="d-block text-danger mb-1 fw-bold fs-6">Aviso de Seguridad:</strong>
+                <span class="text-danger small fw-semibold">{{ errorMessage }}</span>
               </div>
             </div>
-            }
+            <button type="button" class="btn-close btn-sm ms-2" aria-label="Cerrar"
+              (click)="errorMessage = ''"></button>
           </div>
-        </div>
-      </div>
-      <div class="auth-footer row">
-        <div class="col my-1">
-          <p class="m-0">
-            Copyright ©
-            <a href="https://codedthemes.com/" target="_blank">CodedThemes</a>
-          </p>
-        </div>
-        <div class="col-auto my-1">
-          <ul class="list-inline footer-link mb-0">
-            <li class="list-inline-item"><a href="https://codedthemes.com/" target="_blank">Home</a></li>
-            <li class="list-inline-item"><a href="https://codedthemes.com/privacy-policy/" target="_blank">Privacy
-                Policy</a></li>
-            <li class="list-inline-item"><a href="https://codedthemes.support-hub.io/" target="_blank">Contact us</a>
-            </li>
-          </ul>
+
+          <!-- Selección Rápida de Rol / Cuentas de Demostración -->
+          <div class="mb-3">
+            <!-- <label class="form-label fw-semibold small text-muted">Acceso rápido por perfil (Test Demo):</label> -->
+            <div class="btn-group w-100" role="group">
+              <button type="button" class="btn btn-outline-primary btn-sm py-2"
+                [class.active]="selectedRole === 'Administrador'" (click)="selectRole('Administrador')">
+                <i class="anticon anticon-user me-1"></i> Admin
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm py-2"
+                [class.active]="selectedRole === 'Asesor'" (click)="selectRole('Asesor')">
+                <i class="anticon anticon-idcard me-1"></i> Asesor
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm py-2"
+                [class.active]="selectedRole === 'Cliente'" (click)="selectRole('Cliente')">
+                <i class="anticon anticon-team me-1"></i> Cliente
+              </button>
+            </div>
+          </div>
+
+          <form (ngSubmit)="onLogin()">
+            <div class="form-group mb-3">
+              <label class="form-label small fw-bold" for="email">Correo Electrónico</label>
+              <input type="email" class="form-control" id="email" [(ngModel)]="email" name="email" required
+                placeholder="correo@finnova.pe" />
+            </div>
+            <div class="form-group mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-bold mb-0" for="password">Contraseña</label>
+                <!-- <span class="badge bg-light text-success border border-success-subtle small py-1 px-2"
+                  style="font-size: 0.72rem;">
+                  <i class="anticon anticon-lock me-1"></i> Cifrado AES-256 Activo
+                </span> -->
+              </div>
+              <input type="password" class="form-control" id="password" [(ngModel)]="password" name="password" required
+                placeholder="••••••••" />
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="remember" checked />
+                <label class="form-check-label text-muted small" for="remember">Recordarme</label>
+              </div>
+              <a [routerLink]="['/landing']" class="text-primary small text-decoration-none fw-semibold">← Volver al
+                Portal</a>
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit"
+                class="btn btn-primary btn-lg fw-bold d-flex justify-content-center align-items-center gap-2"
+                [disabled]="isLoading">
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm" role="status"
+                  aria-hidden="true"></span>
+                <span>{{ isLoading ? 'Verificando credenciales...' : 'Ingresar como ' + selectedRole }}</span>
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

@@ -1,0 +1,146 @@
+﻿<div class="row">
+  <div class="col-12">
+    <app-card cardTitle="Gestión de Proveedores y Aliados Estratégicos">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+          <h5 class="mb-1 text-dark fw-bold">Aseguradoras y Entidades Financieras Aliadas</h5>
+          <p class="text-muted mb-0 small">Administra los aliados estratégicos que respaldan los servicios financieros de Finnova (Rímac, Mapfre, Pacífico, AFP Integra, ONP, etc.).</p>
+        </div>
+        <button class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" (click)="openNewModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+          </svg>
+          Nuevo Proveedor / Aliado
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle border" style="min-width: 850px;">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Empresa / Entidad</th>
+              <th scope="col">Tipo de Alianza</th>
+              <th scope="col">% Comisión Convenio (Broker)</th>
+              <th scope="col">Contacto / Canales</th>
+              <th scope="col">Estado</th>
+              <th scope="col" class="text-end" style="min-width: 220px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of dataService.proveedores$ | async">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; min-width: 38px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5zM9 2.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5zM10.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-bold text-dark">{{ p.nombreEmpresa }}</h6>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-secondary-subtle text-secondary border">{{ p.tipoAlianza }}</span>
+              </td>
+              <td>
+                <span class="badge bg-info-subtle text-primary fw-bold px-2 py-1">
+                  {{ p.comisionPct || 0 }}% Convenio Aliado
+                </span>
+              </td>
+              <td>
+                <span class="small text-dark">{{ p.contacto }}</span>
+              </td>
+              <td>
+                <span [class]="p.status === 'Activo' ? 'badge bg-success' : 'badge bg-danger'">
+                  {{ p.status }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="d-inline-flex flex-nowrap gap-1 justify-content-end align-items-center">
+                  <button class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" (click)="openEditModal(p)" title="Editar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168z"/>
+                    </svg>
+                    Editar
+                  </button>
+                  <button [class]="p.status === 'Activo' ? 'btn btn-sm btn-outline-warning' : 'btn btn-sm btn-outline-success'" (click)="toggleStatus(p)">
+                    {{ p.status === 'Activo' ? 'Dar de baja' : 'Reactivar' }}
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteProveedor(p)" title="Eliminar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                      <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </app-card>
+  </div>
+</div>
+
+<!-- Modal Agregar / Editar Proveedor -->
+<div *ngIf="isModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5zM9 2.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5zM10.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5z"/>
+          </svg>
+          {{ isEditing ? 'Editar Proveedor / Aliado' : 'Registrar Nuevo Proveedor / Aliado' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form (ngSubmit)="saveProveedor()">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nombre de la Empresa / Entidad <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="nombreEmpresa" name="nombreEmpresa" placeholder="Ej. Mapfre Perú / Rímac Seguros" required>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Tipo de Alianza <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="tipoAlianza" name="tipoAlianza" required>
+                <option *ngFor="let opt of tiposAlianzaOptions" [value]="opt">{{ opt }}</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">% Comisión Convenio (Broker) <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <input type="number" step="0.5" min="0" max="100" class="form-control" [(ngModel)]="comisionPct" name="comisionPct" placeholder="15" required>
+                <span class="input-group-text">%</span>
+              </div>
+              <small class="text-muted">Comisión que el Aliado reconoce al culminar asesorías.</small>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Contacto / Correo / Teléfono <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="contacto" name="contacto" placeholder="contacto@empresa.com.pe | (01) 411-0000" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Estado</label>
+            <select class="form-select" [(ngModel)]="status" name="status">
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-4" [disabled]="isSaving">
+              {{ isSaving ? 'Guardando...' : 'Guardar Proveedor' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

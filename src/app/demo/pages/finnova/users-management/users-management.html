@@ -1,44 +1,180 @@
 <div class="row">
   <div class="col-sm-12">
-    <app-card cardTitle="Gestión de Usuarios (RF002)">
-      <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-primary">Nuevo Usuario</button>
+    <app-card cardTitle="Gestión de Usuarios del Sistema">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <p class="text-muted mb-0">Administra el registro, roles y permisos de acceso para Administradores, Asesores y
+            Clientes (Sincronizado con Base de Datos MySQL).</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm shadow-sm" (click)="dataService.loadUsers()"
+            title="Refrescar lista desde la base de datos">
+            <i class="anticon anticon-reload me-1"></i> Actualizar
+          </button>
+          <button *ngIf="(dataService.activeRole$ | async) === 'Administrador'" class="btn btn-primary shadow-sm"
+            (click)="openNewUserModal()">
+            <i class="anticon anticon-user-add me-1"></i> Registrar Usuario
+          </button>
+        </div>
       </div>
+
+      <!-- Banner de Feedback / Alertas -->
+      <div *ngIf="feedbackMessage" class="alert alert-dismissible fade show p-3 mb-3"
+        [ngClass]="feedbackType === 'success' ? 'alert-success border-success' : 'alert-danger border-danger'"
+        role="alert">
+        <div class="d-flex align-items-center gap-2">
+          <i class="anticon"
+            [ngClass]="feedbackType === 'success' ? 'anticon-check-circle' : 'anticon-close-circle'"></i>
+          <span>{{ feedbackMessage }}</span>
+        </div>
+        <button type="button" class="btn-close" (click)="feedbackMessage = ''" aria-label="Close"></button>
+      </div>
+
       <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
+        <table class="table table-hover align-middle border" style="min-width: 900px;">
+          <thead class="table-light">
             <tr>
               <th>ID</th>
+              <th>DNI</th>
               <th>Nombre Completo</th>
-              <th>Rol</th>
+              <th>Correo Electrónico</th>
+              <th>Teléfono</th>
+              <th>Rol Asignado</th>
               <th>Estado</th>
-              <th>Acciones</th>
+              <th>Fecha Registro</th>
+              <th class="text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>Administrador Sistema</td>
-              <td>Admin</td>
-              <td><span class="badge bg-success">Activo</span></td>
+            <tr *ngFor="let user of dataService.users$ | async">
+              <td class="fw-bold text-primary">#{{ user.id }}</td>
+              <td class="fw-semibold">{{ user.dni }}</td>
               <td>
-                <button class="btn btn-sm btn-outline-primary me-2"><i class="anticon anticon-edit"></i> Editar</button>
-                <button class="btn btn-sm btn-outline-danger"><i class="anticon anticon-delete"></i> Desactivar</button>
+                <div class="fw-bold text-dark">{{ user.name }}</div>
               </td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>Juan Asesor</td>
-              <td>Asesor</td>
-              <td><span class="badge bg-success">Activo</span></td>
               <td>
-                <button class="btn btn-sm btn-outline-primary me-2"><i class="anticon anticon-edit"></i> Editar</button>
-                <button class="btn btn-sm btn-outline-danger"><i class="anticon anticon-delete"></i> Desactivar</button>
+                <span class="text-muted small">{{ user.email }}</span>
+              </td>
+              <td>
+                <span class="small">{{ user.phone || 'No registrado' }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-primary': user.role === 'Administrador',
+                  'bg-info text-dark': user.role === 'Asesor',
+                  'bg-secondary': user.role === 'Cliente'
+                }">
+                  {{ user.role }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="user.status === 'Activo' ? 'bg-success' : 'bg-danger'">
+                  {{ user.status }}
+                </span>
+              </td>
+              <td class="small text-muted">{{ user.createdAt }}</td>
+              <td class="text-end">
+                <ng-container *ngIf="(dataService.activeRole$ | async) === 'Administrador'">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-primary" (click)="openEditUserModal(user)" title="Editar usuario">
+                      <i class="anticon anticon-edit"></i> Editar
+                    </button>
+                    <button class="btn"
+                      [ngClass]="user.status === 'Activo' ? 'btn-outline-warning' : 'btn-outline-success'"
+                      (click)="toggleStatus(user)"
+                      [title]="user.status === 'Activo' ? 'Desactivar acceso' : 'Activar acceso'">
+                      {{ user.status === 'Activo' ? 'Desactivar' : 'Activar' }}
+                    </button>
+                    <button class="btn btn-outline-danger" (click)="deleteUser(user)" title="Eliminar usuario">
+                      <i class="anticon anticon-delete"></i> Eliminar
+                    </button>
+                  </div>
+                </ng-container>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </app-card>
+  </div>
+</div>
+
+<!-- Modal In-App para Crear / Editar Usuario -->
+<div *ngIf="isModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);"
+  aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3 overflow-hidden">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold text-white">
+          <i class="anticon" [ngClass]="isEditing ? 'anticon-edit' : 'anticon-user-add'"></i>
+          {{ isEditing ? 'Modificar Usuario' : 'Registrar Nuevo Usuario' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form (ngSubmit)="saveUser()">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">DNI / Documento <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="userDni" name="dni" placeholder="Ej. 72345678"
+                required maxlength="15" />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Rol <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="userRole" name="role" required>
+                <option value="Administrador">Administrador</option>
+                <option value="Asesor">Asesor</option>
+                <option value="Cliente">Cliente</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="userName" name="name"
+                placeholder="Ej. Juan Pérez López" required />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" [(ngModel)]="userEmail" name="email"
+                placeholder="usuario@finnova.pe" required />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Teléfono / Celular</label>
+              <input type="tel" class="form-control" [(ngModel)]="userPhone" name="phone" placeholder="Ej. 987654321" />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">
+                Contraseña {{ isEditing ? '(Opcional)' : '' }}
+              </label>
+              <input type="password" class="form-control" [(ngModel)]="userPassword" name="password"
+                [placeholder]="isEditing ? '•••••••• (Dejar en blanco para no cambiar)' : 'password123'" />
+              <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                {{ isEditing ? 'Ingresa nueva contraseña si deseas cambiarla.' : '' }}
+              </small>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" [(ngModel)]="userStatus" name="status">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer px-0 pb-0 mt-4 d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-4 fw-bold" [disabled]="isSaving">
+              <span *ngIf="isSaving" class="spinner-border spinner-border-sm me-1" role="status"
+                aria-hidden="true"></span>
+              {{ isSaving ? 'Guardando en BD...' : (isEditing ? 'Guardar Cambios' : 'Crear Usuario') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </div>

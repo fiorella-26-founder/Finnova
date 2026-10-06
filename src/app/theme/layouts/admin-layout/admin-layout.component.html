@@ -21,13 +21,13 @@
 <footer class="pc-footer">
   <div class="footer-wrapper container-fluid">
     <div class="row">
-      <div class="col my-1">
+      <!-- <div class="col my-1">
         <p class="m-0">
           Copyright &copy;
           <a href="https://codedthemes.com" target="_blank">CodedThemes</a>
         </p>
-      </div>
-      <div class="col-auto my-1">
+      </div> -->
+      <!-- <div class="col-auto my-1">
         <ul class="list-inline footer-link mb-0">
           <li class="list-inline-item"><a href="https://codedthemes.com/" target="_blank">Home</a></li>
           <li class="list-inline-item">
@@ -35,7 +35,47 @@
           </li>
           <li class="list-inline-item"><a href="https://codedthemes.support-hub.io/" target="_blank">Contact us</a></li>
         </ul>
+      </div> -->
+    </div>
+  </div>
+</footer>
+
+<!-- Modal Promocional de Campaña para Cliente al Iniciar Sesión / Estar Activo -->
+<div *ngIf="activeClientCampaign" class="modal fade show d-block" tabindex="-1"
+  style="background-color: rgba(0,0,0,0.65); z-index: 1060;">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 overflow-hidden" style="border-radius: 12px;">
+      <div class="modal-header bg-primary text-white position-relative py-3">
+        <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2 mb-0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+            class="bi bi-megaphone-fill" viewBox="0 0 16 16">
+            <path
+              d="M13 2.5a1.5 1.5 0 0 1 3 0v11a1.5 1.5 0 0 1-3 0zm-1 .724c-2.067.95-4.539 1.481-7 1.656v6.237a25 25 0 0 1 7 1.656zm-8 7.341C2.158 10.422 1 10.13 1 9.5v-3c0-.63 1.158-.922 3-.065zm0-4.665c-.524-.26-1.125-.45-1.775-.558l.775 3.102c.488-.13.978-.292 1.464-.486z" />
+          </svg>
+          Notificación Promocional Especial
+        </h5>
+        <button type="button" class="btn-close btn-close-white"
+          (click)="dismissCampaign(activeClientCampaign.id)"></button>
+      </div>
+      <div class="modal-body p-0">
+        <img [src]="activeClientCampaign.imageUrl || 'assets/images/afp.jpg'" alt="Anuncio Promocional"
+          class="img-fluid w-100" style="max-height: 220px; object-fit: cover;" />
+        <div class="p-4 text-center">
+          <span class="badge bg-danger-subtle text-danger border border-danger mb-2">¡Novedad para Ti!</span>
+          <h4 class="fw-bold text-dark mb-2">{{ activeClientCampaign.title }}</h4>
+          <p class="text-secondary mb-3">{{ activeClientCampaign.message }}</p>
+
+          <div class="p-2 bg-light rounded border text-center small text-muted mb-3">
+            <strong>Segmentado para ti:</strong> {{ activeClientCampaign.targetServiceName || 'Todos los servicios' }} |
+            {{ activeClientCampaign.targetProveedorName || 'Todos los proveedores' }}
+          </div>
+
+          <button type="button" class="btn btn-primary w-100 py-2 fw-bold shadow-sm"
+            (click)="dismissCampaign(activeClientCampaign.id)">
+            ¡Entendido!
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</footer>
+</div>

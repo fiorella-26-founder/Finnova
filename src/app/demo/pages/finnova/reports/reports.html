@@ -1,55 +1,578 @@
-<div class="row">
-  <div class="col-md-6 col-xl-3">
-    <app-card cardTitle="Total Solicitudes">
-      <h3 class="mb-3">124</h3>
-      <p class="text-muted mb-0">En el último mes</p>
-    </app-card>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <app-card cardTitle="Solicitudes Cerradas">
-      <h3 class="mb-3">89</h3>
-      <p class="text-muted mb-0">71% de efectividad</p>
-    </app-card>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <app-card cardTitle="Citas Pendientes">
-      <h3 class="mb-3">12</h3>
-      <p class="text-muted mb-0">Para esta semana</p>
-    </app-card>
-  </div>
-  <div class="col-md-6 col-xl-3">
-    <app-card cardTitle="Nuevos Clientes">
-      <h3 class="mb-3">45</h3>
-      <p class="text-muted mb-0">Registrados este mes</p>
-    </app-card>
-  </div>
-</div>
+<div class="reports-container">
+  <!-- TOP KPI CARDS SECTION -->
+  <div class="row g-3 mb-4">
+    <!-- Card 1: Comisiones Broker Ganadas -->
+    <div class="col-sm-6 col-xl-4">
+      <div class="report-kpi-card border-kpi-success">
+        <div class="report-kpi-header">
+          <span class="report-kpi-title">Comisiones Broker Ganadas</span>
+          <div class="report-kpi-icon icon-success">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M4 10.781c.148 1.667 1.513 2.85 3.591 3.003V15h1.043v-1.216c2.27-.179 3.678-1.438 3.678-3.3 0-1.59-.947-2.51-2.956-3.028l-.722-.187V3.467c1.122.11 1.879.714 2.07 1.616h1.47c-.166-1.6-1.54-2.748-3.54-2.875V1H7.59v1.233c-1.939.23-3.27 1.472-3.27 3.156 0 1.454.966 2.483 2.661 2.917l.61.162v4.031c-1.149-.17-1.94-.8-2.131-1.718zm3.391-3.836c-1.043-.263-1.6-.69-1.6-1.616 0-.995.9-1.808 2.29-1.95v3.424zM9.362 9.76c1.214.285 1.731.788 1.731 1.716 0 1.01-1.01 1.83-2.376 1.944V9.613z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="report-kpi-value text-success">
+          S/ {{ metrics.solicitudes.comisiones_ganadas_broker | number:'1.2-2' }}
+        </div>
+        <div class="report-kpi-footer">
+          <span class="badge badge-subtle-success">Comisiones de Éxito</span>
+          <span class="report-kpi-note">De {{ metrics.solicitudes.solicitudes_finalizadas }} asesorías finalizadas</span>
+        </div>
+      </div>
+    </div>
 
-<div class="row">
-  <div class="col-sm-12">
-    <app-card cardTitle="Generación de Reportes Específicos (RF014)">
-      <div class="row mb-3">
-        <div class="col-md-4">
-          <label class="form-label">Tipo de Reporte</label>
-          <select class="form-select">
-            <option>Solicitudes por Asesor</option>
-            <option>Rendimiento de Servicios</option>
-            <option>Citas Atendidas</option>
-          </select>
+    <!-- Card 2: Recaudación Total Validada -->
+    <div class="col-sm-6 col-xl-4">
+      <div class="report-kpi-card border-kpi-primary">
+        <div class="report-kpi-header">
+          <span class="report-kpi-title">Recaudación Cobranzas</span>
+          <div class="report-kpi-icon icon-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z"/>
+              <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+            </svg>
+          </div>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Rango de Fechas</label>
-          <input type="date" class="form-control mb-2">
-          <input type="date" class="form-control">
+        <div class="report-kpi-value text-primary">
+          S/ {{ metrics.solicitudes.total_recaudado | number:'1.2-2' }}
         </div>
-        <div class="col-md-4 d-flex align-items-end">
-          <button class="btn btn-primary w-100">Generar PDF</button>
+        <div class="report-kpi-footer">
+          <span class="badge badge-subtle-primary">{{ metrics.solicitudes.pagos_validados }} Pagos Validados</span>
+          <span class="report-kpi-note">Vía Yape / Transferencia</span>
         </div>
       </div>
-      <div class="text-center p-5 bg-light rounded text-muted">
-        <i class="anticon anticon-bar-chart fs-1 mb-2 d-block"></i>
-        Aquí se visualizará el gráfico o tabla del reporte generado.
+    </div>
+
+    <!-- Card 3: Solicitudes de Asesoría -->
+    <div class="col-sm-6 col-xl-4">
+      <div class="report-kpi-card border-kpi-info">
+        <div class="report-kpi-header">
+          <span class="report-kpi-title">Volumen de Solicitudes</span>
+          <div class="report-kpi-icon icon-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
+              <path d="M4 4.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0 3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0 3a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="report-kpi-value text-dark">
+          {{ metrics.solicitudes.total_solicitudes }}
+        </div>
+        <div class="report-kpi-footer">
+          <span class="badge badge-subtle-success">{{ metrics.solicitudes.solicitudes_finalizadas }} Finalizadas</span>
+          <span class="badge badge-subtle-info">{{ metrics.solicitudes.solicitudes_atendidas }} Atendidas</span>
+          <span class="badge badge-subtle-warning">{{ metrics.solicitudes.solicitudes_en_proceso }} En Proceso</span>
+        </div>
       </div>
-    </app-card>
+    </div>
+
+    <!-- Card 4: Catálogo de Servicios Financieros -->
+    <div class="col-sm-6 col-xl-4">
+      <div class="report-kpi-card border-kpi-warning">
+        <div class="report-kpi-header">
+          <span class="report-kpi-title">Catálogo de Servicios</span>
+          <div class="report-kpi-icon icon-warning">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.96v4.708C4.25 11.234 6.002 13.06 8 14c1.998-.94 3.75-2.766 3.75-4.832V4.46l2.404-.96z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="report-kpi-value text-warning">
+          {{ metrics.servicios.total_servicios }}
+        </div>
+        <div class="report-kpi-footer">
+          <span class="badge badge-subtle-success">{{ metrics.servicios.servicios_activos }} Activos</span>
+          <span class="report-kpi-note">{{ metrics.servicios.total_categorias }} Categorías disponibles</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: Campañas de Marketing -->
+    <div class="col-sm-6 col-xl-4">
+      <div class="report-kpi-card border-kpi-purple">
+        <div class="report-kpi-header">
+          <span class="report-kpi-title">Campañas Publicitarias</span>
+          <div class="report-kpi-icon icon-purple">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M13 2.5a1.5 1.5 0 0 1 3 0v11a1.5 1.5 0 0 1-3 0zm-1 .724c-.238-.159-.5-.262-.77-.306a4.5 4.5 0 0 0-4.46 2.378l-.133.242-4.524 1.81A1.5 1.5 0 0 0 1.154 9.15l2.67 4.004a1.5 1.5 0 0 0 2.057.447l4.524-1.81.242-.133a4.5 4.5 0 0 0 2.378-4.46c-.044-.27-.147-.532-.306-.77z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="report-kpi-value text-purple">
+          {{ metrics.campanias.total_campanias }}
+        </div>
+        <div class="report-kpi-footer">
+          <span class="badge badge-subtle-success">{{ metrics.campanias.campanias_activas }} Activas</span>
+          <span class="badge badge-subtle-secondary">{{ metrics.campanias.campanias_inactivas }} En Borrador / Pausa</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6: Clientes y Citas Agendadas -->
+    <div class="col-sm-6 col-xl-4">
+      <div class="report-kpi-card border-kpi-dark">
+        <div class="report-kpi-header">
+          <span class="report-kpi-title">Clientes y Citas</span>
+          <div class="report-kpi-icon icon-dark">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="report-kpi-value text-dark">
+          {{ metrics.clientes.total_clientes }} <span class="report-kpi-unit">Clientes</span>
+        </div>
+        <div class="report-kpi-footer">
+          <span class="badge badge-subtle-success">{{ metrics.citas.citas_realizadas }} Citas Realizadas</span>
+          <span class="badge badge-subtle-warning">{{ metrics.citas.citas_programadas }} Programadas</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT CONFIGURATION AND FILTER PANEL -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <app-card cardTitle="Panel de Filtros y Generación de Reportería Financiera">
+        <!-- Quick Period Filter Buttons -->
+        <div class="period-button-bar mb-3">
+          <span class="period-label">Período Rápido:</span>
+          <button type="button" class="btn btn-sm" [ngClass]="activePeriodLabel === 'Este Mes' ? 'btn-primary' : 'btn-outline-secondary'" (click)="setQuickPeriod('month'); generateReport()">Este Mes</button>
+          <button type="button" class="btn btn-sm" [ngClass]="activePeriodLabel === 'Trimestre Actual' ? 'btn-primary' : 'btn-outline-secondary'" (click)="setQuickPeriod('quarter'); generateReport()">Trimestre Actual</button>
+          <button type="button" class="btn btn-sm" [ngClass]="activePeriodLabel.includes('Año') ? 'btn-primary' : 'btn-outline-secondary'" (click)="setQuickPeriod('year'); generateReport()">Año en Curso</button>
+          <button type="button" class="btn btn-sm" [ngClass]="activePeriodLabel === 'Histórico Completo' ? 'btn-primary' : 'btn-outline-secondary'" (click)="setQuickPeriod('all'); generateReport()">Histórico Completo</button>
+        </div>
+
+        <form (ngSubmit)="generateReport()" class="row g-3 align-items-end filter-form">
+          <!-- Report Type Selector -->
+          <div class="col-md-3">
+            <label class="form-label form-label-bold">Tipo de Reporte</label>
+            <select class="form-select" [(ngModel)]="reportType" name="rType" (change)="generateReport()">
+              <option value="comisiones">1. Comisiones y Liquidación por Solicitud</option>
+              <option value="ganancias">2. Ganancias Acumuladas por Periodo</option>
+              <option value="servicios">3. Rendimiento de Servicios Financieros</option>
+              <option value="asesores">4. Desempeño y Efectividad de Asesores</option>
+              <option value="campanias">5. Métricas de Campañas de Marketing</option>
+            </select>
+          </div>
+
+          <!-- Grouping option for Ganancias report -->
+          <div *ngIf="reportType === 'ganancias'" class="col-md-2">
+            <label class="form-label form-label-bold">Agrupación Temporal</label>
+            <select class="form-select" [(ngModel)]="agrupacion" name="agrup" (change)="generateReport()">
+              <option value="mes">Mensual</option>
+              <option value="semana">Semanal</option>
+            </select>
+          </div>
+
+          <!-- Status Filter for Comisiones report -->
+          <div *ngIf="reportType === 'comisiones'" class="col-md-2">
+            <label class="form-label form-label-bold">Estado Atención</label>
+            <select class="form-select" [(ngModel)]="estadoAtencionFiltro" name="estAt" (change)="generateReport()">
+              <option value="Todos">Todos los Estados</option>
+              <option value="Finalizada">Finalizada (Éxito)</option>
+              <option value="Atendida">Atendida</option>
+              <option value="En Proceso">En Proceso</option>
+              <option value="Pendiente">Pendientes / Nuevas</option>
+            </select>
+          </div>
+
+          <!-- Start Date -->
+          <div class="col-md-2">
+            <label class="form-label form-label-bold">Fecha Desde</label>
+            <input type="date" class="form-control" [(ngModel)]="startDate" name="sDate">
+          </div>
+
+          <!-- End Date -->
+          <div class="col-md-2">
+            <label class="form-label form-label-bold">Fecha Hasta</label>
+            <input type="date" class="form-control" [(ngModel)]="endDate" name="eDate">
+          </div>
+
+          <!-- Live Search Input -->
+          <div class="col-md-3">
+            <label class="form-label form-label-bold">Buscar en Resultados</label>
+            <div class="input-group">
+              <input type="text" class="form-control" placeholder="Filtrar por cliente, servicio, etc..." [(ngModel)]="searchTerm" name="sTerm">
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="col-md-12 d-flex justify-content-end gap-2 mt-3 filter-action-buttons">
+            <button type="button" class="btn btn-outline-secondary d-flex align-items-center gap-1" (click)="resetFilters()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+              </svg>
+              Restablecer
+            </button>
+            <button type="submit" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm" [disabled]="isLoadingReport">
+              <svg *ngIf="!isLoadingReport" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+              </svg>
+              <span *ngIf="isLoadingReport" class="spinner-border spinner-border-sm me-1"></span>
+              Consultar Reporte
+            </button>
+          </div>
+        </form>
+      </app-card>
+    </div>
+  </div>
+
+  <!-- REPORT RESULTS SECTION -->
+  <div class="row">
+    <div class="col-12">
+      <app-card>
+        <!-- Results Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 report-results-header">
+          <div>
+            <h5 class="fw-bold mb-1 text-dark">
+              <span *ngIf="reportType === 'comisiones'">Reporte de Comisiones y Liquidación por Solicitud</span>
+              <span *ngIf="reportType === 'ganancias'">Reporte de Ganancias Acumuladas por {{ agrupacion === 'mes' ? 'Mes' : 'Semana' }}</span>
+              <span *ngIf="reportType === 'servicios'">Reporte de Rendimiento por Servicio Financiero</span>
+              <span *ngIf="reportType === 'asesores'">Reporte de Desempeño y Efectividad por Asesor</span>
+              <span *ngIf="reportType === 'campanias'">Reporte de Métricas y Alcance de Campañas Publicitarias</span>
+            </h5>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="badge bg-primary-subtle text-primary border">{{ activePeriodLabel }}</span>
+              <span *ngIf="startDate && endDate" class="text-muted small">
+                Del {{ startDate }} al {{ endDate }}
+              </span>
+              <span class="badge bg-secondary-subtle text-secondary border">
+                <span *ngIf="reportType === 'comisiones'">{{ filteredComisiones.length }} registros</span>
+                <span *ngIf="reportType === 'ganancias'">{{ filteredGanancias.length }} periodos</span>
+                <span *ngIf="reportType === 'servicios'">{{ filteredServicios.length }} servicios</span>
+                <span *ngIf="reportType === 'asesores'">{{ filteredAsesores.length }} asesores</span>
+                <span *ngIf="reportType === 'campanias'">{{ filteredCampanias.length }} campañas</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Export Buttons -->
+          <div class="d-flex gap-2 export-btn-group">
+            <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1 shadow-sm" (click)="downloadCSV()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+              </svg>
+              Exportar CSV / Excel
+            </button>
+            <button class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 shadow-sm" (click)="downloadPDF()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
+                <path d="M4.603 14.087a.8.8 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.18.337-.648 1.05-1.572 2.158-2.607 1.002-.937 2.062-1.637 2.924-2.072.33-.167.653-.304.95-.407.25-.087.5-.138.746-.153.308-.018.618.04.887.218.423.28.59.782.41 1.258-.168.444-.582.78-1.077.925-.562.164-1.25.138-1.996-.062-.337-.09-.68-.216-1.02-.37-.872.766-1.74 1.706-2.42 2.624a18 18 0 0 0-1.006 1.487c-.12.202-.218.384-.282.52-.055.116-.08.204-.085.25z"/>
+              </svg>
+              Imprimir / PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TABLE 1: COMISIONES POR SOLICITUD -->
+        <!-- ========================================================= -->
+        <div *ngIf="reportType === 'comisiones'" class="table-responsive">
+          <table class="table table-hover align-middle border report-data-table">
+            <thead class="table-light">
+              <tr>
+                <th>Código / Fecha</th>
+                <th>Cliente</th>
+                <th>Servicio / Aliado</th>
+                <th>Asesor Asignado</th>
+                <th class="text-end">Tarifa Servicio</th>
+                <th class="text-center">Estado Pago</th>
+                <th class="text-center">% Aliado</th>
+                <th class="text-end text-success">Comisión Broker</th>
+                <th class="text-center">Estado Atención</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of filteredComisiones">
+                <td>
+                  <span class="badge bg-light text-primary border fw-bold">{{ item.id_solicitud }}</span>
+                  <div class="small text-muted">{{ item.fecha_registro | slice:0:10 }}</div>
+                </td>
+                <td>
+                  <div class="fw-bold text-dark">{{ item.nombre_cliente }}</div>
+                  <div class="small text-muted">DNI: {{ item.dni_cliente }}</div>
+                </td>
+                <td>
+                  <div class="fw-semibold text-dark">{{ item.titulo_servicio }}</div>
+                  <span *ngIf="item.nombre_proveedor && item.nombre_proveedor !== '-'" class="badge badge-aliado-tag">
+                    {{ item.nombre_proveedor }}
+                  </span>
+                </td>
+                <td>
+                  <span *ngIf="item.nombre_asesor && item.nombre_asesor !== 'Sin Asignar'" class="badge bg-info-subtle text-info border">
+                    {{ item.nombre_asesor }}
+                  </span>
+                  <span *ngIf="!item.nombre_asesor || item.nombre_asesor === 'Sin Asignar'" class="badge bg-secondary-subtle text-secondary border">
+                    Sin Asignar
+                  </span>
+                </td>
+                <td class="text-end fw-semibold">
+                  S/ {{ (item.monto_servicio || item.monto_pagado || 0) | number:'1.2-2' }}
+                </td>
+                <td class="text-center">
+                  <span [ngClass]="item.estado_pago === 'Pagado' ? 'badge bg-success' : (item.estado_pago === 'Pendiente' ? 'badge bg-warning text-dark' : 'badge bg-danger')">
+                    {{ item.estado_pago }}
+                  </span>
+                </td>
+                <td class="text-center fw-bold text-secondary">
+                  {{ item.porcentaje_comision_aliado || 0 }}%
+                </td>
+                <td class="text-end fw-bold text-success font-monospace">
+                  S/ {{ (item.monto_comision_broker || 0) | number:'1.2-2' }}
+                </td>
+                <td class="text-center">
+                  <span class="badge" [ngClass]="{
+                    'bg-success': item.estado_atencion === 'Finalizada',
+                    'bg-info': item.estado_atencion === 'Atendida',
+                    'bg-primary': item.estado_atencion === 'En Proceso',
+                    'bg-warning text-dark': item.estado_atencion.includes('Pendiente') || item.estado_atencion === 'Nueva',
+                    'bg-secondary': item.estado_atencion === 'Nula / Abandonada' || item.estado_atencion === 'Pago Rechazado'
+                  }">
+                    {{ item.estado_atencion }}
+                  </span>
+                </td>
+              </tr>
+              <!-- Empty State -->
+              <tr *ngIf="filteredComisiones.length === 0">
+                <td colspan="9" class="text-center py-4 text-muted">
+                  No se encontraron solicitudes para los filtros seleccionados.
+                </td>
+              </tr>
+            </tbody>
+            <!-- Summary Totals Footer -->
+            <tfoot *ngIf="filteredComisiones.length > 0" class="table-totals-footer">
+              <tr>
+                <td colspan="4" class="fw-bold text-dark text-uppercase">Totales Acumulados:</td>
+                <td class="text-end fw-bold text-dark font-monospace">S/ {{ totalRecaudadoComisionesSum | number:'1.2-2' }}</td>
+                <td colspan="2" class="text-center fw-bold">{{ filteredComisiones.length }} Solicitudes</td>
+                <td class="text-end fw-bold text-success font-monospace fs-6">S/ {{ totalComisionesSum | number:'1.2-2' }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TABLE 2: GANANCIAS ACUMULADAS POR PERIODO -->
+        <!-- ========================================================= -->
+        <div *ngIf="reportType === 'ganancias'" class="table-responsive">
+          <table class="table table-hover align-middle border report-data-table">
+            <thead class="table-light">
+              <tr>
+                <th>Periodo ({{ agrupacion === 'mes' ? 'Año-Mes' : 'Semana' }})</th>
+                <th class="text-center">Total Solicitudes</th>
+                <th class="text-center">Solicitudes Exitosas</th>
+                <th class="text-center">Tasa de Éxito (%)</th>
+                <th class="text-end">Monto Solicitado</th>
+                <th class="text-end text-primary">Total Recaudado</th>
+                <th class="text-end text-success">Comisiones Broker Ganadas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of filteredGanancias">
+                <td class="fw-bold text-dark">{{ item.periodo }}</td>
+                <td class="text-center fw-bold">{{ item.total_solicitudes }}</td>
+                <td class="text-center">
+                  <span class="badge bg-success-subtle text-success border">{{ item.solicitudes_exitosas }}</span>
+                </td>
+                <td class="text-center">
+                  <div class="d-flex align-items-center justify-content-center gap-2">
+                    <span class="small fw-bold">
+                      {{ item.total_solicitudes > 0 ? ((item.solicitudes_exitosas / item.total_solicitudes) * 100 | number:'1.0-0') : 0 }}%
+                    </span>
+                  </div>
+                </td>
+                <td class="text-end">S/ {{ item.monto_total_solicitado | number:'1.2-2' }}</td>
+                <td class="text-end fw-bold text-primary font-monospace">S/ {{ item.total_recaudado | number:'1.2-2' }}</td>
+                <td class="text-end fw-bold text-success font-monospace">S/ {{ item.comisiones_broker | number:'1.2-2' }}</td>
+              </tr>
+              <tr *ngIf="filteredGanancias.length === 0">
+                <td colspan="7" class="text-center py-4 text-muted">
+                  No hay registros de ganancias para el periodo seleccionado.
+                </td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="filteredGanancias.length > 0" class="table-totals-footer">
+              <tr>
+                <td class="fw-bold text-dark text-uppercase">Total General:</td>
+                <td colspan="3" class="text-center fw-bold">{{ filteredGanancias.length }} Periodos</td>
+                <td class="text-end fw-bold font-monospace">-</td>
+                <td class="text-end fw-bold text-primary font-monospace">S/ {{ totalGananciasPeriodoSum | number:'1.2-2' }}</td>
+                <td class="text-end fw-bold text-success font-monospace fs-6">S/ {{ totalComisionesPeriodoSum | number:'1.2-2' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TABLE 3: RENDIMIENTO DE SERVICIOS -->
+        <!-- ========================================================= -->
+        <div *ngIf="reportType === 'servicios'" class="table-responsive">
+          <table class="table table-hover align-middle border report-data-table">
+            <thead class="table-light">
+              <tr>
+                <th>Servicio Financiero</th>
+                <th>Categoría</th>
+                <th>Aliado Proveedor</th>
+                <th class="text-end">Tarifa</th>
+                <th class="text-center">Solicitudes</th>
+                <th class="text-center">Finalizadas</th>
+                <th class="text-end text-primary">Recaudación</th>
+                <th class="text-end text-success">Comisión Broker Aportada</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of filteredServicios">
+                <td class="fw-bold text-dark">{{ item.titulo }}</td>
+                <td>
+                  <span class="badge bg-light text-dark border">{{ item.categoria }}</span>
+                </td>
+                <td>
+                  <span class="fw-semibold text-secondary">{{ item.nombre_proveedor }}</span>
+                </td>
+                <td class="text-end">S/ {{ item.precio_tarifa | number:'1.2-2' }}</td>
+                <td class="text-center fw-bold">{{ item.total_solicitudes }}</td>
+                <td class="text-center">
+                  <span class="badge bg-success-subtle text-success border">{{ item.solicitudes_exitosas }}</span>
+                </td>
+                <td class="text-end fw-bold text-primary font-monospace">S/ {{ item.total_recaudado | number:'1.2-2' }}</td>
+                <td class="text-end fw-bold text-success font-monospace">S/ {{ item.total_comisiones_broker | number:'1.2-2' }}</td>
+                <td class="text-center">
+                  <span [ngClass]="item.estado_servicio === 'Activo' ? 'badge bg-success' : 'badge bg-secondary'">
+                    {{ item.estado_servicio }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="filteredServicios.length === 0">
+                <td colspan="9" class="text-center py-4 text-muted">
+                  No hay servicios registrados para mostrar.
+                </td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="filteredServicios.length > 0" class="table-totals-footer">
+              <tr>
+                <td colspan="4" class="fw-bold text-dark text-uppercase">Total Consolidado Servicios:</td>
+                <td colspan="2" class="text-center fw-bold">{{ filteredServicios.length }} Servicios</td>
+                <td class="text-end fw-bold text-primary font-monospace">S/ {{ totalServiciosRecaudacionSum | number:'1.2-2' }}</td>
+                <td class="text-end fw-bold text-success font-monospace fs-6">S/ {{ totalServiciosComisionesSum | number:'1.2-2' }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TABLE 4: DESEMPEÑO DE ASESORES -->
+        <!-- ========================================================= -->
+        <div *ngIf="reportType === 'asesores'" class="table-responsive">
+          <table class="table table-hover align-middle border report-data-table">
+            <thead class="table-light">
+              <tr>
+                <th>Asesor Financiero</th>
+                <th>Correo Electrónico</th>
+                <th class="text-center">Solicitudes Asignadas</th>
+                <th class="text-center">Finalizadas</th>
+                <th class="text-center">Citas Realizadas</th>
+                <th class="text-center">Tasa de Cierre (%)</th>
+                <th class="text-end text-primary">Recaudación Generada</th>
+                <th class="text-end text-success">Comisiones Finnova</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of filteredAsesores">
+                <td>
+                  <div class="fw-bold text-dark">{{ item.nombre_asesor }}</div>
+                  <div class="small text-muted">ID #{{ item.id_usuario }}</div>
+                </td>
+                <td class="text-secondary">{{ item.correo_electronico }}</td>
+                <td class="text-center fw-bold">{{ item.total_solicitudes }}</td>
+                <td class="text-center">
+                  <span class="badge bg-success-subtle text-success border">{{ item.solicitudes_finalizadas }}</span>
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-info-subtle text-info border">{{ item.citas_realizadas }} / {{ item.total_citas_asignadas }}</span>
+                </td>
+                <td class="text-center fw-bold">
+                  {{ item.total_solicitudes > 0 ? ((item.solicitudes_finalizadas / item.total_solicitudes) * 100 | number:'1.0-0') : 0 }}%
+                </td>
+                <td class="text-end fw-bold text-primary font-monospace">S/ {{ item.total_recaudado | number:'1.2-2' }}</td>
+                <td class="text-end fw-bold text-success font-monospace">S/ {{ item.total_comisiones_generadas | number:'1.2-2' }}</td>
+                <td class="text-center">
+                  <span [ngClass]="item.estado_asesor === 'Activo' ? 'badge bg-success' : 'badge bg-secondary'">
+                    {{ item.estado_asesor }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="filteredAsesores.length === 0">
+                <td colspan="9" class="text-center py-4 text-muted">
+                  No hay asesores asignados o registrados en el sistema.
+                </td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="filteredAsesores.length > 0" class="table-totals-footer">
+              <tr>
+                <td colspan="3" class="fw-bold text-dark text-uppercase">Total Asesores Activos:</td>
+                <td colspan="3" class="text-center fw-bold">{{ filteredAsesores.length }} Asesores</td>
+                <td class="text-end fw-bold text-primary font-monospace">S/ {{ totalAsesoresRecaudadoSum | number:'1.2-2' }}</td>
+                <td class="text-end fw-bold text-success font-monospace fs-6">S/ {{ totalAsesoresComisionesSum | number:'1.2-2' }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TABLE 5: MÉTRICAS DE CAMPAÑAS -->
+        <!-- ========================================================= -->
+        <div *ngIf="reportType === 'campanias'" class="table-responsive">
+          <table class="table table-hover align-middle border report-data-table">
+            <thead class="table-light">
+              <tr>
+                <th>Campaña Publicitaria</th>
+                <th>Servicio Promovido</th>
+                <th>Aliado Proveedor</th>
+                <th>Público Objetivo</th>
+                <th>Fecha Programada</th>
+                <th>Creado Por</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of filteredCampanias">
+                <td>
+                  <div class="fw-bold text-dark">{{ item.titulo }}</div>
+                  <div class="small text-muted">ID #{{ item.id_campana }}</div>
+                </td>
+                <td class="fw-semibold text-primary">{{ item.servicio_promovido }}</td>
+                <td>
+                  <span class="badge badge-aliado-tag">{{ item.aliado_proveedor }}</span>
+                </td>
+                <td class="text-secondary">{{ item.publico_objetivo || 'Público General' }}</td>
+                <td>
+                  <span class="small text-muted">{{ item.fecha_programada ? (item.fecha_programada | slice:0:10) : (item.fecha_creacion | slice:0:10) }}</span>
+                </td>
+                <td class="text-secondary">{{ item.usuario_creador }}</td>
+                <td class="text-center">
+                  <span [ngClass]="item.estado === 'Activa' ? 'badge bg-success' : 'badge bg-secondary'">
+                    {{ item.estado }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="filteredCampanias.length === 0">
+                <td colspan="7" class="text-center py-4 text-muted">
+                  No hay campañas registradas para mostrar.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </app-card>
+    </div>
   </div>
 </div>

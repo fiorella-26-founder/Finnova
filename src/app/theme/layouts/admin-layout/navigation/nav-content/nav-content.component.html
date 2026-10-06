@@ -2,30 +2,27 @@
 <ng-scrollbar style="height: calc(100vh - 40px)" visibility="hover" id="nav-ps-mantis">
   <div class="navbar-content">
     <ul class="nav coded-inner-navbar" (click)="fireOutClick()" (mouseleave)="navMob()">
-      @for (item of navigations; track item) {
+      @for (item of filteredNavigations; track item) {
       @if (item.type === 'group') {
       <app-nav-group [item]="item" />
       }
       }
     </ul>
-    <div class="m-4 mb-0">
-      <div class="card nav-card">
-        <div class="card-body">
-          <div class="d-flex flex-column align-items-center">
-            <img src="assets/images/avatar-group.png" alt="user" class="img-fluid" />
-            <div class="m-t-20 text-center">
-              <h5 class="mb-0">Finnova</h5>
-              <span class="text-muted">Checkout pro features</span>
-            </div>
-            <div class="m-t-20 text-center">
-              <a href="https://codedthemes.com/item/mantis-angular-admin-template/?utm_source=free_demo&utm_medium=codedthemes&utm_campaign=button_download_premium"
-                target="_blank" class="btn btn-primary text-white">
-                Pro
-              </a>
+    <!-- <div class="m-3 mb-2">
+      <div class="card bg-light border-0 shadow-sm">
+        <div class="card-body p-3">
+          <div class="text-center">
+            <h6 class="mb-1 text-primary fw-bold">Sistema Finnova</h6>
+            <span class="badge bg-primary mb-2">Rol: {{ dataService.activeRole$ | async }}</span>
+            <p class="text-muted small mb-2">Cambiar vista de rol:</p>
+            <div class="btn-group btn-group-sm w-100" role="group">
+              <button type="button" class="btn btn-outline-primary" [class.active]="(dataService.activeRole$ | async) === 'Administrador'" (click)="switchRole('Administrador')">Admin</button>
+              <button type="button" class="btn btn-outline-primary" [class.active]="(dataService.activeRole$ | async) === 'Asesor'" (click)="switchRole('Asesor')">Asesor</button>
+              <button type="button" class="btn btn-outline-primary" [class.active]="(dataService.activeRole$ | async) === 'Cliente'" (click)="switchRole('Cliente')">Cliente</button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </ng-scrollbar>

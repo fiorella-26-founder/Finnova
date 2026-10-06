@@ -1,39 +1,79 @@
 <div class="row">
   <div class="col-sm-12">
-    <app-card cardTitle="Gestión de Clientes (RF004, RF005)">
-      <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-primary">Registrar Cliente</button>
+    <app-card cardTitle="Gestión Integral de Clientes (F005)">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <p class="text-muted mb-0">Base de datos de clientes, consulta de historial y trazabilidad de solicitudes y citas financieras.</p>
+        <!-- Solo Administrador puede registrar nuevos clientes directamente -->
+        <button *ngIf="(dataService.activeRole$ | async) === 'Administrador'"
+          class="btn btn-primary d-flex align-items-center gap-2 shadow-sm" (click)="openNewClientModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+          </svg>
+          Nuevo Cliente
+        </button>
       </div>
+
       <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
+        <table class="table table-hover align-middle border" style="min-width: 900px;">
+          <thead class="table-light">
             <tr>
               <th>DNI</th>
               <th>Nombre Completo</th>
-              <th>Correo Electrónico</th>
-              <th>Teléfono</th>
-              <th>Acciones</th>
+              <th>Contacto</th>
+              <th>Dirección</th>
+              <th>Estado</th>
+              <th class="text-end" style="min-width: 160px;">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>72345678</td>
-              <td>María López</td>
-              <td>maria@ejemplo.com</td>
-              <td>987654321</td>
+            <tr *ngFor="let client of dataService.clients$ | async">
+              <td class="fw-bold">{{ client.dni }}</td>
+              <td>{{ client.name }}</td>
               <td>
-                <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#assignAdvisorModal"><i antIcon type="user-add" theme="outline"></i> Asignar asesor</button>
-                <button class="btn btn-sm btn-outline-info"><i antIcon type="eye" theme="outline"></i> Ver Detalle</button>
+                <div><span class="text-dark">{{ client.email }}</span></div>
+                <div class="small text-muted">{{ client.phone }}</div>
               </td>
-            </tr>
-            <tr>
-              <td>45678901</td>
-              <td>Carlos Pérez</td>
-              <td>carlos@ejemplo.com</td>
-              <td>912345678</td>
               <td>
-                <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#assignAdvisorModal"><i antIcon type="user-add" theme="outline"></i> Asignar asesor</button>
-                <button class="btn btn-sm btn-outline-info"><i antIcon type="eye" theme="outline"></i> Ver Detalle</button>
+                <span class="small text-muted">{{ client.address || 'Sin dirección' }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="client.status === 'Activo' ? 'bg-success' : 'bg-danger'">
+                  {{ client.status }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="d-inline-flex flex-nowrap gap-1 justify-content-end align-items-center">
+                  <!-- Historial / Detalle: Accesible para Administrador y Asesor -->
+                  <button class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1" (click)="openDetailModal(client)" title="Ver Historial">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-1.289 1.289-3.05 2.457-5.133 2.457s-3.844-1.168-5.133-2.457A13 13 0 0 1 1.172 8z"/>
+                      <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                    </svg>
+                    Historial
+                  </button>
+
+                  <!-- Modificaciones: Exclusivas para el Administrador -->
+                  <ng-container *ngIf="(dataService.activeRole$ | async) === 'Administrador'">
+                    <button class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" (click)="openEditClientModal(client)" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                      </svg>
+                      Editar
+                    </button>
+
+                    <button class="btn btn-sm d-inline-flex align-items-center" [ngClass]="client.status === 'Activo' ? 'btn-outline-warning text-dark' : 'btn-outline-success'"
+                      (click)="toggleStatus(client)" [title]="client.status === 'Activo' ? 'Desactivar' : 'Activar'">
+                      {{ client.status === 'Activo' ? 'Inactivar' : 'Activar' }}
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center" (click)="deleteClient(client)" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                      </svg>
+                    </button>
+                  </ng-container>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -41,33 +81,141 @@
       </div>
     </app-card>
   </div>
+</div>
 
-<!-- Modal para Asignar Asesor -->
-<div class="modal fade" id="assignAdvisorModal" tabindex="-1" aria-labelledby="assignAdvisorModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="assignAdvisorModalLabel">Asignar Asesor</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal Registrar / Editar Cliente (Admin) -->
+<div *ngIf="isFormModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+          </svg>
+          {{ isEditing ? 'Actualizar Información del Cliente' : 'Registrar Nuevo Cliente' }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeFormModal()"></button>
       </div>
-      <div class="modal-body">
-        <form>
-          <div class="mb-3">
-            <label for="advisorSelect" class="form-label">Seleccionar Asesor</label>
-            <select class="form-select" id="advisorSelect">
-              <option selected disabled>Elige un asesor...</option>
-              <option value="1">Juan Asesor</option>
-              <option value="2">Ana Especialista</option>
-              <option value="3">Luis Consejero</option>
-            </select>
+      <div class="modal-body p-4">
+        <form (ngSubmit)="saveClient()">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">DNI / Documento <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="clientDni" name="dni" placeholder="72345678"
+                required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Teléfono / Celular</label>
+              <input type="text" class="form-control" [(ngModel)]="clientPhone" name="phone" placeholder="987654321" />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="clientName" name="name" placeholder="María López"
+                required />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" [(ngModel)]="clientEmail" name="email"
+                placeholder="maria@ejemplo.com" required />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Dirección</label>
+              <input type="text" class="form-control" [(ngModel)]="clientAddress" name="address"
+                placeholder="Av. Principal 123, San Isidro" />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" [(ngModel)]="clientStatus" name="status">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer px-0 pb-0 mt-4">
+            <button type="button" class="btn btn-secondary" (click)="closeFormModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-4" [disabled]="isSaving">
+              {{ isSaving ? 'Guardando...' : 'Guardar Cliente' }}
+            </button>
           </div>
         </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Guardar Asignación</button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Modal Detalle / Historial del Cliente (F005 - Accesible para Admin y Asesor) -->
+<div *ngIf="isDetailModalOpen && selectedClient" class="modal fade show d-block" tabindex="-1"
+  style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title fw-bold text-white">Consulta y Perfil del Cliente</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeDetailModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <h5 class="fw-bold text-primary mb-1">{{ selectedClient.name }}</h5>
+            <p class="text-muted small mb-1"><strong>DNI:</strong> {{ selectedClient.dni }}</p>
+            <p class="text-muted small mb-1"><strong>Correo:</strong> {{ selectedClient.email }}</p>
+            <p class="text-muted small mb-0"><strong>Teléfono:</strong> {{ selectedClient.phone }}</p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <span class="badge mb-2 d-inline-block" [ngClass]="selectedClient.status === 'Activo' ? 'bg-success' : 'bg-danger'">{{ selectedClient.status }}</span>
+            <p class="small text-muted mb-0"><strong>Dirección:</strong> {{ selectedClient.address || 'Sin dirección registrada' }}</p>
+          </div>
+        </div>
+
+        <h6 class="fw-bold border-bottom pb-2 mb-3 d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
+            <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+            <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2z"/>
+          </svg>
+          Historial de Solicitudes y Asesores Asignados
+        </h6>
+        <div *ngIf="clientRequests.length === 0" class="alert alert-light text-center small text-muted">No cuenta con solicitudes registradas.</div>
+        <ul *ngIf="clientRequests.length > 0" class="list-group mb-4">
+          <li *ngFor="let req of clientRequests"
+            class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-bold text-dark me-2">{{ req.id }}</span>
+              <span class="fw-semibold">{{ req.serviceTitle }}</span>
+              <div class="small text-muted mt-1">
+                <span>Fecha: {{ req.date }}</span> •
+                <span class="fw-semibold text-primary">Asesor: {{ req.assignedAdvisorName || 'Sin Asignar' }}</span>
+              </div>
+            </div>
+            <span class="badge bg-primary">{{ req.status }}</span>
+          </li>
+        </ul>
+
+        <h6 class="fw-bold border-bottom pb-2 mb-3 d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-event" viewBox="0 0 16 16">
+            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/>
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+          </svg>
+          Citas Programadas
+        </h6>
+        <div *ngIf="clientAppointments.length === 0" class="alert alert-light text-center small text-muted">No registra citas agendadas.</div>
+        <ul *ngIf="clientAppointments.length > 0" class="list-group">
+          <li *ngFor="let app of clientAppointments"
+            class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-bold text-dark me-2">{{ app.id }}</span>
+              <span>{{ app.dateTime }} ({{ app.modality }})</span>
+              <span class="small text-muted d-block">Asesor: {{ app.advisorName }}</span>
+            </div>
+            <span class="badge bg-info text-dark">{{ app.status }}</span>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>

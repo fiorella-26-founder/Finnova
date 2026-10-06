@@ -1,7 +1,7 @@
 // Angular import
 import { Component, OnInit, inject, output } from '@angular/core';
 import { CommonModule, Location, LocationStrategy } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 // project import
 import { NavigationItem, NavigationItems } from '../navigation';
@@ -23,6 +23,7 @@ import {
   AntDesignOutline
 } from '@ant-design/icons-angular/icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
+import { FinnovaDataService, UserRole } from 'src/app/services/finnova-data.service';
 
 @Component({
   selector: 'app-nav-content',
@@ -34,6 +35,15 @@ export class NavContentComponent implements OnInit {
   private location = inject(Location);
   private locationStrategy = inject(LocationStrategy);
   private iconService = inject(IconService);
+  private router = inject(Router);
+  public dataService = inject(FinnovaDataService);
+
+  switchRole(role: UserRole) {
+    this.dataService.setRole(role);
+    if (role === 'Cliente') {
+      this.router.navigate(['/dashboard/appointments']);
+    }
+  }
 
   // public props
   NavCollapsedMob = output();
@@ -63,6 +73,42 @@ export class NavContentComponent implements OnInit {
       ]
     );
     this.navigations = NavigationItems;
+  }
+
+  get filteredNavigations(): NavigationItem[] {
+    const role = this.dataService.activeRole;
+    if (role === 'Administrador') {
+      return NavigationItems;
+    }
+
+    if (role === 'Asesor') {
+      return NavigationItems.map(group => {
+        if (group.id === 'dashboard' || group.id === 'finnova-config' || group.id === 'finnova-analysis') {
+          return null;
+        }
+        if (group.id === 'finnova-management') {
+          return {
+            ...group,
+            children: group.children?.filter(item => item.id === 'clients' || item.id === 'requests' || item.id === 'appointments')
+          };
+        }
+        return group;
+      }).filter((g): g is NavigationItem => g !== null);
+    }
+
+    // Cliente
+    return NavigationItems.map(group => {
+      if (group.id === 'dashboard' || group.id === 'finnova-config' || group.id === 'finnova-analysis') {
+        return null;
+      }
+      if (group.id === 'finnova-management') {
+        return {
+          ...group,
+          children: group.children?.filter(item => item.id === 'requests' || item.id === 'appointments')
+        };
+      }
+      return group;
+    }).filter((g): g is NavigationItem => g !== null);
   }
 
   // Life cycle events

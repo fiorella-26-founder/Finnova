@@ -1,147 +1,111 @@
-<ul class="list-unstyled">
-  <li class="pc-h-item">
-    <a href="https://github.com/codedthemes/mantis-free-angular-admin-template" target="_blank" class="pc-head-link me-0 bg-gray-200">
-      <i antIcon type="github" theme="outline"></i>
-    </a>
-  </li>
-  <li class="pc-h-item" ngbDropdown>
-    <a href="javascript:void(0)" class="pc-head-link dropdown-toggle arrow-none me-0 bg-gray-200" data-bs-toggle="dropdown" ngbDropdownToggle>
-      <i antIcon type="bell" theme="outline"></i>
-      <span class="badge bg-primary pc-h-badge">3</span>
-    </a>
-    <div class="dropdown-notification dropdown-menu-end pc-h-dropdown" ngbDropdownMenu>
-      <div class="dropdown-header d-flex align-items-center justify-content-between">
-        <h5 class="m-0">Notification</h5>
-        <a href="javascript:void(0)" class="bg-transparent"><i class="text-success d-flex f-20" antIcon theme="outline" type="check-circle"></i></a>
-      </div>
-      <div class="dropdown-divider mb-0"></div>
-      <ng-scrollbar style="min-height: 280px" visibility="hover">
-        <div class="dropdown-header p-0 text-wrap header-notification-scroll">
-          <div class="list-group list-group-flush w-100">
-            <a href="javascript:void(0)" class="list-group-item list-group-item-action">
-              <div class="d-flex">
-                <div class="flex-shrink-0">
-                  <div class="user-avatar bg-light-success"><i class="d-flex" antIcon theme="outline" type="gift"></i></div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <span class="float-end text-muted">3:00 AM</span>
-                  <p class="text-body mb-0">
-                    It's
-                    <b>Cristina danny's</b>
-                    birthday today.
-                  </p>
-                  <span class="text-muted">2 min ago</span>
-                </div>
-              </div>
-            </a>
-            <a href="javascript:void(0)" class="list-group-item list-group-item-action">
-              <div class="d-flex">
-                <div class="flex-shrink-0">
-                  <div class="user-avatar bg-light-primary"><i class="d-flex" antIcon theme="outline" type="message"></i></div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <span class="float-end text-muted">6:00 PM</span>
-                  <p class="text-body mb-1">
-                    <b>Aida Burg</b>
-                    commented your post.
-                  </p>
-                  <span class="text-muted">5 August</span>
-                </div>
-              </div>
-            </a>
-            <a href="javascript:void(0)" class="list-group-item list-group-item-action">
-              <div class="d-flex">
-                <div class="flex-shrink-0">
-                  <div class="user-avatar bg-light-danger"><i class="d-flex" antIcon theme="outline" type="setting"></i></div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <span class="float-end text-muted">2:45 PM</span>
-                  <p class="text-body mb-1">
-                    Your Profile is Complete &nbsp;
-                    <b>60%</b>
-                  </p>
-                  <span class="text-muted">7 hours ago</span>
-                </div>
-              </div>
-            </a>
-            <a href="javascript:void(0)" class="list-group-item list-group-item-action">
-              <div class="d-flex">
-                <div class="flex-shrink-0">
-                  <div class="user-avatar bg-light-primary"><i class="d-flex" antIcon theme="outline" type="phone"></i></div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <span class="float-end text-muted">9:10 PM</span>
-                  <p class="text-body mb-1">
-                    <b>Cristina Danny</b>
-                    invited to join
-                    <b>Meeting.</b>
-                  </p>
-                  <span class="text-muted">Daily scrum meeting time</span>
-                </div>
-              </div>
-            </a>
-          </div>
-        </div>
-      </ng-scrollbar>
-      <div class="dropdown-divider mt-0"></div>
-      <div class="text-center py-2">
-        <a href="javascript:void(0)" class="link-primary">View all</a>
-      </div>
+<ul class="list-unstyled d-flex align-items-center mb-0 gap-2 h-100">
+  <!-- Role Badge Pill -->
+  <li class="pc-h-item d-none d-sm-inline-flex align-items-center">
+    <div class="px-3 d-inline-flex align-items-center text-white fw-bold rounded-pill border"
+      style="background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3) !important; font-size: 0.85rem; height: 36px;">
+      Rol: {{ (authService.currentUser$ | async)?.rol || (dataService.activeRole$ | async) }}
     </div>
   </li>
-  <li class="pc-h-item header-user-profile" ngbDropdown>
-    <a href="javascript:void(0)" class="pc-head-link arrow-none me-0" ngbDropdownToggle>
-      <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar me-2" />
-      <span class="f-w-600">John Doe</span>
+
+  <!-- User profile & Logout Dropdown -->
+  <li class="pc-h-item header-user-profile d-inline-flex align-items-center" ngbDropdown>
+    <a href="javascript:void(0)" class="pc-head-link arrow-none me-0 d-inline-flex align-items-center gap-2 px-3 rounded-pill text-decoration-none"
+      style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); height: 36px;" ngbDropdownToggle>
+      <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar rounded-circle border border-white" style="width:26px; height:26px;" />
+      <span class="fw-bold text-white fs-6">
+        {{ (authService.currentUser$ | async)?.nombre_completo || ((dataService.activeRole$ | async) === 'Administrador' ? 'Admin FINNOVA' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez (Asesor)' : 'María López (Cliente)')) }}
+      </span>
     </a>
-    <div class="dropdown-user-profile dropdown-menu-end pc-h-dropdown" ngbDropdownMenu>
-      <div class="dropdown-header">
-        <div class="d-flex mb-1">
-          <div class="flex-shrink-0">
-            <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar wid-35" />
+    <div class="dropdown-user-profile dropdown-menu-end pc-h-dropdown shadow-lg border-0 rounded-3 mt-2 p-0 overflow-hidden" ngbDropdownMenu style="min-width: 250px;">
+      <div class="dropdown-header p-3 bg-light border-bottom text-start">
+        <div class="d-flex align-items-center gap-3">
+          <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar rounded-circle shadow-sm" style="width:42px; height:42px;" />
+          <div>
+            <h6 class="mb-0 fw-bold text-dark fs-6">
+              {{ (authService.currentUser$ | async)?.nombre_completo || ((dataService.activeRole$ | async) === 'Administrador' ? 'Admin FINNOVA' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez' : 'María López')) }}
+            </h6>
+            <div class="small text-muted mb-1">{{ (authService.currentUser$ | async)?.correo_electronico }}</div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ (authService.currentUser$ | async)?.rol || (dataService.activeRole$ | async) }}</span>
           </div>
-          <div class="flex-grow-1 ms-3 text-start">
-            <h6 class="mb-0">JWT User</h6>
-            <span>UI/UX Designer</span>
-          </div>
-          <a href="javascript:void(0)" class="bg-transparent"><i class="d-flex f-20" antIcon theme="outline" type="logout"></i></a>
         </div>
       </div>
-      <ul ngbNav #nav="ngbNav" class="drp-tabs nav-fill nav-tabs">
-        <li ngbNavItem="1">
-          <a ngbNavLink>
-            <i antIcon theme="outline" type="user" class="me-2"></i>
-            Profile
-          </a>
-          <ng-template ngbNavContent>
-            @for (task of profile; track task) {
-              <div>
-                <a href="javascript:void(0)" class="dropdown-item">
-                  <i class="text-muted" antIcon theme="outline" type="{{ task.icon }}"></i>
-                  <span>{{ task.title }}</span>
-                </a>
-              </div>
-            }
-          </ng-template>
-        </li>
-        <li ngbNavItem="2">
-          <a ngbNavLink>
-            <i class="me-2" antIcon theme="outline" type="setting"></i>
-            Setting
-          </a>
-          <ng-template ngbNavContent>
-            @for (task of setting; track task) {
-              <div>
-                <a href="javascript:void(0)" class="dropdown-item">
-                  <i class="text-muted" antIcon theme="outline" type="{{ task.icon }}"></i>
-                  <span>{{ task.title }}</span>
-                </a>
-              </div>
-            }
-          </ng-template>
-        </li>
-      </ul>
-      <div [ngbNavOutlet]="nav"></div>
+      <div class="p-2">
+        <!-- Change Password Option for Client and Authenticated Users -->
+        <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 text-primary fw-semibold rounded cursor-pointer mb-1" (click)="openChangePasswordModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+          </svg>
+          Cambiar Contraseña
+        </button>
+
+        <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger fw-bold rounded cursor-pointer" (click)="logout()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+          </svg>
+          Cerrar Sesión
+        </button>
+      </div>
     </div>
   </li>
 </ul>
+
+<!-- Modal Cambiar Contraseña -->
+<div *ngIf="isChangePasswordModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+          </svg>
+          Cambiar Contraseña
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeChangePasswordModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-muted small mb-3">
+          Ingresa tu contraseña actual y define tu nueva clave de acceso de al menos 6 caracteres.
+        </p>
+        <form (ngSubmit)="submitChangePassword()">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Contraseña Actual <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input [type]="showCurrentPass ? 'text' : 'password'" class="form-control" [(ngModel)]="currentPassword" name="currentPassword" placeholder="Tu contraseña actual" required />
+              <button class="btn btn-outline-secondary" type="button" (click)="showCurrentPass = !showCurrentPass">
+                {{ showCurrentPass ? 'Ocultar' : 'Ver' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nueva Contraseña <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input [type]="showNewPass ? 'text' : 'password'" class="form-control" [(ngModel)]="newPassword" name="newPassword" placeholder="Mínimo 6 caracteres" required />
+              <button class="btn btn-outline-secondary" type="button" (click)="showNewPass = !showNewPass">
+                {{ showNewPass ? 'Ocultar' : 'Ver' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Confirmar Nueva Contraseña <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input [type]="showConfirmPass ? 'text' : 'password'" class="form-control" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Repite la nueva contraseña" required />
+              <button class="btn btn-outline-secondary" type="button" (click)="showConfirmPass = !showConfirmPass">
+                {{ showConfirmPass ? 'Ocultar' : 'Ver' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-footer px-0 pb-0 mt-4 border-top pt-3">
+            <button type="button" class="btn btn-secondary" (click)="closeChangePasswordModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
+              {{ isSubmitting ? 'Actualizando...' : 'Actualizar Contraseña' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

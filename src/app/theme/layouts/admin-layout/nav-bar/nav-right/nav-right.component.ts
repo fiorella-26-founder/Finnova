@@ -1,120 +1,88 @@
 // angular import
-import { Component, output, inject, input } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterModule, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 // project import
 import { SharedModule } from 'src/app/theme/shared/shared.module';
-
-// third party
-
-// icon
-import { IconService } from '@ant-design/icons-angular';
-import {
-  BellOutline,
-  SettingOutline,
-  GiftOutline,
-  MessageOutline,
-  PhoneOutline,
-  CheckCircleOutline,
-  LogoutOutline,
-  EditOutline,
-  UserOutline,
-  ProfileOutline,
-  WalletOutline,
-  QuestionCircleOutline,
-  LockOutline,
-  CommentOutline,
-  UnorderedListOutline,
-  ArrowRightOutline,
-  GithubOutline
-} from '@ant-design/icons-angular/icons';
+import { FinnovaDataService } from 'src/app/services/finnova-data.service';
+import { AuthService } from 'src/app/services/auth.service';
+import { ConfirmDialogService } from 'src/app/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-nav-right',
-  imports: [SharedModule, RouterModule],
+  imports: [SharedModule, RouterModule, CommonModule, FormsModule],
   templateUrl: './nav-right.component.html',
   styleUrls: ['./nav-right.component.scss']
 })
 export class NavRightComponent {
-  private iconService = inject(IconService);
+  public dataService = inject(FinnovaDataService);
+  public authService = inject(AuthService);
+  private confirmService = inject(ConfirmDialogService);
+  private router = inject(Router);
 
-  // public props
-  styleSelectorToggle = input<boolean>();
-  readonly Customize = output();
-  windowWidth: number;
-  screenFull: boolean = true;
-  direction: string = 'ltr';
+  // Modal Cambiar Contraseña
+  isChangePasswordModalOpen = false;
+  currentPassword = '';
+  newPassword = '';
+  confirmPassword = '';
+  showCurrentPass = false;
+  showNewPass = false;
+  showConfirmPass = false;
+  isSubmitting = false;
 
-  // constructor
-  constructor() {
-    this.windowWidth = window.innerWidth;
-    this.iconService.addIcon(
-      ...[
-        CheckCircleOutline,
-        GiftOutline,
-        MessageOutline,
-        SettingOutline,
-        PhoneOutline,
-        LogoutOutline,
-        EditOutline,
-        UserOutline,
-        EditOutline,
-        ProfileOutline,
-        QuestionCircleOutline,
-        LockOutline,
-        CommentOutline,
-        UnorderedListOutline,
-        ArrowRightOutline,
-        BellOutline,
-        GithubOutline,
-        WalletOutline
-      ]
-    );
+  openChangePasswordModal() {
+    this.currentPassword = '';
+    this.newPassword = '';
+    this.confirmPassword = '';
+    this.showCurrentPass = false;
+    this.showNewPass = false;
+    this.showConfirmPass = false;
+    this.isChangePasswordModalOpen = true;
   }
 
-  profile = [
-    {
-      icon: 'edit',
-      title: 'Edit Profile'
-    },
-    {
-      icon: 'user',
-      title: 'View Profile'
-    },
-    {
-      icon: 'profile',
-      title: 'Social Profile'
-    },
-    {
-      icon: 'wallet',
-      title: 'Billing'
-    },
-    {
-      icon: 'logout',
-      title: 'Logout'
-    }
-  ];
+  closeChangePasswordModal() {
+    this.isChangePasswordModalOpen = false;
+  }
 
-  setting = [
-    {
-      icon: 'question-circle',
-      title: 'Support'
-    },
-    {
-      icon: 'user',
-      title: 'Account Settings'
-    },
-    {
-      icon: 'lock',
-      title: 'Privacy Center'
-    },
-    {
-      icon: 'comment',
-      title: 'Feedback'
-    },
-    {
-      icon: 'unordered-list',
-      title: 'History'
+  submitChangePassword() {
+    if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
+      this.confirmService.alert('Por favor completa todos los campos de contraseña.', 'Campos Requeridos', 'warning');
+      return;
     }
-  ];
+
+    if (this.newPassword.length < 6) {
+      this.confirmService.alert('La nueva contraseña debe tener al menos 6 caracteres.', 'Contraseña muy corta', 'warning');
+      return;
+    }
+
+    if (this.newPassword !== this.confirmPassword) {
+      this.confirmService.alert('La nueva contraseña y su confirmación no coinciden.', 'Contraseñas no coinciden', 'warning');
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.authService.changePassword(this.currentPassword, this.newPassword).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.closeChangePasswordModal();
+        this.confirmService.alert({
+          title: 'Contraseña Actualizada',
+          message: 'Tu contraseña ha sido modificada con éxito. Por favor consérvala de manera segura.',
+          type: 'success',
+          confirmText: 'Entendido'
+        });
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        const errMsg = err?.error?.mensaje || err?.error?.error || 'Error al actualizar la contraseña. Verifica que tu contraseña actual sea correcta.';
+        this.confirmService.alert(errMsg, 'Error al Cambiar Contraseña', 'danger');
+      }
+    });
+  }
+
+  logout() {
+    this.authService.logout();
+  }
 }

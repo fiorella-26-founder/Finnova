@@ -1,118 +1,239 @@
-<div class="row">
-  @for (analytic of AnalyticEcommerce; track analytic) {
-    <div class="col-md-6 col-xl-3">
-      <app-card [showHeader]="false" blockClass="dashboard-card">
-        <h6 class="mb-2 f-w-400 text-muted">{{ analytic.title }}</h6>
-        <h4 class="mb-3">
-          {{ analytic.amount }}
-          <span class="badge {{ analytic.background }} border {{ analytic.border }} ">
-            <i antIcon type="{{ analytic.icon }}" theme="outline"></i>
-            {{ analytic.percentage }}
-          </span>
-        </h4>
-        <p class="mb-0 text-muted text-sm">
-          You made an extra
-          <span class="{{ analytic.color }}">{{ analytic.number }}</span>
-          this year
-        </p>
-      </app-card>
-    </div>
-  }
-  <div class="col-md-12 col-xl-8">
-    <app-monthly-bar-chart />
-  </div>
-  <div class="col-md-12 col-xl-4">
-    <app-income-overview-chart />
+<div class="row g-3 mb-4">
+  <!-- Tarjeta 1: Clientes -->
+  <div class="col-md-6 col-xl-3">
+    <app-card [showHeader]="false" blockClass="dashboard-card border-start border-4 border-primary shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="mb-1 text-muted fw-bold text-uppercase">Clientes Registrados</h6>
+          <h3 class="mb-0 fw-bold text-primary">{{ totalClientsCount }}</h3>
+        </div>
+        <div class="avatar avatar-lg rounded-circle bg-light-primary text-primary fs-3 p-3">
+          <i antIcon type="team" theme="outline"></i>
+        </div>
+      </div>
+      <p class="mb-0 text-muted small mt-2">
+        <span class="text-success fw-bold"><i antIcon type="rise" theme="outline"></i> Activos en sistema</span>
+      </p>
+    </app-card>
   </div>
 
+  <!-- Tarjeta 2: Servicios -->
+  <div class="col-md-6 col-xl-3">
+    <app-card [showHeader]="false" blockClass="dashboard-card border-start border-4 border-info shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="mb-1 text-muted fw-bold text-uppercase">Servicios Financieros</h6>
+          <h3 class="mb-0 fw-bold text-info">{{ activeServicesCount }}</h3>
+        </div>
+        <div class="avatar avatar-lg rounded-circle bg-light-info text-info fs-3 p-3">
+          <i antIcon type="appstore" theme="outline"></i>
+        </div>
+      </div>
+      <p class="mb-0 text-muted small mt-2">
+        <span class="text-info fw-bold">Catálogo activo</span>
+      </p>
+    </app-card>
+  </div>
+
+  <!-- Tarjeta 3: Solicitudes -->
+  <div class="col-md-6 col-xl-3">
+    <app-card [showHeader]="false" blockClass="dashboard-card border-start border-4 border-warning shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="mb-1 text-muted fw-bold text-uppercase">Solicitudes Pendientes</h6>
+          <h3 class="mb-0 fw-bold text-warning">{{ pendingRequestsCount }}</h3>
+        </div>
+        <div class="avatar avatar-lg rounded-circle bg-light-warning text-warning fs-3 p-3">
+          <i antIcon type="file-text" theme="outline"></i>
+        </div>
+      </div>
+      <p class="mb-0 text-muted small mt-2">
+        <span>Total registradas: {{ totalRequestsCount }}</span>
+      </p>
+    </app-card>
+  </div>
+
+  <!-- Tarjeta 4: Citas -->
+  <div class="col-md-6 col-xl-3">
+    <app-card [showHeader]="false" blockClass="dashboard-card border-start border-4 border-success shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h6 class="mb-1 text-muted fw-bold text-uppercase">Citas Programadas</h6>
+          <h3 class="mb-0 fw-bold text-success">{{ scheduledAppointmentsCount }}</h3>
+        </div>
+        <div class="avatar avatar-lg rounded-circle bg-light-success text-success fs-3 p-3">
+          <i antIcon type="calendar" theme="outline"></i>
+        </div>
+      </div>
+      <p class="mb-0 text-muted small mt-2">
+        <span class="text-success fw-bold">Agenda activa</span>
+      </p>
+    </app-card>
+  </div>
+</div>
+
+<!-- Gráficos de Tendencias -->
+<div class="row mb-4">
   <div class="col-md-12 col-xl-8">
-    <h5 class="mb-3">Recent Orders</h5>
-    <div class="card tbl-card">
+    <app-card cardTitle="Evolución de Solicitudes y Atenciones">
+      <app-monthly-bar-chart />
+    </app-card>
+  </div>
+
+  <div class="col-md-12 col-xl-4">
+    <app-card cardTitle="Distribución por Servicios">
+      <app-income-overview-chart />
+    </app-card>
+  </div>
+</div>
+
+<!-- SECCIÓN COMBINADA: Centro de Consulta y Generación de Reportes Resumidos (RF013, F014) -->
+<div class="row mb-4">
+  <div class="col-12">
+    <app-card cardTitle="Centro de Consulta y Generación de Reportes">
+      <form (ngSubmit)="generateReport()" class="row g-3 align-items-end mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Tipo de Reporte Solicitado</label>
+          <select class="form-select" [(ngModel)]="reportType" name="rType">
+            <option value="Solicitudes por Asesor">Solicitudes por Asesor</option>
+            <option value="Rendimiento de Servicios">Rendimiento de Servicios Financieros</option>
+            <option value="Citas Atendidas">Seguimiento de Citas Atendidas</option>
+            <option value="Clientes Registrados">Base de Clientes Registrados</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">Fecha Inicio</label>
+          <input type="date" class="form-control" [(ngModel)]="startDate" name="sDate">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-bold">Fecha Fin</label>
+          <input type="date" class="form-control" [(ngModel)]="endDate" name="eDate">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
+            <i class="anticon anticon-bar-chart me-1"></i> Consultar
+          </button>
+        </div>
+      </form>
+
+      <!-- Tabla de Reporte Generado -->
+      <div *ngIf="isReportGenerated" class="border rounded p-3 bg-white shadow-sm mt-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="fw-bold mb-1 text-dark">Reporte Consolidado: {{ reportType }}</h5>
+            <span class="text-muted small">Período: {{ startDate }} al {{ endDate }}</span>
+          </div>
+          <button class="btn btn-outline-danger btn-sm fw-bold" (click)="downloadPDF()">
+            <i class="anticon anticon-file-pdf me-1"></i> Exportar PDF
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle mb-0" style="min-width: 650px;">
+            <thead class="table-light">
+              <tr>
+                <th>Concepto / Registro</th>
+                <th>Detalle 1</th>
+                <th>Detalle 2</th>
+                <th>Estado / Desempeño</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of reportData">
+                <td class="fw-bold text-primary">{{ item.col1 }}</td>
+                <td>{{ item.col2 }}</td>
+                <td>{{ item.col3 }}</td>
+                <td><span class="badge bg-primary">{{ item.col4 }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!isReportGenerated" class="text-center p-4 bg-light rounded text-muted mt-2">
+        <i class="anticon anticon-bar-chart fs-2 mb-2 d-block text-primary"></i>
+        Selecciona los criterios deseados y haz clic en <strong>Consultar</strong> para estructurar y exportar el
+        informe resumido.
+      </div>
+    </app-card>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Solicitudes Recientes -->
+  <div class="col-md-12 col-xl-8">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-dark">Últimas Solicitudes Registradas</h5>
+        <a routerLink="/dashboard/requests" class="btn btn-sm btn-outline-primary">Ver todas</a>
+      </div>
       <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead>
+        <table class="table table-hover align-middle mb-0" style="min-width: 650px;">
+          <thead class="table-light">
             <tr>
-              <th>TRACKING NO.</th>
-              <th>PRODUCT NAME</th>
-              <th>STATUS</th>
-              <th class="text-end">TOTAL ORDER</th>
-              <th class="text-end">TOTAL AMOUNT</th>
+              <th>CÓDIGO</th>
+              <th>CLIENTE</th>
+              <th>SERVICIO</th>
+              <th>FECHA</th>
+              <th>ESTADO</th>
             </tr>
           </thead>
           <tbody>
-            @for (order of recentOrder; track order) {
-              <tr>
-                <td>
-                  <a [routerLink]="[]" class="text-muted">{{ order.id }}</a>
-                </td>
-                <td>{{ order.name }}</td>
-                <td>
-                  <span class="d-block">
-                    <i class="badge-circle {{ order.status_type }} f-10 m-r-5"></i>
-                    {{ order.status }}
-                  </span>
-                </td>
-                <td class="text-end">{{ order.quantity }}</td>
-                <td class="text-end">{{ order.amount }}</td>
-              </tr>
-            }
+            <tr *ngFor="let req of recentRequests">
+              <td class="fw-bold text-primary">{{ req.id }}</td>
+              <td>{{ req.clientName }}</td>
+              <td>{{ req.serviceTitle }}</td>
+              <td class="small text-muted">{{ req.date }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-danger': req.status === 'Nueva',
+                  'bg-warning text-dark': req.status === 'Pendiente',
+                  'bg-primary': req.status === 'En Proceso',
+                  'bg-info text-dark': req.status === 'Atendida',
+                  'bg-success': req.status === 'Finalizada'
+                }">
+                  {{ req.status }}
+                </span>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
-  <div class="col-md-12 col-xl-4">
-    <app-analytics-chart />
-  </div>
 
-  <div class="col-md-12 col-xl-8">
-    <app-sales-report-chart />
-  </div>
+  <!-- Accesos Rápidos y Resumen -->
   <div class="col-md-12 col-xl-4">
-    <h5 class="mb-3">Transaction History</h5>
-    <div class="card">
-      <div class="list-group list-group-flush">
-        @for (history of transaction; track history) {
-          <a [routerLink]="[]" class="list-group-item list-group-item-action px-3">
-            <div class="d-flex">
-              <div class="flex-shrink-0">
-                <div class="avatar avatar-s rounded-circle {{ history.background }}">
-                  <i class="f-16" antIcon type="{{ history.icon }}" theme="outline"></i>
-                </div>
-              </div>
-              <div class="flex-grow-1 ms-3">
-                <h6 class="mb-1">{{ history.title }}</h6>
-                <p class="mb-0 text-muted">{{ history.time }}</p>
-              </div>
-              <div class="flex-shrink-0 text-end">
-                <h6 class="mb-1">{{ history.amount }}</h6>
-                <p class="mb-0 text-muted">{{ history.percentage }}</p>
-              </div>
-            </div>
-          </a>
-        }
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold text-dark">Gestión Rápida Finnova</h5>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-body">
-        <div class="row justify-content-between">
-          <div class="col-auto">
-            <h5>Help & Support Chat</h5>
-            <p class="mb-3">Typical replay within 5 min</p>
+      <div class="list-group list-group-flush">
+        <a routerLink="/dashboard/services"
+          class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+          <div>
+            <h6 class="mb-0 fw-bold">Gestionar Servicios</h6>
+            <small class="text-muted">Crear y actualizar con imágenes</small>
           </div>
-          <div class="col-auto">
-            <div class="user-group mb-3">
-              <img src="assets/images/user/avatar-1.jpg" alt="image" />
-              <img src="assets/images/user/avatar-2.jpg" alt="image" />
-              <img src="assets/images/user/avatar-3.jpg" alt="image" />
-            </div>
+          <i class="anticon anticon-right text-muted"></i>
+        </a>
+        <a routerLink="/dashboard/users"
+          class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+          <div>
+            <h6 class="mb-0 fw-bold">Gestión de Usuarios</h6>
+            <small class="text-muted">Creación de usuarios y asignación de roles</small>
           </div>
-        </div>
-        <div class="d-grid">
-          <div class="btn btn-primary">Need Help?</div>
-        </div>
+          <i class="anticon anticon-right text-muted"></i>
+        </a>
+        <a routerLink="/dashboard/clients"
+          class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+          <div>
+            <h6 class="mb-0 fw-bold">Gestión de Clientes</h6>
+            <small class="text-muted">Directorio y perfiles de clientes</small>
+          </div>
+          <i class="anticon anticon-right text-muted"></i>
+        </a>
       </div>
     </div>
   </div>
-  <!-- [ sample-page ] end -->
 </div>
