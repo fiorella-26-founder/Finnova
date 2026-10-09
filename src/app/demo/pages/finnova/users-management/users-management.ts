@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from 'src/app/theme/shared/components/card/card.component';
@@ -11,7 +11,11 @@ import { ConfirmDialogService } from 'src/app/services/confirm-dialog.service';
   templateUrl: './users-management.html',
   styleUrl: './users-management.scss'
 })
-export class UsersManagement {
+export class UsersManagement implements OnInit {
+  ngOnInit(): void {
+    this.dataService.loadUsers();
+  }
+
   public dataService = inject(FinnovaDataService);
   private confirmService = inject(ConfirmDialogService);
 
