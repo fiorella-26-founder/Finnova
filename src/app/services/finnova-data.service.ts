@@ -260,13 +260,25 @@ export class FinnovaDataService {
 
   // Carga global inicial desde la base de datos
   loadAllData() {
-    this.loadUsers();
-    this.loadProveedores();
-    this.loadServices();
-    this.loadClients();
-    this.loadRequests();
-    this.loadAppointments();
-    this.loadCampaigns();
+    const role = this.activeRole;
+    if (role === 'Administrador') {
+      this.loadUsers();
+      this.loadProveedores();
+      this.loadServices();
+      this.loadClients();
+      this.loadRequests();
+      this.loadAppointments();
+      this.loadCampaigns();
+    } else if (role === 'Asesor') {
+      this.loadServices();
+      this.loadClients();
+      this.loadRequests();
+      this.loadAppointments();
+    } else {
+      this.loadServices();
+      this.loadRequests();
+      this.loadAppointments();
+    }
   }
 
   // ==========================================

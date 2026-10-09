@@ -62,9 +62,14 @@ export class RequestsManagement implements OnInit {
   ngOnInit() {
     this.dataService.loadRequests();
     this.dataService.loadServices();
-    this.dataService.loadUsers();
-    this.dataService.loadProveedores();
-    this.dataService.loadClients();
+    const role = this.dataService.activeRole;
+    if (role === 'Administrador') {
+      this.dataService.loadUsers();
+      this.dataService.loadProveedores();
+      this.dataService.loadClients();
+    } else if (role === 'Asesor') {
+      this.dataService.loadClients();
+    }
   }
 
   get advisorsList() {
