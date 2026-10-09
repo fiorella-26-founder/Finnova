@@ -39,17 +39,11 @@ export class AdminLayout implements OnInit {
     return this.layoutState.navCollapsedMob();
   }
 
-  get activeClientCampaign(): MarketingCampaign | null {
-    if (this.dataService.activeRole !== 'Cliente') {
-      return null;
-    }
-    const campaigns = this.dataService.getActiveCampaignsForClient('72345678');
-    const available = campaigns.filter(c => !this.dismissedCampaignIds.has(c.id));
-    return available.length > 0 ? available[0] : null;
-  }
+  activeClientCampaign: MarketingCampaign | null = null;
 
   dismissCampaign(campaignId: number) {
     this.dismissedCampaignIds.add(campaignId);
+    this.activeClientCampaign = null;
   }
 
   // public method

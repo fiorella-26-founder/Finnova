@@ -6,7 +6,6 @@ import { RouterModule, Router } from '@angular/router';
 // project import
 import { NavigationItem, NavigationItems } from '../navigation';
 import { environment } from 'src/environments/environment';
-
 import { NavGroupComponent } from './nav-group/nav-group.component';
 
 // icon
@@ -25,6 +24,70 @@ import {
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { FinnovaDataService, UserRole } from 'src/app/services/finnova-data.service';
 
+const AdminNavigationItems: NavigationItem[] = NavigationItems;
+
+const AsesorNavigationItems: NavigationItem[] = [
+  {
+    id: 'finnova-management',
+    title: 'Finnova: Gestión',
+    type: 'group',
+    icon: 'icon-navigation',
+    children: [
+      {
+        id: 'clients',
+        title: 'Clientes',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/clients',
+        icon: 'user'
+      },
+      {
+        id: 'requests',
+        title: 'Solicitudes',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/requests',
+        icon: 'file-text'
+      },
+      {
+        id: 'appointments',
+        title: 'Citas',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/appointments',
+        icon: 'calendar'
+      }
+    ]
+  }
+];
+
+const ClienteNavigationItems: NavigationItem[] = [
+  {
+    id: 'finnova-management',
+    title: 'Finnova: Gestión',
+    type: 'group',
+    icon: 'icon-navigation',
+    children: [
+      {
+        id: 'requests',
+        title: 'Solicitudes',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/requests',
+        icon: 'file-text'
+      },
+      {
+        id: 'appointments',
+        title: 'Citas',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/appointments',
+        icon: 'calendar'
+      }
+    ]
+  }
+];
+
 @Component({
   selector: 'app-nav-content',
   imports: [CommonModule, RouterModule, NavGroupComponent, NgScrollbarModule],
@@ -41,7 +104,7 @@ export class NavContentComponent implements OnInit {
   switchRole(role: UserRole) {
     this.dataService.setRole(role);
     if (role === 'Cliente') {
-      this.router.navigate(['/dashboard/appointments']);
+      this.router.navigate(['/dashboard/requests']);
     }
   }
 
@@ -49,15 +112,11 @@ export class NavContentComponent implements OnInit {
   NavCollapsedMob = output();
 
   navigations: NavigationItem[];
-
-  // version
   title = 'Demo application for version numbering';
   currentApplicationVersion = environment.appVersion;
-
   navigation = NavigationItems;
   windowWidth = window.innerWidth;
 
-  // Constructor
   constructor() {
     this.iconService.addIcon(
       ...[
@@ -77,41 +136,15 @@ export class NavContentComponent implements OnInit {
 
   get filteredNavigations(): NavigationItem[] {
     const role = this.dataService.activeRole;
-    if (role === 'Administrador') {
-      return NavigationItems;
+    if (role === 'Cliente') {
+      return ClienteNavigationItems;
     }
-
     if (role === 'Asesor') {
-      return NavigationItems.map(group => {
-        if (group.id === 'dashboard' || group.id === 'finnova-config' || group.id === 'finnova-analysis') {
-          return null;
-        }
-        if (group.id === 'finnova-management') {
-          return {
-            ...group,
-            children: group.children?.filter(item => item.id === 'clients' || item.id === 'requests' || item.id === 'appointments')
-          };
-        }
-        return group;
-      }).filter((g): g is NavigationItem => g !== null);
+      return AsesorNavigationItems;
     }
-
-    // Cliente
-    return NavigationItems.map(group => {
-      if (group.id === 'dashboard' || group.id === 'finnova-config' || group.id === 'finnova-analysis') {
-        return null;
-      }
-      if (group.id === 'finnova-management') {
-        return {
-          ...group,
-          children: group.children?.filter(item => item.id === 'requests' || item.id === 'appointments')
-        };
-      }
-      return group;
-    }).filter((g): g is NavigationItem => g !== null);
+    return AdminNavigationItems;
   }
 
-  // Life cycle events
   ngOnInit() {
     if (this.windowWidth < 1025) {
       (document.querySelector('.coded-navbar') as HTMLDivElement)?.classList.add('menupos-static');
