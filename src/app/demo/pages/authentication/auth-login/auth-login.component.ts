@@ -43,7 +43,7 @@ export class AuthLoginComponent implements OnInit {
       this.email = 'juan.asesor@finnova.pe';
       this.password = 'password123';
     } else {
-      this.email = 'maria@ejemplo.com';
+      this.email = 'fiorellatecsup26@gmail.com';
       this.password = 'password123';
     }
   }

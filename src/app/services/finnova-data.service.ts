@@ -246,6 +246,16 @@ export class FinnovaDataService {
   );
 
   // 7. CAMPAÑAS
+  
+  // Flags para evitar peticiones duplicadas en paralelo (deduplicación)
+  private loadingUsers = false;
+  private loadingProveedores = false;
+  private loadingServices = false;
+  private loadingClients = false;
+  private loadingRequests = false;
+  private loadingAppointments = false;
+  private loadingCampaigns = false;
+
   private campaignsSubject = new BehaviorSubject<MarketingCampaign[]>([]);
   public campaigns$: Observable<MarketingCampaign[]> = this.campaignsSubject.asObservable();
 
@@ -253,7 +263,6 @@ export class FinnovaDataService {
     this.authService.currentUser$.subscribe(user => {
       if (user?.rol) {
         this.activeRoleSubject.next(user.rol as UserRole);
-        this.loadAllData();
       } else {
         this.usersSubject.next([]);
         this.proveedoresSubject.next([]);
@@ -296,13 +305,16 @@ export class FinnovaDataService {
   // 1. GESTIÓN DE USUARIOS
   // ==========================================
   loadUsers(callback?: (err?: any) => void) {
-    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
+    if (!this.authService.isAuthenticated() || this.loadingUsers) { if (callback) callback(); return; }
+    this.loadingUsers = true;
     this.apiService.getUsers().subscribe({
       next: (users) => {
+        this.loadingUsers = false;
         this.usersSubject.next(users || []);
         if (callback) callback();
       },
       error: (err) => {
+        this.loadingUsers = false;
         console.warn('Error al cargar usuarios desde API backend:', err);
         if (callback) callback(err);
       }
@@ -394,13 +406,16 @@ export class FinnovaDataService {
   // 2. GESTIÓN DE PROVEEDORES Y ALIADOS
   // ==========================================
   loadProveedores(callback?: (err?: any) => void) {
-    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
+    if (!this.authService.isAuthenticated() || this.loadingProveedores) { if (callback) callback(); return; }
+    this.loadingProveedores = true;
     this.apiService.getProveedores().subscribe({
       next: (provs) => {
+        this.loadingProveedores = false;
         this.proveedoresSubject.next(provs || []);
         if (callback) callback();
       },
       error: (err) => {
+        this.loadingProveedores = false;
         console.warn('Error al cargar proveedores desde API backend:', err);
         if (callback) callback(err);
       }
@@ -489,6 +504,7 @@ export class FinnovaDataService {
   loadPublicServices(callback?: (err?: any) => void) {
     this.apiService.getPublicServices().subscribe({
       next: (services) => {
+        this.loadingServices = false;
         this.servicesSubject.next(services || []);
         if (callback) callback();
       },
@@ -500,7 +516,8 @@ export class FinnovaDataService {
   }
 
   loadServices(callback?: (err?: any) => void) {
-    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
+    if (!this.authService.isAuthenticated() || this.loadingServices) { if (callback) callback(); return; }
+    this.loadingServices = true;
     this.apiService.getServices().subscribe({
       next: (services) => {
         if (services && services.length > 0) {
@@ -509,6 +526,7 @@ export class FinnovaDataService {
         if (callback) callback();
       },
       error: (err) => {
+        this.loadingServices = false;
         console.warn('Error al cargar servicios desde API backend:', err);
         if (callback) callback(err);
       }
@@ -606,13 +624,16 @@ export class FinnovaDataService {
   // 4. GESTIÓN DE CLIENTES
   // ==========================================
   loadClients(callback?: (err?: any) => void) {
-    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
+    if (!this.authService.isAuthenticated() || this.loadingClients) { if (callback) callback(); return; }
+    this.loadingClients = true;
     this.apiService.getClients().subscribe({
       next: (clients) => {
+        this.loadingClients = false;
         this.clientsSubject.next(clients || []);
         if (callback) callback();
       },
       error: (err) => {
+        this.loadingClients = false;
         console.warn('Error al cargar clientes desde API backend:', err);
         if (callback) callback(err);
       }
@@ -747,13 +768,16 @@ export class FinnovaDataService {
   // 5. GESTIÓN DE SOLICITUDES DE ASESORÍA
   // ==========================================
   loadRequests(callback?: (err?: any) => void) {
-    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
+    if (!this.authService.isAuthenticated() || this.loadingRequests) { if (callback) callback(); return; }
+    this.loadingRequests = true;
     this.apiService.getRequests().subscribe({
       next: (requests) => {
+        this.loadingRequests = false;
         this.requestsSubject.next(requests || []);
         if (callback) callback();
       },
       error: (err) => {
+        this.loadingRequests = false;
         console.warn('Error al cargar solicitudes desde API backend:', err);
         if (callback) callback(err);
       }
@@ -985,13 +1009,16 @@ export class FinnovaDataService {
   // 6. GESTIÓN DE CITAS (Appointments)
   // ==========================================
   loadAppointments(callback?: (err?: any) => void) {
-    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
+    if (!this.authService.isAuthenticated() || this.loadingAppointments) { if (callback) callback(); return; }
+    this.loadingAppointments = true;
     this.apiService.getAppointments().subscribe({
       next: (appointments) => {
+        this.loadingAppointments = false;
         this.appointmentsSubject.next(appointments || []);
         if (callback) callback();
       },
       error: (err) => {
+        this.loadingAppointments = false;
         console.warn('Error al cargar citas desde API backend:', err);
         if (callback) callback(err);
       }
@@ -1143,13 +1170,16 @@ export class FinnovaDataService {
   // 7. GESTIÓN DE CAMPAÑAS DE MARKETING
   // ==========================================
   loadCampaigns(callback?: (err?: any) => void) {
-    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
+    if (!this.authService.isAuthenticated() || this.loadingCampaigns) { if (callback) callback(); return; }
+    this.loadingCampaigns = true;
     this.apiService.getCampaigns().subscribe({
       next: (campaigns) => {
+        this.loadingCampaigns = false;
         this.campaignsSubject.next(campaigns || []);
         if (callback) callback();
       },
       error: (err) => {
+        this.loadingCampaigns = false;
         console.warn('Error al cargar campañas desde API backend:', err);
         if (callback) callback(err);
       }
