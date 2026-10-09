@@ -22,6 +22,7 @@ export class AppointmentsManagement implements OnInit {
   isDetailModalOpen = false;
   isAttendModalOpen = false;
   isEditing = false;
+  isLoadingData = true;
 
   // Selected item
   selectedAppointment: Appointment | null = null;
