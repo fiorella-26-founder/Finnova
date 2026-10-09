@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/services/auth.service';
@@ -27,6 +27,9 @@ export class AuthLoginComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
+    // Al cargar la vista de login, limpiar tokens anteriores para evitar interferencias
+    localStorage.removeItem('finnova_token');
+    localStorage.removeItem('finnova_user');
     this.selectRole('Administrador');
   }
 
@@ -55,14 +58,16 @@ export class AuthLoginComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.login(this.email, this.password).subscribe({
+    const cleanEmail = this.email.trim().toLowerCase();
+    const cleanPassword = this.password.trim();
+
+    this.authService.login(cleanEmail, cleanPassword).subscribe({
       next: (res) => {
         this.isLoading = false;
         if (res && res.usuario) {
           const userRole = res.usuario.rol;
           this.dataService.setRole(userRole);
           
-          // Redirigir siempre a la primera opción de menú habilitada para el rol del usuario
           const targetRoute = this.authService.getDefaultRouteForRole(userRole);
           this.router.navigateByUrl(targetRoute);
         }

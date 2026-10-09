@@ -28,6 +28,12 @@
             </tr>
           </thead>
           <tbody>
+            <tr *ngIf="((dataService.appointments$ | async)?.length || 0) === 0">
+              <td colspan="8" class="text-center py-5 text-muted">
+                <i class="anticon anticon-calendar fs-2 d-block mb-2 text-secondary"></i>
+                No se encontraron citas programadas o registradas para tu cuenta.
+              </td>
+            </tr>
             <tr *ngFor="let app of dataService.appointments$ | async">
               <td class="fw-bold text-primary">{{ app.id }}</td>
               <td><span class="badge bg-secondary-subtle text-secondary border">{{ app.requestId }}</span></td>

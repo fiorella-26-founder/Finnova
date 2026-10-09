@@ -28,7 +28,6 @@ const routes: Routes = [
       },
       {
         path: 'login',
-        canActivate: [guestGuard],
         loadComponent: () => import('./demo/pages/authentication/auth-login/auth-login.component').then((c) => c.AuthLoginComponent)
       }
     ]
