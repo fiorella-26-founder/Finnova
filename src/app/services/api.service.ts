@@ -18,12 +18,48 @@ import {
 } from './finnova-data.service';
 
 export interface ReportDashboardMetrics {
-  solicitudes?: any;
+  solicitudes?: {
+    total_solicitudes?: number;
+    solicitudes_finalizadas?: number;
+    solicitudes_atendidas?: number;
+    solicitudes_en_proceso?: number;
+    solicitudes_pendientes?: number;
+    pagos_validados?: number;
+    total_recaudado?: number;
+    comisiones_ganadas_broker?: number;
+    [key: string]: any;
+  } | any;
   ingresos?: any;
   comisiones?: any;
   usuarios?: any;
-  citas?: any;
-  servicios?: any;
+  citas?: {
+    total_citas?: number;
+    citas_realizadas?: number;
+    citas_programadas?: number;
+    [key: string]: any;
+  } | any;
+  servicios?: {
+    total_servicios?: number;
+    servicios_activos?: number;
+    total_categorias?: number;
+    [key: string]: any;
+  } | any;
+  campanias?: {
+    total_campanias?: number;
+    campanias_activas?: number;
+    campanias_inactivas?: number;
+    [key: string]: any;
+  } | any;
+  clientes?: {
+    total_clientes?: number;
+    clientes_activos?: number;
+    [key: string]: any;
+  } | any;
+  proveedores?: {
+    total_proveedores?: number;
+    promedio_comision_aliados?: number;
+    [key: string]: any;
+  } | any;
   rendimiento_general?: any;
   [key: string]: any;
 }
