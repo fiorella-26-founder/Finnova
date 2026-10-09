@@ -27,9 +27,8 @@ export class AuthLoginComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
-    // Al cargar la vista de login, limpiar tokens anteriores para evitar interferencias
-    localStorage.removeItem('finnova_token');
-    localStorage.removeItem('finnova_user');
+    // Purgar al 100% cualquier sesión previa para garantizar un inicio de sesión limpio
+    this.authService.clearSession();
     this.selectRole('Administrador');
   }
 
@@ -69,7 +68,7 @@ export class AuthLoginComponent implements OnInit {
           this.dataService.setRole(userRole);
           
           const targetRoute = this.authService.getDefaultRouteForRole(userRole);
-          window.location.href = targetRoute;
+          this.router.navigateByUrl(targetRoute);
         }
       },
       error: (err) => {

@@ -90,6 +90,14 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
+  // Limpiar completamente cualquier sesión y token previo
+  clearSession(): void {
+    localStorage.clear();
+    sessionStorage.clear();
+    this.tokenSubject.next(null);
+    this.currentUserSubject.next(null);
+  }
+
   // Cerrar sesión y limpiar credenciales y parámetros de ruta
   logout(): void {
     try {
