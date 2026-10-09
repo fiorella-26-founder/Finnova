@@ -299,9 +299,7 @@ export class FinnovaDataService {
     if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getUsers().subscribe({
       next: (users) => {
-        if (users && users.length > 0) {
-          this.usersSubject.next(users);
-        }
+        this.usersSubject.next(users || []);
         if (callback) callback();
       },
       error: (err) => {
@@ -399,9 +397,7 @@ export class FinnovaDataService {
     if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getProveedores().subscribe({
       next: (provs) => {
-        if (provs && provs.length > 0) {
-          this.proveedoresSubject.next(provs);
-        }
+        this.proveedoresSubject.next(provs || []);
         if (callback) callback();
       },
       error: (err) => {
@@ -493,9 +489,7 @@ export class FinnovaDataService {
   loadPublicServices(callback?: (err?: any) => void) {
     this.apiService.getPublicServices().subscribe({
       next: (services) => {
-        if (services && services.length > 0) {
-          this.servicesSubject.next(services);
-        }
+        this.servicesSubject.next(services || []);
         if (callback) callback();
       },
       error: (err) => {
@@ -615,9 +609,7 @@ export class FinnovaDataService {
     if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getClients().subscribe({
       next: (clients) => {
-        if (clients && clients.length > 0) {
-          this.clientsSubject.next(clients);
-        }
+        this.clientsSubject.next(clients || []);
         if (callback) callback();
       },
       error: (err) => {
@@ -758,9 +750,7 @@ export class FinnovaDataService {
     if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getRequests().subscribe({
       next: (requests) => {
-        if (requests && requests.length > 0) {
-          this.requestsSubject.next(requests);
-        }
+        this.requestsSubject.next(requests || []);
         if (callback) callback();
       },
       error: (err) => {
@@ -998,9 +988,7 @@ export class FinnovaDataService {
     if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getAppointments().subscribe({
       next: (appointments) => {
-        if (appointments && appointments.length > 0) {
-          this.appointmentsSubject.next(appointments);
-        }
+        this.appointmentsSubject.next(appointments || []);
         if (callback) callback();
       },
       error: (err) => {
@@ -1158,9 +1146,7 @@ export class FinnovaDataService {
     if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getCampaigns().subscribe({
       next: (campaigns) => {
-        if (campaigns && campaigns.length > 0) {
-          this.campaignsSubject.next(campaigns);
-        }
+        this.campaignsSubject.next(campaigns || []);
         if (callback) callback();
       },
       error: (err) => {

@@ -19,7 +19,7 @@ export class SpinnerComponent implements OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   // public props
-  isSpinnerVisible = true;
+  isSpinnerVisible = false;
   Spinkit = Spinkit;
   backgroundColor = input('#1890ff');
   spinner = input(Spinkit.skLine);
