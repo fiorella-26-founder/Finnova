@@ -7,7 +7,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
 
   if (!authService.isAuthenticated()) {
-    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+    router.navigate(['/login'], { queryParams: {} });
     return false;
   }
 
@@ -16,12 +16,9 @@ export const authGuard: CanActivateFn = (route, state) => {
   if (expectedRoles && expectedRoles.length > 0) {
     const userRole = authService.getUserRole();
     if (!expectedRoles.includes(userRole)) {
-      console.warn(`Acceso denegado: El rol '${userRole}' no tiene permiso para acceder a esta ruta.`);
-      if (userRole === 'Cliente') {
-        router.navigate(['/dashboard/appointments']);
-      } else {
-        router.navigate(['/dashboard/default']);
-      }
+      console.warn(`Acceso denegado: El rol '${userRole}' no tiene permiso para acceder a esta ruta: ${state.url}`);
+      const defaultRoute = authService.getDefaultRouteForRole(userRole);
+      router.navigateByUrl(defaultRoute);
       return false;
     }
   }
@@ -35,11 +32,8 @@ export const guestGuard: CanActivateFn = () => {
 
   if (authService.isAuthenticated()) {
     const userRole = authService.getUserRole();
-    if (userRole === 'Cliente') {
-      router.navigate(['/dashboard/appointments']);
-    } else {
-      router.navigate(['/dashboard/default']);
-    }
+    const defaultRoute = authService.getDefaultRouteForRole(userRole);
+    router.navigateByUrl(defaultRoute);
     return false;
   }
 

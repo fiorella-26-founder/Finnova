@@ -57,6 +57,19 @@ export class AuthService {
     );
   }
 
+  // Retorna la primera opción de menú habilitada para cada rol
+  getDefaultRouteForRole(role?: string): string {
+    const userRole = role || this.getUserRole();
+    if (userRole === 'Administrador') {
+      return '/dashboard/users';
+    } else if (userRole === 'Asesor') {
+      return '/dashboard/clients';
+    } else if (userRole === 'Cliente') {
+      return '/dashboard/requests';
+    }
+    return '/login';
+  }
+
   // Cambiar contraseña de usuario autenticado con cifrado AES-256
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
     return from(Promise.all([encryptPassword(currentPassword), encryptPassword(newPassword)])).pipe(
@@ -77,7 +90,7 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
-  // Cerrar sesión y limpiar credenciales
+  // Cerrar sesión y limpiar credenciales y parámetros de ruta
   logout(): void {
     try {
       this.http.post(`${this.baseUrl}/auth/logout`, {}).subscribe({
@@ -92,7 +105,7 @@ export class AuthService {
     localStorage.removeItem(this.userKey);
     this.tokenSubject.next(null);
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    this.router.navigate(['/login'], { queryParams: {} });
   }
 
   // Verificar si hay una sesión activa y token no expirado
@@ -101,7 +114,6 @@ export class AuthService {
     if (!token) return false;
 
     try {
-      // Validar expiración si el payload de JWT contiene 'exp'
       const parts = token.split('.');
       if (parts.length === 3) {
         const payload = JSON.parse(atob(parts[1]));

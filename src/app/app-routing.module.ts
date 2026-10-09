@@ -15,13 +15,13 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: '/landing',
+        redirectTo: '/dashboard/users',
         pathMatch: 'full'
       },
       {
         path: 'dashboard/default',
         canActivate: [authGuard],
-        data: { roles: ['Administrador', 'Asesor'] },
+        data: { roles: ['Administrador'] },
         loadComponent: () => import('./demo/pages/finnova/reports/reports').then((c) => c.Reports)
       },
       {
@@ -75,7 +75,7 @@ const routes: Routes = [
       {
         path: 'dashboard/reports',
         canActivate: [authGuard],
-        data: { roles: ['Administrador', 'Asesor'] },
+        data: { roles: ['Administrador'] },
         loadComponent: () => import('./demo/pages/finnova/reports/reports').then((c) => c.Reports)
       }
     ]
@@ -86,6 +86,7 @@ const routes: Routes = [
     children: [
       {
         path: 'login',
+        canActivate: [guestGuard],
         loadComponent: () => import('./demo/pages/authentication/auth-login/auth-login.component').then((c) => c.AuthLoginComponent)
       },
       {

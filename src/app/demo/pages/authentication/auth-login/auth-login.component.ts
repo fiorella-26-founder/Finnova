@@ -17,7 +17,6 @@ export class AuthLoginComponent implements OnInit {
   private authService = inject(AuthService);
   private dataService = inject(FinnovaDataService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private confirmService = inject(ConfirmDialogService);
 
   email = 'admin@finnova.pe';
@@ -26,10 +25,8 @@ export class AuthLoginComponent implements OnInit {
   
   isLoading = false;
   errorMessage = '';
-  returnUrl = '';
 
   ngOnInit(): void {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '';
     this.selectRole('Administrador');
   }
 
@@ -62,15 +59,12 @@ export class AuthLoginComponent implements OnInit {
       next: (res) => {
         this.isLoading = false;
         if (res && res.usuario) {
-          this.dataService.setRole(res.usuario.rol);
+          const userRole = res.usuario.rol;
+          this.dataService.setRole(userRole);
           
-          if (this.returnUrl) {
-            this.router.navigateByUrl(this.returnUrl);
-          } else if (res.usuario.rol === 'Cliente') {
-            this.router.navigate(['/dashboard/appointments']);
-          } else {
-            this.router.navigate(['/dashboard/default']);
-          }
+          // Redirigir siempre a la primera opción de menú habilitada para el rol del usuario
+          const targetRoute = this.authService.getDefaultRouteForRole(userRole);
+          this.router.navigateByUrl(targetRoute);
         }
       },
       error: (err) => {
