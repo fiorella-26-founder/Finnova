@@ -56,7 +56,7 @@
                 <div class="col-12">
                   <label class="form-label fw-bold">Seleccionar Servicio Financiero <span class="text-danger">*</span></label>
                   <select class="form-select form-select-lg shadow-sm" [(ngModel)]="selectedServiceId" name="serviceId" required>
-                    <option *ngFor="let service of servicesList" [value]="service.id">
+                    <option *ngFor="let service of servicesList" [ngValue]="service.id">
                       {{ service.title }} - S/ {{ service.precio | number:'1.2-2' }}{{ service.proveedorNombre ? ' (' + service.proveedorNombre + ')' : '' }}
                     </option>
                   </select>
@@ -79,7 +79,7 @@
                         <p class="mb-2 text-muted small">{{ selectedServiceObj.description }}</p>
 
                         <div class="d-flex flex-wrap align-items-center gap-2">
-                          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fs-6">
+                          <span *ngIf="selectedServiceObj.proveedorNombre" class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fs-6">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="me-1" viewBox="0 0 16 16">
                               <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5zM9 2.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5zM10.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5z"/>
                             </svg>
@@ -155,7 +155,9 @@
                 </div>
 
                 <div class="col-12 d-grid mt-4">
-                  <button type="submit" class="btn btn-primary btn-lg shadow">Registrar Solicitud y Enviar Pago</button>
+                  <button type="submit" class="btn btn-primary btn-lg shadow" [disabled]="isSubmitting">
+                    {{ isSubmitting ? 'Registrando Solicitud en Servidor...' : 'Registrar Solicitud y Enviar Pago' }}
+                  </button>
                 </div>
               </div>
             </form>
@@ -166,7 +168,7 @@
   </div>
 </section>
 
-<!-- Modal de Confirmación y Estructura del Objeto Payload -->
+<!-- Modal de Confirmación -->
 <div *ngIf="isSuccessModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.6);">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content shadow-lg border-0 text-center p-4">
@@ -178,7 +180,7 @@
           </svg>
         </div>
         <h4 class="fw-bold text-dark mb-2">¡Solicitud Registrada - Pago en Validación!</h4>
-        <p class="text-muted mb-2">Tu solicitud ha sido ingresada correctamente con el código:</p>
+        <p class="text-muted mb-2">Tu solicitud ha sido ingresada en la base de datos con el código:</p>
         <span class="badge bg-primary fs-4 px-4 py-2 mb-3 shadow-sm">{{ createdRequestId }}</span>
         
         <div class="alert alert-warning border-warning text-start mx-auto my-3" style="max-width: 650px;">
@@ -189,7 +191,7 @@
             <div>
               <h6 class="fw-bold mb-1 text-dark">Estado del Pago: En Proceso de Validación (Pendiente)</h6>
               <p class="mb-0 small text-dark">
-                Registramos tu N° de Operación <strong>{{ numeroOperacionYape }}</strong>. El área de Administración verificará la transferencia por 
+                Registramos tu N° de Operación <strong>{{ numeroOperacionYape }}</strong>. El área de Cobranzas verificará la transferencia por 
                 <strong>S/ {{ selectedServiceObj?.precio | number:'1.2-2' }}</strong> y habilitará tu solicitud para asignarte un Asesor.
               </p>
             </div>

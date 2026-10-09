@@ -52,14 +52,14 @@
               </td>
               <td>
                 <span class="badge" [ngClass]="{
-                  'bg-warning text-dark': req.estadoPago === 'Pendiente' || req.status === 'Pendiente de Validación de Pago',
-                  'bg-info text-dark': (req.status === 'Pendiente de Asignación' || req.status === 'Nueva') || (req.estadoPago === 'Pagado' && !req.assignedAdvisorName),
-                  'bg-primary': req.status === 'En Proceso' || (req.status === 'Pendiente' && req.assignedAdvisorName),
-                  'bg-info': req.status === 'Atendida',
+                  'bg-danger': req.status === 'Nueva' && req.estadoPago === 'Pagado',
+                  'bg-warning text-dark': req.estadoPago === 'Pendiente' || req.status === 'Pendiente' || req.status === 'Pendiente de Validación de Pago',
+                  'bg-primary': req.status === 'En Proceso',
+                  'bg-info text-dark': req.status === 'Atendida',
                   'bg-success': req.status === 'Finalizada',
                   'bg-secondary': req.status === 'Nula / Abandonada' || req.status === 'Pago Rechazado'
                 }">
-                  {{ req.estadoPago === 'Pendiente' ? 'Pendiente Verificación Cobranza' : (req.assignedAdvisorName ? req.status : 'Pendiente de Asignación') }}
+                  {{ req.estadoPago === 'Pendiente' ? 'Pendiente Verificación Cobranza' : req.status }}
                 </span>
               </td>
               <td class="text-end">
@@ -155,7 +155,7 @@
             <div class="col-12">
               <label class="form-label fw-bold">Servicio Financiero Requerido <span class="text-danger">*</span></label>
               <select class="form-select" [(ngModel)]="newServiceId" name="serviceId" required>
-                <option *ngFor="let s of activeServices" [value]="s.id">
+                <option *ngFor="let s of activeServices" [ngValue]="s.id">
                   {{ s.title }} (Tarifa: S/ {{ s.precio | number:'1.2-2' }}) {{ s.proveedorNombre ? '- ' + s.proveedorNombre : '' }}
                 </option>
               </select>

@@ -17,6 +17,87 @@ import {
   AppointmentStatus 
 } from './finnova-data.service';
 
+export interface ReportDashboardMetrics {
+  solicitudes?: any;
+  ingresos?: any;
+  comisiones?: any;
+  usuarios?: any;
+  citas?: any;
+  servicios?: any;
+  rendimiento_general?: any;
+  [key: string]: any;
+}
+
+export interface ReportComisionItem {
+  id_solicitud: string;
+  fecha_registro: string;
+  nombre_cliente: string;
+  dni_cliente: string;
+  correo_cliente?: string;
+  titulo_servicio: string;
+  nombre_proveedor: string;
+  nombre_asesor: string;
+  monto_servicio: number;
+  monto_pagado: number;
+  estado_pago: string;
+  porcentaje_comision_aliado: number;
+  monto_comision_broker: number;
+  estado_atencion: string;
+  [key: string]: any;
+}
+
+export interface ReportGananciaPeriodoItem {
+  periodo: string;
+  total_solicitudes: number;
+  solicitudes_exitosas: number;
+  monto_total_solicitado: number;
+  total_recaudado: number;
+  comisiones_broker: number;
+  [key: string]: any;
+}
+
+export interface ReportServicioItem {
+  id_servicio: number;
+  titulo: string;
+  categoria: string;
+  nombre_proveedor: string;
+  precio_tarifa: number;
+  total_solicitudes: number;
+  solicitudes_exitosas: number;
+  total_recaudado: number;
+  total_comisiones_broker: number;
+  estado_servicio: string;
+  [key: string]: any;
+}
+
+export interface ReportAsesorItem {
+  id_usuario: number;
+  nombre_asesor: string;
+  correo_electronico: string;
+  total_solicitudes: number;
+  solicitudes_finalizadas: number;
+  solicitudes_atendidas: number;
+  total_citas_asignadas: number;
+  citas_realizadas: number;
+  total_recaudado: number;
+  total_comisiones_generadas: number;
+  estado_asesor: string;
+  [key: string]: any;
+}
+
+export interface ReportCampaniaItem {
+  id_campana: number;
+  titulo: string;
+  servicio_promovido: string;
+  aliado_proveedor: string;
+  publico_objetivo: string;
+  fecha_creacion?: string;
+  fecha_programada?: string;
+  usuario_creador: string;
+  estado: string;
+  [key: string]: any;
+}
+
 export interface BackendUsuario {
   id_usuario: number;
   dni: string;
@@ -139,109 +220,6 @@ export interface BackendCampania {
   nombre_creador?: string;
 }
 
-export interface ReportDashboardMetrics {
-  solicitudes: {
-    total_solicitudes: number;
-    solicitudes_finalizadas: number;
-    solicitudes_atendidas: number;
-    solicitudes_en_proceso: number;
-    solicitudes_pendientes: number;
-    pagos_validados: number;
-    total_recaudado: number;
-    comisiones_ganadas_broker: number;
-  };
-  servicios: {
-    total_servicios: number;
-    servicios_activos: number;
-    total_categorias: number;
-  };
-  campanias: {
-    total_campanias: number;
-    campanias_activas: number;
-    campanias_inactivas: number;
-  };
-  clientes: {
-    total_clientes: number;
-    clientes_activos: number;
-  };
-  proveedores: {
-    total_proveedores: number;
-    promedio_comision_aliados: number;
-  };
-  citas: {
-    total_citas: number;
-    citas_realizadas: number;
-    citas_programadas: number;
-  };
-}
-
-export interface ReportComisionItem {
-  id_solicitud: string;
-  fecha_registro: string;
-  fecha_cierre?: string | null;
-  monto_servicio: number;
-  monto_pagado: number;
-  estado_pago: string;
-  estado_atencion: string;
-  porcentaje_comision_aliado: number;
-  monto_comision_broker: number;
-  nombre_cliente: string;
-  dni_cliente: string;
-  titulo_servicio: string;
-  categoria_servicio: string;
-  nombre_proveedor: string;
-  nombre_asesor: string;
-}
-
-export interface ReportGananciaPeriodoItem {
-  periodo: string;
-  total_solicitudes: number;
-  solicitudes_exitosas: number;
-  monto_total_solicitado: number;
-  total_recaudado: number;
-  comisiones_broker: number;
-}
-
-export interface ReportServicioItem {
-  id_servicio: number;
-  titulo: string;
-  categoria: string;
-  precio_tarifa: number;
-  estado_servicio: string;
-  nombre_proveedor: string;
-  total_solicitudes: number;
-  solicitudes_exitosas: number;
-  total_recaudado: number;
-  total_comisiones_broker: number;
-}
-
-export interface ReportAsesorItem {
-  id_usuario: number;
-  nombre_asesor: string;
-  correo_electronico: string;
-  estado_asesor: string;
-  total_solicitudes: number;
-  solicitudes_finalizadas: number;
-  solicitudes_atendidas: number;
-  total_recaudado: number;
-  total_comisiones_generadas: number;
-  total_citas_asignadas: number;
-  citas_realizadas: number;
-}
-
-export interface ReportCampaniaItem {
-  id_campana: number;
-  titulo: string;
-  publico_objetivo: string;
-  categoria: string;
-  estado: string;
-  fecha_programada: string;
-  fecha_creacion: string;
-  servicio_promovido: string;
-  aliado_proveedor: string;
-  usuario_creador: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -249,7 +227,10 @@ export class ApiService {
   private http = inject(HttpClient);
   private baseUrl = (environment as any).apiUrl || 'http://localhost:3000/api';
 
-  // Endpoint público y optimizado para Landing (sin exponer datos de otros módulos)
+  // ==========================================
+  // SERVICIOS FINANCIEROS (Backend MySQL)
+  // ==========================================
+
   getPublicServices(): Observable<FinancialService[]> {
     return this.http.get<BackendServicio[]>(`${this.baseUrl}/servicios/publicos`).pipe(
       map(servicios => (servicios || []).map(s => this.mapBackendServiceToFrontend(s)))
@@ -258,7 +239,7 @@ export class ApiService {
 
   getServices(): Observable<FinancialService[]> {
     return this.http.get<BackendServicio[]>(`${this.baseUrl}/servicios`).pipe(
-      map(servicios => (servicios || []).map(s => this.mapBackendServiceToFrontend(s)))
+      map(servicios => servicios.map(s => this.mapBackendServiceToFrontend(s)))
     );
   }
 
@@ -420,17 +401,18 @@ export class ApiService {
 
   createRequest(requestData: Partial<AdvisoryRequest>): Observable<any> {
     const payload = {
-      id_solicitud: requestData.id,
+      id_solicitud: requestData.id || undefined,
       clientDni: requestData.clientDni,
       clientName: requestData.clientName,
       clientEmail: requestData.clientEmail,
       clientPhone: requestData.clientPhone,
-      serviceId: requestData.serviceId,
-      monto_servicio: requestData.servicePrecio,
+      serviceId: Number(requestData.serviceId),
+      id_servicio: Number(requestData.serviceId),
+      monto_servicio: Number(requestData.servicePrecio) || 0,
       notes: requestData.notes,
       estado_pago: requestData.estadoPago || 'Pendiente',
       numero_operacion_yape: requestData.numeroOperacionYape,
-      monto_pagado: requestData.montoPagado,
+      monto_pagado: Number(requestData.montoPagado) || Number(requestData.servicePrecio) || 0,
       assignedAdvisorId: requestData.assignedAdvisorId,
       url_voucher_imagen: requestData.urlVoucherImagen
     };
@@ -585,6 +567,34 @@ export class ApiService {
   }
 
   // ==========================================
+  // 8. REPORTES Y ANALÍTICA (Backend MySQL)
+  // ==========================================
+
+  getReportsDashboard(params?: any): Observable<any> {
+    return this.http.get(`${this.baseUrl}/reportes/dashboard`, { params });
+  }
+
+  getComisionesReport(params?: any): Observable<any> {
+    return this.http.get(`${this.baseUrl}/reportes/comisiones`, { params });
+  }
+
+  getGananciasHistoricas(params?: any): Observable<any> {
+    return this.http.get(`${this.baseUrl}/reportes/ganancias`, { params });
+  }
+
+  getServiciosRendimiento(params?: any): Observable<any> {
+    return this.http.get(`${this.baseUrl}/reportes/servicios`, { params });
+  }
+
+  getAsesoresDesempeno(params?: any): Observable<any> {
+    return this.http.get(`${this.baseUrl}/reportes/asesores`, { params });
+  }
+
+  getCampaniasReport(params?: any): Observable<any> {
+    return this.http.get(`${this.baseUrl}/reportes/campanias`, { params });
+  }
+
+  // ==========================================
   // USUARIOS DEL SISTEMA (Backend MySQL)
   // ==========================================
 
@@ -636,66 +646,9 @@ export class ApiService {
 
   // ==========================================
   // MAPPER HELPERS
-  
-  // ==========================================
-  // REPORTES Y ANALYTICS
-  // ==========================================
-
-  getReportsDashboard(params?: { fecha_inicio?: string; fecha_fin?: string }): Observable<ReportDashboardMetrics> {
-    let httpParams: any = {};
-    if (params?.fecha_inicio) httpParams.fecha_inicio = params.fecha_inicio;
-    if (params?.fecha_fin) httpParams.fecha_fin = params.fecha_fin;
-    return this.http.get<ReportDashboardMetrics>(`${this.baseUrl}/reportes/dashboard`, { params: httpParams });
-  }
-
-  getComisionesReport(params?: { fecha_inicio?: string; fecha_fin?: string; estado_atencion?: string }): Observable<ReportComisionItem[]> {
-    let httpParams: any = {};
-    if (params?.fecha_inicio) httpParams.fecha_inicio = params.fecha_inicio;
-    if (params?.fecha_fin) httpParams.fecha_fin = params.fecha_fin;
-    if (params?.estado_atencion && params.estado_atencion !== 'Todos') httpParams.estado_atencion = params.estado_atencion;
-    return this.http.get<ReportComisionItem[]>(`${this.baseUrl}/reportes/comisiones`, { params: httpParams });
-  }
-
-  getGananciasHistoricas(params?: { agrupacion?: 'semana' | 'mes'; fecha_inicio?: string; fecha_fin?: string }): Observable<ReportGananciaPeriodoItem[]> {
-    let httpParams: any = {};
-    if (params?.agrupacion) httpParams.agrupacion = params.agrupacion;
-    if (params?.fecha_inicio) httpParams.fecha_inicio = params.fecha_inicio;
-    if (params?.fecha_fin) httpParams.fecha_fin = params.fecha_fin;
-    return this.http.get<ReportGananciaPeriodoItem[]>(`${this.baseUrl}/reportes/ganancias`, { params: httpParams });
-  }
-
-  getServiciosRendimiento(params?: { fecha_inicio?: string; fecha_fin?: string }): Observable<ReportServicioItem[]> {
-    let httpParams: any = {};
-    if (params?.fecha_inicio) httpParams.fecha_inicio = params.fecha_inicio;
-    if (params?.fecha_fin) httpParams.fecha_fin = params.fecha_fin;
-    return this.http.get<ReportServicioItem[]>(`${this.baseUrl}/reportes/servicios`, { params: httpParams });
-  }
-
-  getAsesoresDesempeno(params?: { fecha_inicio?: string; fecha_fin?: string }): Observable<ReportAsesorItem[]> {
-    let httpParams: any = {};
-    if (params?.fecha_inicio) httpParams.fecha_inicio = params.fecha_inicio;
-    if (params?.fecha_fin) httpParams.fecha_fin = params.fecha_fin;
-    return this.http.get<ReportAsesorItem[]>(`${this.baseUrl}/reportes/asesores`, { params: httpParams });
-  }
-
-  getCampaniasReport(): Observable<ReportCampaniaItem[]> {
-    return this.http.get<ReportCampaniaItem[]>(`${this.baseUrl}/reportes/campanias`);
-  }
-
   // ==========================================
 
   private mapBackendServiceToFrontend(bs: BackendServicio): FinancialService {
-    let img = bs.url_imagen && bs.url_imagen.trim() !== '' ? bs.url_imagen : '';
-    if (!img) {
-      if (bs.categoria === 'Pensional') {
-        img = bs.titulo?.toLowerCase().includes('onp') ? 'assets/images/onp.jpg' : 'assets/images/afp.jpg';
-      } else if (bs.categoria === 'Aseguradoras') {
-        img = 'assets/images/aseguradoras.jpg';
-      } else {
-        img = 'assets/images/asesoramiento-empresarial.jpg';
-      }
-    }
-
     return {
       id: bs.id_servicio,
       title: bs.titulo,
@@ -703,7 +656,7 @@ export class ApiService {
       precio: Number(bs.precio_tarifa) || 0,
       idProveedor: bs.id_proveedor || undefined,
       proveedorNombre: bs.nombre_proveedor || undefined,
-      imageUrl: img,
+      imageUrl: bs.url_imagen || 'assets/images/afp.jpg',
       category: bs.categoria || 'Financiero',
       status: bs.estado || 'Activo'
     };
@@ -742,11 +695,6 @@ export class ApiService {
     const rawDate = sol.fecha_registro || new Date().toISOString();
     const formattedDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate.split(' ')[0];
 
-    let status = (sol.estado_atencion || 'Nueva') as RequestStatus;
-    if (sol.estado_pago === 'Pagado' && (!sol.id_asesor_asignado) && (status === 'Nueva' || status === 'Pendiente de Validación de Pago' || (status as any) === 'Pendiente de Validacion de Pago')) {
-      status = 'Pendiente de Asignación';
-    }
-
     return {
       id: sol.id_solicitud,
       clientDni: sol.dni_cliente || '',
@@ -767,7 +715,7 @@ export class ApiService {
       date: formattedDate,
       assignedAdvisorId: sol.id_asesor_asignado || undefined,
       assignedAdvisorName: sol.nombre_asesor || undefined,
-      status: status,
+      status: sol.estado_atencion || 'Nueva',
       notes: sol.notas_consulta || undefined,
       advisoryNotes: sol.observaciones_asesoria || undefined,
       advisoryOutcome: sol.resultado_asesoria || undefined,

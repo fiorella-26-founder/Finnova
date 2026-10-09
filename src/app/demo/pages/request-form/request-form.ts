@@ -21,8 +21,9 @@ export class RequestFormComponent implements OnInit {
   clientName = '';
   clientEmail = '';
   clientPhone = '';
-  selectedServiceId: number = 1;
+  selectedServiceId: number = 0;
   message = '';
+  isSubmitting = false;
 
   // Payment Fields (Yape / Plin)
   numeroOperacionYape = '';
@@ -52,11 +53,13 @@ export class RequestFormComponent implements OnInit {
       }
     });
 
-    // Auto-select first active service if current selectedServiceId is invalid
+    // Auto-select first active service if current selectedServiceId is not found
     this.dataService.services$.subscribe(services => {
       const active = (services || []).filter(s => s.status === 'Activo');
-      if (active.length > 0 && !active.some(s => s.id === Number(this.selectedServiceId))) {
-        this.selectedServiceId = active[0].id;
+      if (active.length > 0) {
+        if (!this.selectedServiceId || !active.some(s => s.id === Number(this.selectedServiceId))) {
+          this.selectedServiceId = active[0].id;
+        }
       }
     });
   }
@@ -112,24 +115,39 @@ export class RequestFormComponent implements OnInit {
       this.confirmService.alert('Por favor adjunta la captura o foto de tu comprobante (voucher).', 'Comprobante Requerido', 'warning');
       return;
     }
-    this.dataService.addRequest({
-      clientDni: this.clientDni,
-      clientName: this.clientName,
-      clientEmail: this.clientEmail,
-      clientPhone: this.clientPhone,
-      serviceId: service.id,
-      serviceTitle: service.title,
-      servicePrecio: service.precio,
-      montoPagado: service.precio,
-      numeroOperacionYape: this.numeroOperacionYape,
-      urlVoucherImagen: this.urlVoucherImagen,
-      estadoPago: 'Pendiente',
-      notes: this.message
-    });
 
-    const requests = this.dataService.getRequests();
-    this.createdRequestId = requests[0].id;
-    this.isSuccessModalOpen = true;
+    this.isSubmitting = true;
+
+    this.dataService.addRequest(
+      {
+        clientDni: this.clientDni.trim(),
+        clientName: this.clientName.trim(),
+        clientEmail: this.clientEmail.trim(),
+        clientPhone: this.clientPhone.trim(),
+        serviceId: Number(service.id),
+        serviceTitle: service.title,
+        servicePrecio: service.precio,
+        montoPagado: service.precio,
+        idProveedor: service.idProveedor,
+        proveedorNombre: service.proveedorNombre,
+        numeroOperacionYape: this.numeroOperacionYape.trim(),
+        urlVoucherImagen: this.urlVoucherImagen,
+        estadoPago: 'Pendiente',
+        notes: this.message.trim()
+      },
+      (err, createdId) => {
+        this.isSubmitting = false;
+        if (err) {
+          console.error('Error al registrar solicitud en backend:', err);
+          const errorMsg = err?.error?.error || err?.error?.mensaje || 'No se pudo guardar la solicitud en el servidor. Por favor verifica tus datos e inténtalo nuevamente.';
+          this.confirmService.alert(errorMsg, 'Error al Registrar', 'danger');
+          return;
+        }
+
+        this.createdRequestId = createdId || 'SOL-001';
+        this.isSuccessModalOpen = true;
+      }
+    );
   }
 
   closeSuccessModal() {

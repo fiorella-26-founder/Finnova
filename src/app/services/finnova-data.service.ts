@@ -50,7 +50,7 @@ export interface Client {
   assignedAdvisorName?: string;
 }
 
-export type RequestStatus = 'Nueva' | 'Pendiente' | 'En Proceso' | 'Atendida' | 'Finalizada' | 'Nula / Abandonada' | 'Pendiente de Validación de Pago' | 'Pendiente de Asignación' | 'Pago Rechazado';
+export type RequestStatus = 'Nueva' | 'Pendiente' | 'En Proceso' | 'Atendida' | 'Finalizada' | 'Nula / Abandonada' | 'Pendiente de Validación de Pago' | 'Pago Rechazado';
 export type PaymentStatus = 'Pendiente' | 'Pagado' | 'Rechazado';
 
 export interface AdvisoryRequest {
@@ -255,6 +255,7 @@ export class FinnovaDataService {
         this.activeRoleSubject.next(user.rol as UserRole);
       }
     });
+    this.loadAllData();
   }
 
   // Carga global inicial desde la base de datos
@@ -359,7 +360,9 @@ export class FinnovaDataService {
         if (callback) callback();
       },
       error: (err) => {
-        console.warn('Error al eliminar usuario en backend:', err);
+        console.warn('Error al eliminar usuario en backend, aplicando fallback:', err);
+        const current = this.usersSubject.value;
+        this.usersSubject.next(current.filter(u => u.id !== id));
         if (callback) callback(err);
       }
     });
@@ -452,7 +455,8 @@ export class FinnovaDataService {
         if (callback) callback();
       },
       error: (err) => {
-        console.warn('Error al eliminar proveedor en backend:', err);
+        const current = this.proveedoresSubject.value;
+        this.proveedoresSubject.next(current.filter(p => p.id !== id));
         if (callback) callback(err);
       }
     });
@@ -461,11 +465,10 @@ export class FinnovaDataService {
   // ==========================================
   // 3. GESTIÓN DE SERVICIOS FINANCIEROS
   // ==========================================
-  // Carga exclusiva del catálogo público (ideal para Landing)
   loadPublicServices(callback?: (err?: any) => void) {
     this.apiService.getPublicServices().subscribe({
       next: (services) => {
-        if (services) {
+        if (services && services.length > 0) {
           this.servicesSubject.next(services);
         }
         if (callback) callback();
@@ -480,7 +483,7 @@ export class FinnovaDataService {
   loadServices(callback?: (err?: any) => void) {
     this.apiService.getServices().subscribe({
       next: (services) => {
-        if (services) {
+        if (services && services.length > 0) {
           this.servicesSubject.next(services);
         }
         if (callback) callback();
@@ -572,7 +575,8 @@ export class FinnovaDataService {
         if (callback) callback();
       },
       error: (err) => {
-        console.warn('Error al eliminar servicio en backend:', err);
+        const current = this.servicesSubject.value;
+        this.servicesSubject.next(current.filter(s => s.id !== id));
         if (callback) callback(err);
       }
     });
@@ -713,7 +717,8 @@ export class FinnovaDataService {
         if (callback) callback();
       },
       error: (err) => {
-        console.warn('Error al eliminar cliente en backend:', err);
+        const current = this.clientsSubject.value;
+        this.clientsSubject.next(current.filter(c => c.id !== id));
         if (callback) callback(err);
       }
     });
@@ -771,7 +776,7 @@ export class FinnovaDataService {
     return this.requestsSubject.value;
   }
 
-  addRequest(request: Omit<AdvisoryRequest, 'id' | 'status' | 'date' | 'estadoPago'> & { estadoPago?: PaymentStatus }, callback?: (err?: any) => void) {
+  addRequest(request: Omit<AdvisoryRequest, 'id' | 'status' | 'date' | 'estadoPago'> & { estadoPago?: PaymentStatus; id?: string }, callback?: (err?: any, createdId?: string) => void) {
     const current = this.requestsSubject.value;
     const newId = `SOL-${(current.length + 1).toString().padStart(3, '0')}`;
 
@@ -793,7 +798,7 @@ export class FinnovaDataService {
 
     const payload: Partial<AdvisoryRequest> = {
       ...request,
-      id: newId,
+      serviceId: Number(request.serviceId),
       idProveedor: provId,
       proveedorNombre: provName,
       comisionAliadoPct: comisionPct,
@@ -803,16 +808,18 @@ export class FinnovaDataService {
     };
 
     this.apiService.createRequest(payload).subscribe({
-      next: () => {
+      next: (res: any) => {
+        const returnedId = res?.id_solicitud || newId;
         this.loadRequests();
         this.loadClients();
-        if (callback) callback();
+        if (callback) callback(null, returnedId);
       },
       error: (err) => {
         console.warn('Error al crear solicitud en backend, aplicando fallback:', err);
         const newRequest: AdvisoryRequest = {
           ...request,
           id: newId,
+          serviceId: Number(request.serviceId),
           idProveedor: provId,
           proveedorNombre: provName,
           comisionAliadoPct: comisionPct,
@@ -823,148 +830,134 @@ export class FinnovaDataService {
           date: new Date().toISOString().split('T')[0]
         };
         this.requestsSubject.next([newRequest, ...current]);
-        if (callback) callback(err);
+        if (callback) callback(err, newId);
       }
     });
   }
 
   assignAdvisorToRequest(requestId: string, advisorId: number, advisorName: string, callback?: (err?: any) => void) {
-    const current = this.requestsSubject.value;
-    const index = current.findIndex(r => r.id === requestId);
-    if (index !== -1) {
-      current[index] = {
-        ...current[index],
-        assignedAdvisorId: advisorId,
-        assignedAdvisorName: advisorName,
-        status: 'Pendiente'
-      };
-      this.requestsSubject.next([...current]);
-    }
-
     this.apiService.assignAdvisorToRequest(requestId, advisorId).subscribe({
       next: () => {
-        this.loadRequests(callback);
+        this.loadRequests();
+        if (callback) callback();
       },
       error: (err) => {
         console.warn('Error al asignar asesor a solicitud en backend, aplicando fallback:', err);
+        const current = this.requestsSubject.value;
+        const index = current.findIndex(r => r.id === requestId);
+        if (index !== -1) {
+          current[index].assignedAdvisorId = advisorId;
+          current[index].assignedAdvisorName = advisorName;
+          if (current[index].status === 'Nueva') {
+            current[index].status = 'Pendiente';
+          }
+          this.requestsSubject.next([...current]);
+        }
         if (callback) callback(err);
       }
     });
   }
 
   updateRequestStatus(requestId: string, status: RequestStatus, callback?: (err?: any) => void) {
-    const current = this.requestsSubject.value;
-    const index = current.findIndex(r => r.id === requestId);
-    if (index !== -1) {
-      current[index] = { ...current[index], status };
-      this.requestsSubject.next([...current]);
-    }
-
     this.apiService.updateRequestStatus(requestId, status).subscribe({
       next: () => {
-        this.loadRequests(callback);
+        this.loadRequests();
+        if (callback) callback();
       },
       error: (err) => {
         console.warn('Error al cambiar estado de solicitud en backend, aplicando fallback:', err);
+        const current = this.requestsSubject.value;
+        const index = current.findIndex(r => r.id === requestId);
+        if (index !== -1) {
+          current[index].status = status;
+          this.requestsSubject.next([...current]);
+        }
         if (callback) callback(err);
       }
     });
   }
 
   logAdvisorySession(requestId: string, notes: string, outcome: string, callback?: (err?: any) => void) {
-    const current = this.requestsSubject.value;
-    const index = current.findIndex(r => r.id === requestId);
-    if (index !== -1) {
-      current[index] = {
-        ...current[index],
-        advisoryNotes: notes,
-        advisoryOutcome: outcome,
-        status: 'Atendida'
-      };
-      this.requestsSubject.next([...current]);
-    }
-
     this.apiService.logAdvisorySession(requestId, notes, outcome).subscribe({
       next: () => {
-        this.loadRequests(callback);
+        this.loadRequests();
+        if (callback) callback();
       },
       error: (err) => {
         console.warn('Error al registrar sesión de asesoría en backend, aplicando fallback:', err);
+        const current = this.requestsSubject.value;
+        const index = current.findIndex(r => r.id === requestId);
+        if (index !== -1) {
+          current[index].advisoryNotes = notes;
+          current[index].advisoryOutcome = outcome;
+          current[index].status = 'Atendida';
+          this.requestsSubject.next([...current]);
+        }
         if (callback) callback(err);
       }
     });
   }
 
   closeRequest(requestId: string, closureNotes: string, targetStatus: RequestStatus = 'Finalizada', callback?: (err?: any) => void) {
-    const current = this.requestsSubject.value;
-    const index = current.findIndex(r => r.id === requestId);
-    if (index !== -1) {
-      current[index] = {
-        ...current[index],
-        closureNotes: closureNotes,
-        status: targetStatus,
-        montoComisionBroker: targetStatus === 'Nula / Abandonada' ? 0 : current[index].montoComisionBroker
-      };
-      this.requestsSubject.next([...current]);
-    }
-
     this.apiService.closeRequest(requestId, closureNotes, targetStatus).subscribe({
       next: () => {
-        this.loadRequests(callback);
+        this.loadRequests();
+        if (callback) callback();
       },
       error: (err) => {
         console.warn('Error al cerrar solicitud en backend, aplicando fallback:', err);
+        const current = this.requestsSubject.value;
+        const index = current.findIndex(r => r.id === requestId);
+        if (index !== -1) {
+          current[index].closureNotes = closureNotes;
+          current[index].status = targetStatus;
+          if (targetStatus === 'Nula / Abandonada') {
+            current[index].montoComisionBroker = 0;
+          }
+          this.requestsSubject.next([...current]);
+        }
         if (callback) callback(err);
       }
     });
   }
 
   validatePayment(requestId: string, data?: { monto_pagado?: number; numero_operacion_yape?: string }, callback?: (err?: any) => void) {
-    // Actualización inmediata del estado reactivo local
-    const current = this.requestsSubject.value;
-    const index = current.findIndex(r => r.id === requestId);
-    if (index !== -1) {
-      current[index] = {
-        ...current[index],
-        estadoPago: 'Pagado',
-        status: current[index].assignedAdvisorId ? 'Pendiente' : 'Pendiente de Asignación',
-        montoPagado: data?.monto_pagado || current[index].montoPagado || current[index].servicePrecio,
-        numeroOperacionYape: data?.numero_operacion_yape || current[index].numeroOperacionYape
-      };
-      this.requestsSubject.next([...current]);
-    }
-
     this.apiService.validatePayment(requestId, data).subscribe({
       next: () => {
-        this.loadRequests(callback);
+        this.loadRequests();
         this.loadClients();
+        if (callback) callback();
       },
       error: (err) => {
         console.warn('Error al validar pago en backend, aplicando fallback:', err);
+        const current = this.requestsSubject.value;
+        const index = current.findIndex(r => r.id === requestId);
+        if (index !== -1) {
+          current[index].estadoPago = 'Pagado';
+          if (!current[index].montoPagado && current[index].servicePrecio) {
+            current[index].montoPagado = current[index].servicePrecio;
+          }
+          this.requestsSubject.next([...current]);
+        }
         if (callback) callback(err);
       }
     });
   }
 
   rejectPayment(requestId: string, callback?: (err?: any) => void) {
-    // Actualización inmediata del estado reactivo local
-    const current = this.requestsSubject.value;
-    const index = current.findIndex(r => r.id === requestId);
-    if (index !== -1) {
-      current[index] = {
-        ...current[index],
-        estadoPago: 'Rechazado',
-        status: 'Pago Rechazado'
-      };
-      this.requestsSubject.next([...current]);
-    }
-
     this.apiService.rejectPayment(requestId).subscribe({
       next: () => {
-        this.loadRequests(callback);
+        this.loadRequests();
+        if (callback) callback();
       },
       error: (err) => {
         console.warn('Error al rechazar pago en backend, aplicando fallback:', err);
+        const current = this.requestsSubject.value;
+        const index = current.findIndex(r => r.id === requestId);
+        if (index !== -1) {
+          current[index].estadoPago = 'Rechazado';
+          this.requestsSubject.next([...current]);
+        }
         if (callback) callback(err);
       }
     });
@@ -1122,7 +1115,8 @@ export class FinnovaDataService {
         if (callback) callback();
       },
       error: (err) => {
-        console.warn('Error al eliminar cita en backend:', err);
+        const current = this.appointmentsSubject.value;
+        this.appointmentsSubject.next(current.filter(a => a.id !== id));
         if (callback) callback(err);
       }
     });
@@ -1219,7 +1213,8 @@ export class FinnovaDataService {
         if (callback) callback();
       },
       error: (err) => {
-        console.warn('Error al eliminar campaña en backend:', err);
+        const current = this.campaignsSubject.value;
+        this.campaignsSubject.next(current.filter(c => c.id !== id));
         if (callback) callback(err);
       }
     });
