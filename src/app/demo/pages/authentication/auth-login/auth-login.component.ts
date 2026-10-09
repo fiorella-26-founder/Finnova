@@ -69,7 +69,7 @@ export class AuthLoginComponent implements OnInit {
           this.dataService.setRole(userRole);
           
           const targetRoute = this.authService.getDefaultRouteForRole(userRole);
-          this.router.navigateByUrl(targetRoute);
+          window.location.href = targetRoute;
         }
       },
       error: (err) => {
