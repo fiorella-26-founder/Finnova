@@ -32,8 +32,7 @@ export class AdminLayout implements OnInit {
   }
 
   ngOnInit(): void {
-    // Carga los datos del sistema únicamente cuando el usuario ingresa a la plataforma administrativa
-    this.dataService.loadAllData();
+    // Cada pantalla del dashboard carga sus propios datos bajo demanda en su ngOnInit
   }
 
   get navCollapsedMob(): boolean {

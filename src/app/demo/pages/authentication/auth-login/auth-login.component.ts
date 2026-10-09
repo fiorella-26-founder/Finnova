@@ -44,7 +44,7 @@ export class AuthLoginComponent implements OnInit {
       this.password = 'password123';
     } else {
       this.email = 'fiorellatecsup26@gmail.com';
-      this.password = 'password123';
+      this.password = '';
     }
   }
 
