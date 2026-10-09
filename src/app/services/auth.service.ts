@@ -103,9 +103,11 @@ export class AuthService {
 
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
+    localStorage.clear();
+    sessionStorage.clear();
     this.tokenSubject.next(null);
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login'], { queryParams: {} });
+    window.location.href = '/login';
   }
 
   // Verificar si hay una sesión activa y token no expirado
