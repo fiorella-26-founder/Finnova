@@ -253,13 +253,24 @@ export class FinnovaDataService {
     this.authService.currentUser$.subscribe(user => {
       if (user?.rol) {
         this.activeRoleSubject.next(user.rol as UserRole);
+        this.loadAllData();
+      } else {
+        this.usersSubject.next([]);
+        this.proveedoresSubject.next([]);
+        this.servicesSubject.next([]);
+        this.clientsSubject.next([]);
+        this.requestsSubject.next([]);
+        this.appointmentsSubject.next([]);
+        this.campaignsSubject.next([]);
       }
     });
-    this.loadAllData();
   }
 
   // Carga global inicial desde la base de datos
   loadAllData() {
+    if (!this.authService.isAuthenticated()) {
+      return;
+    }
     const role = this.activeRole;
     if (role === 'Administrador') {
       this.loadUsers();
@@ -285,6 +296,7 @@ export class FinnovaDataService {
   // 1. GESTIÓN DE USUARIOS
   // ==========================================
   loadUsers(callback?: (err?: any) => void) {
+    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getUsers().subscribe({
       next: (users) => {
         if (users && users.length > 0) {
@@ -384,6 +396,7 @@ export class FinnovaDataService {
   // 2. GESTIÓN DE PROVEEDORES Y ALIADOS
   // ==========================================
   loadProveedores(callback?: (err?: any) => void) {
+    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getProveedores().subscribe({
       next: (provs) => {
         if (provs && provs.length > 0) {
@@ -493,6 +506,7 @@ export class FinnovaDataService {
   }
 
   loadServices(callback?: (err?: any) => void) {
+    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getServices().subscribe({
       next: (services) => {
         if (services && services.length > 0) {
@@ -598,6 +612,7 @@ export class FinnovaDataService {
   // 4. GESTIÓN DE CLIENTES
   // ==========================================
   loadClients(callback?: (err?: any) => void) {
+    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getClients().subscribe({
       next: (clients) => {
         if (clients && clients.length > 0) {
@@ -740,6 +755,7 @@ export class FinnovaDataService {
   // 5. GESTIÓN DE SOLICITUDES DE ASESORÍA
   // ==========================================
   loadRequests(callback?: (err?: any) => void) {
+    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getRequests().subscribe({
       next: (requests) => {
         if (requests && requests.length > 0) {
@@ -979,6 +995,7 @@ export class FinnovaDataService {
   // 6. GESTIÓN DE CITAS (Appointments)
   // ==========================================
   loadAppointments(callback?: (err?: any) => void) {
+    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getAppointments().subscribe({
       next: (appointments) => {
         if (appointments && appointments.length > 0) {
@@ -1138,6 +1155,7 @@ export class FinnovaDataService {
   // 7. GESTIÓN DE CAMPAÑAS DE MARKETING
   // ==========================================
   loadCampaigns(callback?: (err?: any) => void) {
+    if (!this.authService.isAuthenticated()) { if (callback) callback(); return; }
     this.apiService.getCampaigns().subscribe({
       next: (campaigns) => {
         if (campaigns && campaigns.length > 0) {

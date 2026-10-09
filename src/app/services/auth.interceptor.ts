@@ -26,13 +26,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      // No ejecutar logout si la petición fallida proviene de un endpoint público
-      if (error.status === 401 && !isPublicRoute) {
-        console.warn('Sesión expirada o no autorizada (401). Redirigiendo a login...');
-        authService.logout();
+      // Solo forzar logout si el usuario estaba previamente autenticado y el token expiró/falló en endpoint protegido
+      if (error.status === 401 && !isPublicRoute && !req.url.includes('/auth/login')) {
+        if (authService.isAuthenticated()) {
+          console.warn('Sesión expirada o no autorizada (401). Redirigiendo a login...');
+          authService.logout();
+        }
       }
       return throwError(() => error);
     })
   );
 };
-
