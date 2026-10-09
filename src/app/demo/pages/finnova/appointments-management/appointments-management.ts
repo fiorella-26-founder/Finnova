@@ -42,7 +42,8 @@ export class AppointmentsManagement implements OnInit {
   attendOutcome = '';
 
   ngOnInit(): void {
-    this.dataService.loadAppointments();
+    this.isLoadingData = true;
+    this.dataService.loadAppointments(() => { this.isLoadingData = false; });
     this.dataService.loadRequests();
     this.dataService.loadUsers();
   }

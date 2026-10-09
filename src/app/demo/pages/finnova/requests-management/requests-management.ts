@@ -24,6 +24,7 @@ export class RequestsManagement implements OnInit {
   isCloseModalOpen = false;
   isDetailModalOpen = false;
   isSaving = false;
+  isLoadingData = true;
 
   // Selected Item
   selectedRequest: AdvisoryRequest | null = null;
@@ -60,7 +61,8 @@ export class RequestsManagement implements OnInit {
   closureStatus: RequestStatus = 'Finalizada';
 
   ngOnInit() {
-    this.dataService.loadRequests();
+    this.isLoadingData = true;
+    this.dataService.loadRequests(() => { this.isLoadingData = false; });
     this.dataService.loadServices();
     const role = this.dataService.activeRole;
     if (role === 'Administrador') {

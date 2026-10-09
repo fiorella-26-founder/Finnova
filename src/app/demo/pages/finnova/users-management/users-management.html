@@ -46,6 +46,18 @@
             </tr>
           </thead>
           <tbody>
+            <tr *ngIf="isLoadingData">
+              <td colspan="9" class="text-center py-5 text-primary">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                <span>Cargando usuarios desde la base de datos...</span>
+              </td>
+            </tr>
+            <tr *ngIf="!isLoadingData && ((dataService.users$ | async)?.length || 0) === 0">
+              <td colspan="9" class="text-center py-5 text-muted">
+                <i class="anticon anticon-inbox fs-2 d-block mb-2 text-secondary"></i>
+                No se encontraron usuarios registrados.
+              </td>
+            </tr>
             <tr *ngFor="let user of dataService.users$ | async">
               <td class="fw-bold text-primary">#{{ user.id }}</td>
               <td class="fw-semibold">{{ user.dni }}</td>

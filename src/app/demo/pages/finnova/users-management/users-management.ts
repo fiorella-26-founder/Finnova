@@ -13,7 +13,8 @@ import { ConfirmDialogService } from 'src/app/services/confirm-dialog.service';
 })
 export class UsersManagement implements OnInit {
   ngOnInit(): void {
-    this.dataService.loadUsers();
+    this.isLoadingData = true;
+    this.dataService.loadUsers(() => { this.isLoadingData = false; });
   }
 
   public dataService = inject(FinnovaDataService);
@@ -23,6 +24,7 @@ export class UsersManagement implements OnInit {
   isModalOpen = false;
   isEditing = false;
   isSaving = false;
+  isLoadingData = true;
 
   // Alerts
   feedbackMessage = '';

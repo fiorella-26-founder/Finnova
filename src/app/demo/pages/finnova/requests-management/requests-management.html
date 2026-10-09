@@ -26,7 +26,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngIf="((dataService.requests$ | async)?.length || 0) === 0">
+            <tr *ngIf="isLoadingData">
+              <td colspan="6" class="text-center py-5 text-primary">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                <span>Cargando solicitudes desde la base de datos...</span>
+              </td>
+            </tr>
+            <tr *ngIf="!isLoadingData && ((dataService.requests$ | async)?.length || 0) === 0">
               <td colspan="6" class="text-center py-5 text-muted">
                 <i class="anticon anticon-inbox fs-2 d-block mb-2 text-secondary"></i>
                 No se encontraron solicitudes registradas para tu cuenta.
