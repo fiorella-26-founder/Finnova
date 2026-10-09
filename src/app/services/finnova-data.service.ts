@@ -648,9 +648,19 @@ export class FinnovaDataService {
     if (role === 'Asesor') {
       const userId = currentUser?.id_usuario;
       const userName = currentUser?.nombre_completo?.toLowerCase();
+      const requestsOfAdvisor = this.requestsSubject.value.filter(r => {
+        if (userId && r.assignedAdvisorId === userId) return true;
+        if (userName && r.assignedAdvisorName && r.assignedAdvisorName.toLowerCase().includes(userName.split(' ')[0])) return true;
+        return false;
+      });
+      const clientDnis = new Set(requestsOfAdvisor.map(r => r.clientDni?.trim()).filter(Boolean));
+      const clientEmails = new Set(requestsOfAdvisor.map(r => r.clientEmail?.trim().toLowerCase()).filter(Boolean));
+
       return all.filter(c => {
         if (userId && c.assignedAdvisorId === userId) return true;
         if (userName && c.assignedAdvisorName && c.assignedAdvisorName.toLowerCase().includes(userName.split(' ')[0])) return true;
+        if (c.dni && clientDnis.has(c.dni.trim())) return true;
+        if (c.email && clientEmails.has(c.email.trim().toLowerCase())) return true;
         if (!userId && !userName && (c.assignedAdvisorId === 2 || c.assignedAdvisorName?.includes('Juan'))) return true;
         return false;
       });
@@ -1266,14 +1276,30 @@ export class FinnovaDataService {
     });
   }
 
-  getActiveCampaignsForClient(clientDni: string = '72345678'): MarketingCampaign[] {
-    const clientRequests = this.requestsSubject.value.filter(r => r.clientDni === clientDni);
-    const serviceIds = clientRequests.map(r => r.serviceId);
+  getActiveCampaignsForClient(clientDni?: string, clientEmail?: string): MarketingCampaign[] {
+    const user = this.authService.getUser();
+    const dni = clientDni || user?.dni;
+    const email = (clientEmail || user?.correo_electronico)?.toLowerCase();
+
+    const clientRequests = this.requestsSubject.value.filter(r => {
+      if (dni && r.clientDni === dni) return true;
+      if (email && r.clientEmail?.toLowerCase() === email) return true;
+      return false;
+    });
+
+    const serviceIds = clientRequests.map(r => r.serviceId).filter(Boolean);
+    const providerIds = clientRequests.map(r => r.idProveedor).filter(Boolean);
 
     return this.campaignsSubject.value.filter(c => {
       if (c.status !== 'Activa') return false;
-      const matchesService = !c.targetServiceId || serviceIds.includes(c.targetServiceId);
-      return matchesService;
+      // Si la campaña no tiene filtros específicos de servicio ni proveedor, aplica para TODOS los clientes
+      const isGeneral = (!c.targetServiceId || c.targetServiceId === 0) && (!c.targetProveedorId || c.targetProveedorId === 0);
+      if (isGeneral) return true;
+
+      const matchesService = c.targetServiceId ? serviceIds.includes(c.targetServiceId) : true;
+      const matchesProveedor = c.targetProveedorId ? providerIds.includes(c.targetProveedorId) : true;
+
+      return (c.targetServiceId && matchesService) || (c.targetProveedorId && matchesProveedor);
     });
   }
 }

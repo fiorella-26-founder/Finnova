@@ -9,6 +9,7 @@ import { NavigationComponent } from './navigation/navigation.component';
 import { BreadcrumbComponent } from '../../shared/components/breadcrumb/breadcrumb.component';
 import { LayoutStateService } from '../../shared/service/layout-state.service';
 import { FinnovaDataService, MarketingCampaign } from 'src/app/services/finnova-data.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-admin',
@@ -19,6 +20,7 @@ import { FinnovaDataService, MarketingCampaign } from 'src/app/services/finnova-
 export class AdminLayout implements OnInit {
   private layoutState = inject(LayoutStateService);
   public dataService = inject(FinnovaDataService);
+  private authService = inject(AuthService);
 
   dismissedCampaignIds = new Set<number>();
 
@@ -26,20 +28,35 @@ export class AdminLayout implements OnInit {
   navCollapsed = false;
   windowWidth: number;
 
+  activeClientCampaign: MarketingCampaign | null = null;
+
   // Constructor
   constructor() {
     this.windowWidth = window.innerWidth;
   }
 
   ngOnInit(): void {
-    // Cada pantalla del dashboard carga sus propios datos bajo demanda en su ngOnInit
+    if (this.dataService.activeRole === 'Cliente') {
+      this.dataService.loadCampaigns(() => {
+        this.evaluateClientCampaign();
+      });
+      this.dataService.loadRequests(() => {
+        this.evaluateClientCampaign();
+      });
+    }
+  }
+
+  evaluateClientCampaign(): void {
+    if (this.dataService.activeRole !== 'Cliente') return;
+    const user = this.authService.getUser();
+    const campaigns = this.dataService.getActiveCampaignsForClient(user?.dni, user?.correo_electronico);
+    const available = campaigns.filter(c => !this.dismissedCampaignIds.has(c.id));
+    this.activeClientCampaign = available.length > 0 ? available[0] : null;
   }
 
   get navCollapsedMob(): boolean {
     return this.layoutState.navCollapsedMob();
   }
-
-  activeClientCampaign: MarketingCampaign | null = null;
 
   dismissCampaign(campaignId: number) {
     this.dismissedCampaignIds.add(campaignId);
@@ -68,4 +85,3 @@ export class AdminLayout implements OnInit {
     this.navCollapsed = !this.navCollapsed;
   }
 }
-

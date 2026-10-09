@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ export class RequestFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private confirmService = inject(ConfirmDialogService);
+  private cdr = inject(ChangeDetectorRef);
 
   clientDni = '';
   clientName = '';
@@ -117,6 +118,7 @@ export class RequestFormComponent implements OnInit {
     }
 
     this.isSubmitting = true;
+    this.cdr.detectChanges();
 
     this.dataService.addRequest(
       {
@@ -141,11 +143,13 @@ export class RequestFormComponent implements OnInit {
           console.error('Error al registrar solicitud en backend:', err);
           const errorMsg = err?.error?.error || err?.error?.mensaje || 'No se pudo guardar la solicitud en el servidor. Por favor verifica tus datos e inténtalo nuevamente.';
           this.confirmService.alert(errorMsg, 'Error al Registrar', 'danger');
+          this.cdr.detectChanges();
           return;
         }
 
         this.createdRequestId = createdId || 'SOL-001';
         this.isSuccessModalOpen = true;
+        this.cdr.detectChanges();
       }
     );
   }
