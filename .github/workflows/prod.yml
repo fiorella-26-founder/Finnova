@@ -15,11 +15,11 @@ on:
 jobs:
   if_merged:
     if: github.event.pull_request.merged == true
-    name: 🎉 Deploy
+    name: Deploy
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚚 Get latest code
+      - name: Get latest code
         uses: actions/checkout@v4
 
       - name: Use Node.js 24
@@ -27,15 +27,14 @@ jobs:
         with:
           node-version: '24'
 
-      - name: 🔨 Build Project
+      - name: Build Project
         run: |
           yarn
           yarn build-prod
-      - name: 📂 Deploy to Server
+      - name: Deploy to Server
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          # ARGS: "-rltgoDzvO --delete"
           SOURCE: 'dist/'
           REMOTE_HOST: 145.79.3.173
           REMOTE_USER: u965251139

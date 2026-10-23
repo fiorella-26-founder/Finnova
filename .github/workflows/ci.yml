@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-lint:
-    name: 🎨 Frontend Angular Build & Verification
+    name: Frontend Angular Build & Verification
     runs-on: ubuntu-latest
 
     steps:
