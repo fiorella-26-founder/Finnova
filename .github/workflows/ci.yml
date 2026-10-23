@@ -15,15 +15,15 @@ jobs:
       - name: 1. Checkout Código
         uses: actions/checkout@v4
 
-      - name: 2. Configurar Node.js 20.x
+      - name: 2. Configurar Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: 3. Instalar Dependencias
-        run: yarn --frozen-lockfile || npm install
+        run: yarn
 
       - name: 4. Compilación Angular Producción (Build)
-        run: npm run build
+        run: yarn build-prod
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
