@@ -1,0 +1,29 @@
+name: Frontend Finnova CI - Control de Cambios
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-lint:
+    name: 🎨 Frontend Angular Build & Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Código
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Instalar Dependencias
+        run: yarn --frozen-lockfile || npm install
+
+      - name: 4. Compilación Angular Producción (Build)
+        run: npm run build
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
