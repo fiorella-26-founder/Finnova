@@ -681,6 +681,30 @@ export class ApiService {
   }
 
   // ==========================================
+  // 9. MESA DE AYUDA Y CONTROL DE CAMBIOS (SEMANA 10 & 11)
+  // ==========================================
+
+  getSupportChangeTickets(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/soporte-cambios`);
+  }
+
+  getSupportChangeMetrics(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/soporte-cambios/metricas`);
+  }
+
+  createSupportChangeTicket(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/soporte-cambios`, payload);
+  }
+
+  qualifySupportChangeTicket(id: string, payload: any): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/soporte-cambios/${id}/calificar`, payload);
+  }
+
+  deleteSupportChangeTicket(id: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/soporte-cambios/${id}`);
+  }
+
+  // ==========================================
   // MAPPER HELPERS
   // ==========================================
 

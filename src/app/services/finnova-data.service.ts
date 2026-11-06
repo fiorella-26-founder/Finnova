@@ -112,6 +112,41 @@ export interface MarketingCampaign {
   createdAt: string;
 }
 
+export type TechnicalDimension = 'Infraestructura' | 'Aplicaciones y BD' | 'Documentación' | 'Calendario' | 'Por Clasificar' | 'N/A - Mesa de Ayuda';
+export type ChangeStatus = 'Abierto' | 'En Proceso' | 'Completado' | 'Rechazado';
+export type ItilChangeType = 'Estándar (CHS)' | 'Normal (CHN)' | 'Emergencia (CHE)' | 'No Aplica';
+export type ChangeApplicationFlag = 'Pendiente Evaluación' | 'Si Aplica (RFC)' | 'No Aplica (Soporte Directo)';
+
+export interface SupportChangeTicket {
+  id_ticket: string;
+  codigo_jira: string;
+  titulo: string;
+  descripcion: string;
+  tipo_solicitud: 'Soporte / Mesa de Ayuda' | 'Acceso / Credenciales' | 'Requerimiento de Cambio' | 'Incidente Técnico' | string;
+  solicitante_nombre: string;
+  solicitante_rol: UserRole | string;
+  prioridad: 'Baja' | 'Media' | 'Alta' | 'Crítica';
+  aplica_cambio: ChangeApplicationFlag;
+  dimension_tecnica: TechnicalDimension;
+  tipo_cambio_itil: ItilChangeType;
+  estado: ChangeStatus;
+  componente_afectado: string;
+  ventana_calendarizacion: string;
+  doc_pase_referencia: string;
+  plan_rollback: string;
+  resolucion_tecnica: string;
+  fecha_registro?: string;
+}
+
+export interface DimensionMetricsRow {
+  dimension: 'Infraestructura' | 'Aplicaciones y BD' | 'Documentación' | 'Calendario';
+  abiertos: number;
+  en_proceso: number;
+  completados: number;
+  total: number;
+  porcentaje_completado: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -1300,6 +1335,483 @@ export class FinnovaDataService {
       const matchesProveedor = c.targetProveedorId ? providerIds.includes(c.targetProveedorId) : true;
 
       return (c.targetServiceId && matchesService) || (c.targetProveedorId && matchesProveedor);
+    });
+  }
+
+  // =========================================================================
+  // 8. MESA DE AYUDA Y CONTROL DE CAMBIOS POR DIMENSIÓN (SEMANA 10 & 11)
+  // =========================================================================
+  private readonly STORAGE_KEY_SUPPORT = 'finnova_support_changes_v1';
+
+  private readonly DEFAULT_SUPPORT_TICKETS: SupportChangeTicket[] = [
+    // DIMENSIÓN 1: INFRAESTRUCTURA (3 Cambios: 1 Completado, 1 En Proceso, 1 Abierto)
+    {
+      id_ticket: 'RFC-2026-001',
+      codigo_jira: 'FCC-101',
+      titulo: '[CHE01] Configuración de trust proxy en Render y calibración de Rate Limiting',
+      descripcion: 'Ajuste crítico en server.js (app.set("trust proxy", 1)) para identificar la IP real detrás del balanceador de Render Cloud y evitar bloqueos masivos HTTP 429 en /api/auth/login.',
+      tipo_solicitud: 'Incidente Técnico',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Crítica',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Infraestructura',
+      tipo_cambio_itil: 'Emergencia (CHE)',
+      estado: 'Completado',
+      componente_afectado: 'Backend Express (Render Cloud)',
+      ventana_calendarizacion: 'Ejecución Inmediata Hotfix (18/10/2026)',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-01',
+      plan_rollback: 'Revertir configuración de express-rate-limit y ejecutar Rollback to previous deploy en consola Render (RTO < 3 min).',
+      resolucion_tecnica: 'Desplegado exitosamente en producción. Cero errores HTTP 429 en pruebas de concurrencia.',
+      fecha_registro: '2026-10-18'
+    },
+    {
+      id_ticket: 'RFC-2026-002',
+      codigo_jira: 'FCC-102',
+      titulo: '[CHN01] Optimización de Pool de Conexiones SSL/TLS hacia TiDB Cloud AWS',
+      descripcion: 'Ajuste de parámetros connectionLimit: 10, waitForConnections: true y cifrado TLS forzado (rejectUnauthorized: false) en src/config/db.js para estabilizar latencia entre Render y AWS.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Alta',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Infraestructura',
+      tipo_cambio_itil: 'Normal (CHN)',
+      estado: 'En Proceso',
+      componente_afectado: 'TiDB Cloud Serverless / Render',
+      ventana_calendarizacion: 'Ventana Domingos 01:00 AM - 03:00 AM (UTC-5)',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'Restaurar variables de entorno DB_SSL y pool por defecto en consola de Render.',
+      resolucion_tecnica: 'En pruebas de estrés k6 validando estabilidad de 10 conexiones simultáneas.',
+      fecha_registro: '2026-10-25'
+    },
+    {
+      id_ticket: 'RFC-2026-003',
+      codigo_jira: 'FCC-103',
+      titulo: '[CHS01] Rotación trimestral de JWT_SECRET y endurecimiento de cabeceras Helmet',
+      descripcion: 'Renovación programada de la llave criptográfica de firma de tokens JWT en variables de entorno de Render y actualización de políticas Cross-Origin en Helmet.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Carlos Mendoza (Seguridad TI)',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Media',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Infraestructura',
+      tipo_cambio_itil: 'Estándar (CHS)',
+      estado: 'Abierto',
+      componente_afectado: 'Backend Express (Render Cloud)',
+      ventana_calendarizacion: 'Domingo 15/11/2026 01:30 AM (UTC-5)',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'Restaurar valor anterior de JWT_SECRET en panel Environment de Render en 1 minuto.',
+      resolucion_tecnica: 'Pendiente de inicio de ventana programada.',
+      fecha_registro: '2026-11-02'
+    },
+
+    // DIMENSIÓN 2: APLICACIONES Y BD (3 Cambios: 1 Completado, 1 En Proceso, 1 Abierto)
+    {
+      id_ticket: 'RFC-2026-004',
+      codigo_jira: 'FCC-104',
+      titulo: '[CHN02] Migración de columna id_asesor_preferente y auto-aprovisionamiento Cliente',
+      descripcion: 'Alteración de esquema en tabla clientes (id_asesor_preferente) y lógica en solicitudController.js para crear automáticamente el usuario Cliente y enviar credenciales por Nodemailer al validar pago Yape.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Alta',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Aplicaciones y BD',
+      tipo_cambio_itil: 'Normal (CHN)',
+      estado: 'Completado',
+      componente_afectado: 'Base de Datos TiDB + Backend Express + Angular',
+      ventana_calendarizacion: 'Ejecutado en Ventana 25/10/2026 01:30 AM',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-02',
+      plan_rollback: 'Ejecutar script inverso ALTER TABLE clientes DROP COLUMN id_asesor_preferente y git revert del commit.',
+      resolucion_tecnica: 'Migración aplicada sin pérdida de datos y validada en producción.',
+      fecha_registro: '2026-10-25'
+    },
+    {
+      id_ticket: 'RFC-2026-005',
+      codigo_jira: 'FCC-105',
+      titulo: '[CHN03] Despliegue de Módulo de Mesa de Ayuda y Bandeja de Control de Cambios',
+      descripcion: 'Creación de tabla tickets_soporte_cambios en TiDB Cloud, endpoints REST /api/soporte-cambios y componente Angular /dashboard/support-changes para calificar solicitudes y escalarlas a RFC por dimensión.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Alta',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Aplicaciones y BD',
+      tipo_cambio_itil: 'Normal (CHN)',
+      estado: 'En Proceso',
+      componente_afectado: 'Frontend Angular (Vercel) + Backend (Render) + TiDB',
+      ventana_calendarizacion: 'Ventana Actual 06/11/2026',
+      doc_pase_referencia: 'proyecto-finnova/docs/PASE_A_PRODUCCION.md#PASE-FE-2026-04',
+      plan_rollback: 'Instant Rollback en Vercel y DROP TABLE tickets_soporte_cambios si se requiere reversión.',
+      resolucion_tecnica: 'En validación funcional e integración con tablero de métricas por dimensión.',
+      fecha_registro: '2026-11-06'
+    },
+    {
+      id_ticket: 'RFC-2026-006',
+      codigo_jira: 'FCC-106',
+      titulo: '[CHN04] Creación de índice compuesto idx_estado_fecha en tabla solicitudes',
+      descripcion: 'Optimización DDL en TiDB Cloud agregando índice sobre (estado_atencion, estado_pago, fecha_registro) para acelerar las consultas de reportes de comisiones de brokers.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Juan Pérez (Asesor Senior)',
+      solicitante_rol: 'Asesor',
+      prioridad: 'Media',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Aplicaciones y BD',
+      tipo_cambio_itil: 'Normal (CHN)',
+      estado: 'Abierto',
+      componente_afectado: 'Base de Datos (TiDB Cloud)',
+      ventana_calendarizacion: 'Domingo 08/11/2026 02:00 AM (UTC-5)',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'DROP INDEX idx_estado_fecha ON solicitudes;',
+      resolucion_tecnica: 'Aprobado técnicamente por CAB, esperando ventana dominical.',
+      fecha_registro: '2026-11-05'
+    },
+
+    // DIMENSIÓN 3: DOCUMENTACIÓN (3 Cambios: 1 Completado, 1 En Proceso, 1 Abierto)
+    {
+      id_ticket: 'RFC-2026-007',
+      codigo_jira: 'FCC-107',
+      titulo: '[CHS02] Publicación de Runbook y Acta de Pase a Producción en repositorios Front y Back',
+      descripcion: 'Estandarización y versionamiento del archivo docs/PASE_A_PRODUCCION.md tanto en proyecto-finnova como en backend-finnova con pre-requisitos, comandos CI/CD, smoke tests y plan de rollback.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Alta',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Documentación',
+      tipo_cambio_itil: 'Estándar (CHS)',
+      estado: 'Completado',
+      componente_afectado: 'Repositorios GitHub (Front y Back)',
+      ventana_calendarizacion: '06/11/2026 11:00 AM (Ventana Estándar)',
+      doc_pase_referencia: 'proyecto-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'Revertir commit de documentación vía git revert en rama main.',
+      resolucion_tecnica: 'Documentación publicada y vinculada a las actas PASE-FE y PASE-BE.',
+      fecha_registro: '2026-11-06'
+    },
+    {
+      id_ticket: 'RFC-2026-008',
+      codigo_jira: 'FCC-108',
+      titulo: '[CHS03] Actualización de especificación de endpoints REST y Colección Postman v1.2',
+      descripcion: 'Documentación de contratos JSON de entrada/salida para los nuevos endpoints /api/soporte-cambios y /api/solicitudes/:id/validar-pago incluyendo códigos de estado HTTP.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Media',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Documentación',
+      tipo_cambio_itil: 'Estándar (CHS)',
+      estado: 'En Proceso',
+      componente_afectado: 'Swagger / Documentación Técnica API',
+      ventana_calendarizacion: 'Jueves 06/11/2026 04:00 PM',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'Restaurar versión v1.1 de la especificación de endpoints en el repositorio.',
+      resolucion_tecnica: '85% completado; validando ejemplos de respuesta de métricas por dimensión.',
+      fecha_registro: '2026-11-05'
+    },
+    {
+      id_ticket: 'RFC-2026-009',
+      codigo_jira: 'FCC-109',
+      titulo: '[CHS04] Actualización del Diccionario de Datos Relacional y Diagrama Entidad-Relación',
+      descripcion: 'Incorporación formal de las tablas tickets_soporte_cambios y logs_auditoria_seguridad en el diccionario de datos técnico del proyecto Finnova.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Ana Torres (Analista QA)',
+      solicitante_rol: 'Asesor',
+      prioridad: 'Baja',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Documentación',
+      tipo_cambio_itil: 'Estándar (CHS)',
+      estado: 'Abierto',
+      componente_afectado: 'Diccionario de Datos BD Finnova',
+      ventana_calendarizacion: 'Martes 10/11/2026 10:00 AM',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'No afecta disponibilidad operativa; reversión documental en Git.',
+      resolucion_tecnica: 'Abierto para revisión del DBA.',
+      fecha_registro: '2026-11-06'
+    },
+
+    // DIMENSIÓN 4: CALENDARIO (3 Cambios: 1 Completado, 1 En Proceso, 1 Abierto)
+    {
+      id_ticket: 'RFC-2026-010',
+      codigo_jira: 'FCC-110',
+      titulo: '[CHS05] Programación de Cron Job keepAlive.js (cada 10 min) en horario hábil',
+      descripcion: 'Cambio de calendarización automatizada mediante scripts/keepAlive.js que ejecuta pings cada 10 minutos a /api/health entre las 08:00 y 22:00 h para evitar el Cold Start de Render sin consumir horas fuera de turno.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Alta',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Calendario',
+      tipo_cambio_itil: 'Estándar (CHS)',
+      estado: 'Completado',
+      componente_afectado: 'Cronograma Automatizado / scripts/keepAlive.js',
+      ventana_calendarizacion: 'Ejecución continua Lunes a Sábado (08:00 - 22:00 h)',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-03',
+      plan_rollback: 'Detener proceso programado keepAlive.js o ajustar INTERVAL_MS.',
+      resolucion_tecnica: 'Activo y verificado. Tiempo de respuesta inicial reducido de 50s a 180ms.',
+      fecha_registro: '2026-10-30'
+    },
+    {
+      id_ticket: 'RFC-2026-011',
+      codigo_jira: 'FCC-111',
+      titulo: '[CHN05] Reprogramación de Ventana de Mantenimiento Oficial y Respaldo TiDB Cloud',
+      descripcion: 'Cambio en el Calendario Oficial de Cambios (FSC): traslado de la ventana de mantenimiento y snapshot completo de base de datos al horario de menor tráfico (Domingos 01:00 AM a 03:00 AM UTC-5).',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Media',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Calendario',
+      tipo_cambio_itil: 'Normal (CHN)',
+      estado: 'En Proceso',
+      componente_afectado: 'Calendario FSC / Ventana de Mantenimiento',
+      ventana_calendarizacion: 'Domingos 01:00 AM - 03:00 AM (UTC-5)',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'Retornar al horario previo de mantenimiento (Sábados 11:30 PM).',
+      resolucion_tecnica: 'Notificado a asesores y configurado en cronograma de operaciones.',
+      fecha_registro: '2026-11-03'
+    },
+    {
+      id_ticket: 'RFC-2026-012',
+      codigo_jira: 'FCC-112',
+      titulo: '[CHN06] Programación de Periodo de Congelamiento (Code Freeze) por Cierre Contable',
+      descripcion: 'Bloqueo programado en calendario de despliegues no críticos desde el 28 al 30 de cada mes para garantizar estabilidad durante la liquidación de comisiones de brokers y conciliación Yape.',
+      tipo_solicitud: 'Requerimiento de Cambio',
+      solicitante_nombre: 'Fiorella Gamarra',
+      solicitante_rol: 'Administrador',
+      prioridad: 'Alta',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Calendario',
+      tipo_cambio_itil: 'Normal (CHN)',
+      estado: 'Abierto',
+      componente_afectado: 'Calendario de Releases GitHub / Vercel / Render',
+      ventana_calendarizacion: 'Días 28 al 30 de cada mes (00:00 - 23:59 h)',
+      doc_pase_referencia: 'proyecto-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'Habilitar excepción temporal firmada únicamente por comité eCAB para hotfixes críticos.',
+      resolucion_tecnica: 'Programado en el Forward Schedule of Changes (FSC) de Noviembre.',
+      fecha_registro: '2026-11-05'
+    },
+
+    // SOLICITUDES OPERATIVAS DE MESA DE AYUDA (SEMANA 10)
+    {
+      id_ticket: 'SRQ-2026-013',
+      codigo_jira: 'SRQ-ACC-014',
+      titulo: 'Desbloqueo de cuenta de usuario por límite de intentos fallidos (intentos_fallidos >= 5)',
+      descripcion: 'El asesor reporta bloqueo preventivo de su cuenta tras 5 intentos fallidos de inicio de sesión. Solicita restablecimiento de acceso según procedimiento PROC-SOL-02.',
+      tipo_solicitud: 'Acceso / Credenciales',
+      solicitante_nombre: 'Juan Pérez (Asesor)',
+      solicitante_rol: 'Asesor',
+      prioridad: 'Alta',
+      aplica_cambio: 'No Aplica (Soporte Directo)',
+      dimension_tecnica: 'N/A - Mesa de Ayuda',
+      tipo_cambio_itil: 'No Aplica',
+      estado: 'Completado',
+      componente_afectado: 'Módulo de Usuarios y Auditoría',
+      ventana_calendarizacion: 'Atención Inmediata SLA < 15 min',
+      doc_pase_referencia: 'PROC-SOL-02 (Gestión de Solicitudes)',
+      plan_rollback: 'N/A - Operación estándar de Mesa de Ayuda.',
+      resolucion_tecnica: 'Verificado en logs_auditoria_seguridad. Se limpió intentos_fallidos = 0 y bloqueado_hasta = NULL.',
+      fecha_registro: '2026-11-04'
+    },
+    {
+      id_ticket: 'SRQ-2026-014',
+      codigo_jira: 'SRQ-SOP-015',
+      titulo: 'Solicitud de evaluación para habilitar recordatorio automático 2h antes de cita virtual',
+      descripcion: 'Los clientes solicitan que, además del correo electrónico por Nodemailer, se programe un recordatorio automático previo a la sesión de asesoría.',
+      tipo_solicitud: 'Soporte / Mesa de Ayuda',
+      solicitante_nombre: 'María López (Cliente)',
+      solicitante_rol: 'Cliente',
+      prioridad: 'Media',
+      aplica_cambio: 'Pendiente Evaluación',
+      dimension_tecnica: 'Por Clasificar',
+      tipo_cambio_itil: 'No Aplica',
+      estado: 'Abierto',
+      componente_afectado: 'Módulo de Citas / Notificaciones',
+      ventana_calendarizacion: 'Por definir en Comité CAB',
+      doc_pase_referencia: 'Pendiente de Calificación en Bandeja',
+      plan_rollback: 'Por definir al evaluar si escala a Control de Cambios (RFC).',
+      resolucion_tecnica: 'Registrado desde el Formulario de Soporte en espera de calificación del Administrador.',
+      fecha_registro: '2026-11-06'
+    }
+  ];
+
+  private getInitialSupportTickets(): SupportChangeTicket[] {
+    try {
+      const saved = localStorage.getItem(this.STORAGE_KEY_SUPPORT);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore storage error
+    }
+    return [...this.DEFAULT_SUPPORT_TICKETS];
+  }
+
+  private saveSupportTicketsToStorage(tickets: SupportChangeTicket[]) {
+    try {
+      localStorage.setItem(this.STORAGE_KEY_SUPPORT, JSON.stringify(tickets));
+    } catch {
+      // ignore storage error
+    }
+  }
+
+  private supportTicketsSubject = new BehaviorSubject<SupportChangeTicket[]>(this.getInitialSupportTickets());
+  public supportTickets$: Observable<SupportChangeTicket[]> = this.supportTicketsSubject.asObservable();
+
+  loadSupportTickets(callback?: (err?: any) => void) {
+    this.apiService.getSupportChangeTickets().subscribe({
+      next: (rows) => {
+        if (Array.isArray(rows) && rows.length > 0) {
+          const mapped: SupportChangeTicket[] = rows.map(r => ({
+            id_ticket: r.id_ticket,
+            codigo_jira: r.codigo_jira || 'SIN-JIRA',
+            titulo: r.titulo,
+            descripcion: r.descripcion,
+            tipo_solicitud: r.tipo_solicitud || 'Soporte / Mesa de Ayuda',
+            solicitante_nombre: r.solicitante_nombre || 'Usuario Finnova',
+            solicitante_rol: r.solicitante_rol || 'Cliente',
+            prioridad: r.prioridad || 'Media',
+            aplica_cambio: r.aplica_cambio || 'Pendiente Evaluación',
+            dimension_tecnica: r.dimension_tecnica || 'Por Clasificar',
+            tipo_cambio_itil: r.tipo_cambio_itil || 'No Aplica',
+            estado: r.estado || 'Abierto',
+            componente_afectado: r.componente_afectado || 'Plataforma Finnova',
+            ventana_calendarizacion: r.ventana_calendarizacion || 'Por definir',
+            doc_pase_referencia: r.doc_pase_referencia || 'docs/PASE_A_PRODUCCION.md',
+            plan_rollback: r.plan_rollback || 'Revertir despliegue en Render/Vercel.',
+            resolucion_tecnica: r.resolucion_tecnica || 'En evaluación.',
+            fecha_registro: r.fecha_registro ? String(r.fecha_registro).split('T')[0] : new Date().toISOString().split('T')[0]
+          }));
+          this.supportTicketsSubject.next(mapped);
+          this.saveSupportTicketsToStorage(mapped);
+        }
+        if (callback) callback();
+      },
+      error: () => {
+        // Fallback inmediato a la semilla persistida en localStorage si el servidor aún está despertando
+        const local = this.getInitialSupportTickets();
+        this.supportTicketsSubject.next(local);
+        if (callback) callback();
+      }
+    });
+  }
+
+  getSupportTickets(): SupportChangeTicket[] {
+    return this.supportTicketsSubject.value;
+  }
+
+  addSupportTicket(ticketData: Partial<SupportChangeTicket>, callback?: (err?: any) => void) {
+    const user = this.authService.getUser();
+    const isRfc = ticketData.aplica_cambio === 'Si Aplica (RFC)';
+    const prefix = isRfc ? 'RFC' : 'SRQ';
+    const randomNum = Math.floor(115 + Math.random() * 800);
+    const newTicket: SupportChangeTicket = {
+      id_ticket: ticketData.id_ticket || `${prefix}-2026-${randomNum}`,
+      codigo_jira: ticketData.codigo_jira || (isRfc ? `FCC-${randomNum}` : `SRQ-SOP-${randomNum}`),
+      titulo: ticketData.titulo || 'Nueva Solicitud Técnica',
+      descripcion: ticketData.descripcion || '',
+      tipo_solicitud: ticketData.tipo_solicitud || 'Soporte / Mesa de Ayuda',
+      solicitante_nombre: ticketData.solicitante_nombre || user?.nombre_completo || 'Fiorella Gamarra',
+      solicitante_rol: ticketData.solicitante_rol || this.activeRole,
+      prioridad: ticketData.prioridad || 'Media',
+      aplica_cambio: ticketData.aplica_cambio || 'Pendiente Evaluación',
+      dimension_tecnica: ticketData.dimension_tecnica || 'Por Clasificar',
+      tipo_cambio_itil: ticketData.tipo_cambio_itil || 'No Aplica',
+      estado: ticketData.estado || 'Abierto',
+      componente_afectado: ticketData.componente_afectado || 'Plataforma Finnova',
+      ventana_calendarizacion: ticketData.ventana_calendarizacion || 'Por definir en Comité CAB',
+      doc_pase_referencia: ticketData.doc_pase_referencia || 'docs/PASE_A_PRODUCCION.md',
+      plan_rollback: ticketData.plan_rollback || 'Instant Rollback en Vercel / Render ante anomalía en Smoke Test.',
+      resolucion_tecnica: ticketData.resolucion_tecnica || 'Registrado en bandeja para revisión técnica.',
+      fecha_registro: new Date().toISOString().split('T')[0]
+    };
+
+    this.apiService.createSupportChangeTicket(newTicket).subscribe({
+      next: () => {
+        this.loadSupportTickets(callback);
+      },
+      error: () => {
+        const updated = [newTicket, ...this.supportTicketsSubject.value];
+        this.supportTicketsSubject.next(updated);
+        this.saveSupportTicketsToStorage(updated);
+        if (callback) callback();
+      }
+    });
+  }
+
+  qualifySupportTicket(id_ticket: string, changes: Partial<SupportChangeTicket>, callback?: (err?: any) => void) {
+    // Actualizar primero de forma optimista para reflejar en tiempo real en los KPIs y tablas
+    const current = [...this.supportTicketsSubject.value];
+    const idx = current.findIndex(t => t.id_ticket === id_ticket);
+    if (idx !== -1) {
+      current[idx] = { ...current[idx], ...changes };
+      if (changes.aplica_cambio === 'Si Aplica (RFC)' && current[idx].id_ticket.startsWith('SRQ-')) {
+        // Conservar trazabilidad y asegurar código Jira RFC
+        if (!current[idx].codigo_jira.startsWith('FCC-')) {
+          current[idx].codigo_jira = `FCC-${Math.floor(115 + Math.random() * 80)}`;
+        }
+      }
+      this.supportTicketsSubject.next(current);
+      this.saveSupportTicketsToStorage(current);
+    }
+
+    this.apiService.qualifySupportChangeTicket(id_ticket, changes).subscribe({
+      next: () => {
+        this.loadSupportTickets(callback);
+      },
+      error: () => {
+        if (callback) callback();
+      }
+    });
+  }
+
+  deleteSupportTicket(id_ticket: string, callback?: (err?: any) => void) {
+    const filtered = this.supportTicketsSubject.value.filter(t => t.id_ticket !== id_ticket);
+    this.supportTicketsSubject.next(filtered);
+    this.saveSupportTicketsToStorage(filtered);
+
+    this.apiService.deleteSupportChangeTicket(id_ticket).subscribe({
+      next: () => {
+        if (callback) callback();
+      },
+      error: () => {
+        if (callback) callback();
+      }
+    });
+  }
+
+  resetSupportTicketsToDefault() {
+    localStorage.removeItem(this.STORAGE_KEY_SUPPORT);
+    this.supportTicketsSubject.next([...this.DEFAULT_SUPPORT_TICKETS]);
+  }
+
+  getChangeMetricsByDimension(): DimensionMetricsRow[] {
+    const dimensiones: ('Infraestructura' | 'Aplicaciones y BD' | 'Documentación' | 'Calendario')[] = [
+      'Infraestructura',
+      'Aplicaciones y BD',
+      'Documentación',
+      'Calendario'
+    ];
+    const tickets = this.supportTicketsSubject.value;
+
+    return dimensiones.map(dim => {
+      const items = tickets.filter(t => t.dimension_tecnica === dim && t.aplica_cambio === 'Si Aplica (RFC)');
+      const abiertos = items.filter(t => t.estado === 'Abierto').length;
+      const en_proceso = items.filter(t => t.estado === 'En Proceso').length;
+      const completados = items.filter(t => t.estado === 'Completado').length;
+      const total = items.length;
+      const porcentaje_completado = total > 0 ? Math.round((completados / total) * 100) : 0;
+      return {
+        dimension: dim,
+        abiertos,
+        en_proceso,
+        completados,
+        total,
+        porcentaje_completado
+      };
     });
   }
 }

@@ -1,0 +1,729 @@
+<!-- CABECERA Y KPIS EN TIEMPO REAL (SEMANA 10 & SEMANA 11) -->
+<div class="row g-3 mb-3">
+  <div class="col-12">
+    <div class="card border-0 shadow-sm bg-primary text-white">
+      <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <span class="badge bg-light text-primary fw-bold mb-2">ITIL 4 — GESTIÓN DE SOLICITUDES (SEM 10) & CONTROL DE CAMBIOS (SEM 11)</span>
+          <h4 class="text-white fw-bold mb-1">Mesa de Ayuda, Bandeja de Triaje RFC y Control de Cambios por Dimensión</h4>
+          <p class="mb-0 text-white-50 small">
+            Trazabilidad conectada a TiDB Cloud (<code>tickets_soporte_cambios</code>), Jira ITSM (<code>FCC-101..112</code>) y Runbooks de Pase (<code>docs/PASE_A_PRODUCCION.md</code>).
+          </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-light text-primary fw-bold d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
+            <span>+ Registrar Solicitud / Cambio</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 TARJETAS KPI -->
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card border shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-muted small fw-semibold text-uppercase">Total en Bandeja</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-dark mb-0">{{ totalBandejaCount }}</h3>
+          <span class="badge bg-secondary-subtle text-secondary border">{{ totalMesaAyudaCount }} Soporte Directo</span>
+        </div>
+        <div class="small text-muted mt-1">Solicitudes Semana 10 + RFCs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card border border-primary-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-primary small fw-semibold text-uppercase">Escalados a Cambio (RFC)</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-primary mb-0">{{ totalRfcCount }}</h3>
+          <span class="badge bg-primary-subtle text-primary border">4 Dimensiones</span>
+        </div>
+        <div class="small text-muted mt-1">Tickets Jira <code>FCC-*</code> activos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card border border-warning-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-warning-emphasis small fw-semibold text-uppercase">Cambios Abiertos</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-warning-emphasis mb-0">{{ totalRfcAbiertos }}</h3>
+          <span class="badge bg-warning text-dark">Pendientes / CAB</span>
+        </div>
+        <div class="small text-muted mt-1">Programados en Calendario</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-6 col-xl">
+    <div class="card border border-info-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-info-emphasis small fw-semibold text-uppercase">Cambios En Proceso</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-info-emphasis mb-0">{{ totalRfcEnProceso }}</h3>
+          <span class="badge bg-info text-dark">Desarrollo / CI</span>
+        </div>
+        <div class="small text-muted mt-1">En GitHub Actions / Staging</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6 col-xl">
+    <div class="card border border-success-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-success small fw-semibold text-uppercase">Cambios Completados</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-success mb-0">{{ totalRfcCompletados }}</h3>
+          <span class="badge bg-success">En Producción</span>
+        </div>
+        <div class="small text-muted mt-1">Con Acta de Pase verificada</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PESTAÑAS DE NAVEGACIÓN DEL MÓDULO -->
+<div class="card border shadow-sm mb-3">
+  <div class="card-header bg-white border-bottom p-2">
+    <ul class="nav nav-pills gap-2">
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" [class.active]="activeTab === 'dimensiones'" (click)="activeTab = 'dimensiones'">
+          1. Métricas y Cambios por las 4 Dimensiones (Semana 11)
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" [class.active]="activeTab === 'bandeja'" (click)="activeTab = 'bandeja'">
+          2. Bandeja de Solicitudes y Triaje Mesa de Ayuda &rarr; RFC (Semana 10 y 11)
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" [class.active]="activeTab === 'pase-calendario'" (click)="activeTab = 'pase-calendario'">
+          3. Documentación de Pase (Front/Back) y Calendarización
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body p-4">
+    <!-- ========================================================================= -->
+    <!-- PESTAÑA 1: MATRIZ Y TABLERO POR LAS 4 DIMENSIONES TÉCNICAS (SEMANA 11)    -->
+    <!-- ========================================================================= -->
+    <div *ngIf="activeTab === 'dimensiones'">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">Consolidado de Cambios por Dimensión Técnica y Estado (Feedback Semana 11)</h5>
+          <p class="text-muted small mb-0">
+            Refleja exactamente cuántos cambios existen en cada dimensión (<strong>Infraestructura</strong>, <strong>Aplicaciones y BD</strong>, <strong>Documentación</strong> y <strong>Calendario</strong>) y cuántos están <strong>Abiertos</strong>, <strong>En Proceso</strong> y <strong>Completados</strong>.
+          </p>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border px-3 py-2">
+          Sincronizado con tabla <code>tickets_soporte_cambios</code>
+        </span>
+      </div>
+
+      <!-- TABLA RESUMEN DE MÉTRICAS POR DIMENSIÓN Y ESTADO -->
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Dimensión Técnica</th>
+              <th>Componentes Abarcados en Finnova</th>
+              <th class="text-center">Abiertos</th>
+              <th class="text-center">En Proceso</th>
+              <th class="text-center">Completados</th>
+              <th class="text-center">Total Dimensión</th>
+              <th style="min-width: 170px;">Avance de Ejecución</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of metricsByDimension">
+              <td>
+                <span class="fw-bold text-dark">{{ row.dimension }}</span>
+              </td>
+              <td class="small text-muted">
+                <span *ngIf="row.dimension === 'Infraestructura'">Vercel CDN, Render Web Service, TiDB Cloud SSL/TLS, Rate Limit</span>
+                <span *ngIf="row.dimension === 'Aplicaciones y BD'">Angular 17 SPA, Express 5 REST API, Migraciones DDL e Índices SQL</span>
+                <span *ngIf="row.dimension === 'Documentación'">Runbook Pase a Producción (Front/Back), OpenAPI/Swagger, Diccionario BD</span>
+                <span *ngIf="row.dimension === 'Calendario'">Cron Job <code>keepAlive.js</code> (10m), Ventana Dom 01-03 AM, Code Freeze Fin de Mes</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-warning text-dark px-3 py-1 fs-6">{{ row.abiertos }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-info text-dark px-3 py-1 fs-6">{{ row.en_proceso }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-success px-3 py-1 fs-6">{{ row.completados }}</span>
+              </td>
+              <td class="text-center">
+                <span class="fw-bold fs-6 text-primary">{{ row.total }}</span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" [style.width.%]="row.porcentaje_completado"></div>
+                  </div>
+                  <span class="small fw-bold text-muted">{{ row.porcentaje_completado }}%</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot class="table-light fw-bold">
+            <tr>
+              <td colspan="2" class="text-end">TOTAL GENERAL DE CAMBIOS (RFC EN LAS 4 DIMENSIONES):</td>
+              <td class="text-center text-warning-emphasis fs-6">{{ totalRfcAbiertos }}</td>
+              <td class="text-center text-info-emphasis fs-6">{{ totalRfcEnProceso }}</td>
+              <td class="text-center text-success fs-6">{{ totalRfcCompletados }}</td>
+              <td class="text-center text-primary fs-5">{{ totalRfcCount }}</td>
+              <td class="small text-muted">100% Trazado en Jira</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- CUADRÍCULA DE TARJETAS POR LAS 4 DIMENSIONES TÉCNICAS -->
+      <div class="row g-3">
+        <div class="col-12 col-xl-6" *ngFor="let dim of ['Infraestructura', 'Aplicaciones y BD', 'Documentación', 'Calendario']">
+          <div class="card border h-100 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2 px-3">
+              <div>
+                <span class="badge bg-primary me-2">DIMENSIÓN</span>
+                <strong class="text-dark">{{ dim }}</strong>
+              </div>
+              <span class="badge bg-white text-dark border">
+                {{ getTicketsByDimension($any(dim)).length }} incidencias / cambios
+              </span>
+            </div>
+            <div class="card-body p-3">
+              <div *ngFor="let item of getTicketsByDimension($any(dim))" class="border rounded p-3 mb-2 bg-white">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                  <div>
+                    <span class="badge bg-dark me-1">{{ item.codigo_jira }}</span>
+                    <span class="badge bg-light text-secondary border me-1">{{ item.id_ticket }}</span>
+                    <span class="badge bg-secondary-subtle text-secondary border">{{ item.tipo_cambio_itil }}</span>
+                  </div>
+                  <span class="badge" [ngClass]="{
+                    'bg-warning text-dark': item.estado === 'Abierto',
+                    'bg-info text-dark': item.estado === 'En Proceso',
+                    'bg-success': item.estado === 'Completado',
+                    'bg-danger': item.estado === 'Rechazado'
+                  }">
+                    {{ item.estado }}
+                  </span>
+                </div>
+                <div class="fw-bold text-dark mt-1">{{ item.titulo }}</div>
+                <div class="small text-muted mt-1">{{ item.descripcion }}</div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2 pt-2 border-top">
+                  <div class="small text-muted">
+                    <strong>Ventana:</strong> {{ item.ventana_calendarizacion }}
+                  </div>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" (click)="openDetailModal(item)">
+                      Ver Acta
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary py-0 px-2" (click)="openQualifyModal(item)">
+                      Editar / Estado
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- PESTAÑA 2: BANDEJA DE SOLICITUDES Y TRIAJE MESA DE AYUDA -> RFC           -->
+    <!-- ========================================================================= -->
+    <div *ngIf="activeTab === 'bandeja'">
+      <div class="row g-2 align-items-end mb-3">
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-bold mb-1">Filtrar por Dimensión Técnica</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterDimension">
+            <option value="TODAS">Todas las Dimensiones</option>
+            <option value="Infraestructura">1. Infraestructura</option>
+            <option value="Aplicaciones y BD">2. Aplicaciones y BD</option>
+            <option value="Documentación">3. Documentación</option>
+            <option value="Calendario">4. Calendario</option>
+            <option value="Por Clasificar">Por Clasificar (Nuevas)</option>
+            <option value="N/A - Mesa de Ayuda">N/A - Atención Directa Mesa de Ayuda</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Estado</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterEstado">
+            <option value="TODOS">Todos los Estados</option>
+            <option value="Abierto">Abierto</option>
+            <option value="En Proceso">En Proceso</option>
+            <option value="Completado">Completado</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small fw-bold mb-1">¿Aplica Control de Cambio?</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterAplica">
+            <option value="TODOS">Todos (Mesa de Ayuda + RFC)</option>
+            <option value="Si Aplica (RFC)">Sí Aplica (Escalado a RFC)</option>
+            <option value="No Aplica (Soporte Directo)">No Aplica (Soporte Directo)</option>
+            <option value="Pendiente Evaluación">Pendiente de Evaluación</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label small fw-bold mb-1">Buscar por Jira, Código o Título</label>
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm" placeholder="Ej. FCC-101, keepAlive, trust proxy, Yape..." />
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle border" style="min-width: 1050px;">
+          <thead class="table-light">
+            <tr>
+              <th>Ticket / Jira</th>
+              <th>Solicitud / Incidencia Técnica</th>
+              <th>¿Aplica Cambio? (Triaje)</th>
+              <th>Dimensión Técnica</th>
+              <th>Tipo ITIL & Ventana</th>
+              <th>Estado</th>
+              <th class="text-end" style="min-width: 210px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of filteredTickets">
+              <td>
+                <div class="d-flex align-items-center gap-1 mb-1">
+                  <span class="badge bg-dark fw-bold">{{ t.codigo_jira }}</span>
+                  <span class="badge bg-light text-primary border">{{ t.id_ticket }}</span>
+                </div>
+                <div class="small text-muted">{{ t.solicitante_nombre }}</div>
+                <span class="badge bg-secondary-subtle text-secondary border small">{{ t.tipo_solicitud }}</span>
+              </td>
+              <td style="max-width: 310px;">
+                <div class="fw-bold text-dark">{{ t.titulo }}</div>
+                <div class="small text-muted text-truncate" [title]="t.descripcion">{{ t.descripcion }}</div>
+                <div class="small text-primary mt-1">
+                  <strong>Componente:</strong> {{ t.componente_afectado }}
+                </div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-primary': t.aplica_cambio === 'Si Aplica (RFC)',
+                  'bg-secondary': t.aplica_cambio === 'No Aplica (Soporte Directo)',
+                  'bg-warning text-dark': t.aplica_cambio === 'Pendiente Evaluación'
+                }">
+                  {{ t.aplica_cambio }}
+                </span>
+              </td>
+              <td>
+                <span class="badge border px-2 py-1" [ngClass]="{
+                  'bg-danger-subtle text-danger border-danger-subtle': t.dimension_tecnica === 'Infraestructura',
+                  'bg-primary-subtle text-primary border-primary-subtle': t.dimension_tecnica === 'Aplicaciones y BD',
+                  'bg-success-subtle text-success border-success-subtle': t.dimension_tecnica === 'Documentación',
+                  'bg-info-subtle text-info-emphasis border-info-subtle': t.dimension_tecnica === 'Calendario',
+                  'bg-light text-muted': t.dimension_tecnica === 'Por Clasificar' || t.dimension_tecnica === 'N/A - Mesa de Ayuda'
+                }">
+                  {{ t.dimension_tecnica }}
+                </span>
+              </td>
+              <td>
+                <div class="fw-semibold small text-dark">{{ t.tipo_cambio_itil }}</div>
+                <div class="small text-muted">{{ t.ventana_calendarizacion }}</div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-warning text-dark': t.estado === 'Abierto',
+                  'bg-info text-dark': t.estado === 'En Proceso',
+                  'bg-success': t.estado === 'Completado',
+                  'bg-danger': t.estado === 'Rechazado'
+                }">
+                  {{ t.estado }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(t)">
+                    Ficha / Pase
+                  </button>
+                  <button class="btn btn-sm btn-primary" (click)="openQualifyModal(t)">
+                    Calificar CAB
+                  </button>
+                  <button *ngIf="(dataService.activeRole$ | async) === 'Administrador'"
+                    class="btn btn-sm btn-outline-danger" (click)="deleteTicket(t)" title="Eliminar">
+                    &times;
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- PESTAÑA 3: DOCUMENTACIÓN DE PASE (FRONT/BACK) Y CALENDARIZACIÓN           -->
+    <!-- ========================================================================= -->
+    <div *ngIf="activeTab === 'pase-calendario'">
+      <!-- EXPLICACIÓN TÉCNICA DE CAMBIO DE CALENDARIZACIÓN -->
+      <div class="alert alert-info border-info mb-4">
+        <h6 class="fw-bold text-dark mb-1">¿Qué es un Cambio de Calendarización (Dimensión Calendario) en Finnova?</h6>
+        <p class="small mb-2 text-dark">
+          En <strong>ITIL 4 (Change Enablement / Forward Schedule of Changes - FSC)</strong> e Ingeniería de Sistemas, un <strong>Cambio de Calendarización</strong> controla cuándo y con qué frecuencia se ejecutan procesos o despliegues para no impactar la operación del negocio financiero. En Finnova abarca dos niveles reales:
+        </p>
+        <div class="row g-2 small">
+          <div class="col-md-6">
+            <div class="p-2 bg-white rounded border">
+              <strong>1. Nivel Automatización / Cron Jobs (Código Real):</strong>
+              Modificación o programación de tareas automatizadas por tiempo. Ejemplo en Finnova: <code>scripts/keepAlive.js</code> (Ticket <code>FCC-110</code>) que ejecuta pings cada <strong>10 minutos</strong> entre 08:00 y 22:00 h hacia <code>/api/health</code> para evitar el <em>Cold Start</em> en Render.
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-2 bg-white rounded border">
+              <strong>2. Nivel Gobierno de Releases y Ventanas Operativas (FSC):</strong>
+              Reprogramación de <strong>Ventanas de Mantenimiento</strong> (Domingos 01:00 - 03:00 AM UTC-5, Ticket <code>FCC-111</code>) y períodos de <strong>Congelamiento (Code Freeze)</strong> del 28 al 30 de cada mes por cierre contable de comisiones (Ticket <code>FCC-112</code>).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOS COLUMNAS: DOCUMENTACIÓN DE PASE FRONTEND Y BACKEND -->
+      <div class="row g-3">
+        <!-- RUNBOOK FRONTEND -->
+        <div class="col-12 col-lg-6">
+          <div class="card border h-100 shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+              <span class="fw-bold">Documentación de Pase — FRONTEND (Angular 17 / Vercel)</span>
+              <span class="badge bg-success">En Repo Git</span>
+            </div>
+            <div class="card-body p-3 small">
+              <div class="mb-2">
+                <strong>Archivo en Repositorio:</strong> <code>proyecto-finnova/docs/PASE_A_PRODUCCION.md</code>
+              </div>
+              <div class="mb-2">
+                <strong>Pipeline CI/CD:</strong> <code>proyecto-finnova/.github/workflows/ci.yml</code>
+              </div>
+              <hr class="my-2" />
+              <h6 class="fw-bold text-primary">Secuencia Técnica de Pase Frontend:</h6>
+              <ol class="ps-3 mb-2">
+                <li><strong>Pre-Check CAB:</strong> Ticket RFC aprobado en Jira y validación de ventana fuera de <em>Code Freeze</em>.</li>
+                <li><strong>Configuración Productiva:</strong> Verificación de <code>environment.prod.ts</code> apuntando a <code>https://backend-finnova.onrender.com/api</code> y reglas SPA en <code>vercel.json</code>.</li>
+                <li><strong>Build AOT en GitHub Actions:</strong> Ejecución de <code>npm install &amp;&amp; npm run build</code> (4 GB Heap) generando artefacto en <code>dist/</code>.</li>
+                <li><strong>Smoke Test Post-Pase:</strong> Validación de rutas <code>/landing</code>, <code>/login</code> y <code>/dashboard/support-changes</code>.</li>
+                <li><strong>Plan de Rollback (&lt; 1 min):</strong> Botón <em>Instant Rollback</em> en consola de Vercel o <code>git revert HEAD</code>.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- RUNBOOK BACKEND & BD -->
+        <div class="col-12 col-lg-6">
+          <div class="card border h-100 shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <span class="fw-bold">Documentación de Pase — BACKEND &amp; BD (Express 5 / Render / TiDB)</span>
+              <span class="badge bg-light text-primary">En Repo Git</span>
+            </div>
+            <div class="card-body p-3 small">
+              <div class="mb-2">
+                <strong>Archivo en Repositorio:</strong> <code>backend-finnova/docs/PASE_A_PRODUCCION.md</code>
+              </div>
+              <div class="mb-2">
+                <strong>Pipeline CI/CD:</strong> <code>backend-finnova/.github/workflows/ci.yml</code>
+              </div>
+              <hr class="my-2" />
+              <h6 class="fw-bold text-primary">Secuencia Técnica de Pase Backend y TiDB Cloud:</h6>
+              <ol class="ps-3 mb-2">
+                <li><strong>Variables Cifradas en Render:</strong> Verificación de <code>DB_HOST</code> (TiDB AWS), <code>DB_SSL=true</code> y <code>JWT_SECRET</code>.</li>
+                <li><strong>Syntax &amp; Security Check CI:</strong> Ejecución de <code>node --check server.js</code>, <code>npm test</code> y <code>npm audit</code>.</li>
+                <li><strong>Migración SQL Idempotente:</strong> Ejecución automática de <code>CREATE TABLE IF NOT EXISTS tickets_soporte_cambios</code> en <code>src/config/db.js</code> y <code>soporteCambioModel.js</code> sin tiempo de inactividad.</li>
+                <li><strong>Health Check Post-Pase:</strong> Petición <code>GET /api/health</code> y <code>GET /api/soporte-cambios/metricas</code> retornando HTTP 200.</li>
+                <li><strong>Plan de Rollback (3-5 min):</strong> <em>Rollback to previous deploy</em> en Render y script SQL inverso en TiDB Cloud.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 1: FORMULARIO DE NUEVA SOLICITUD (MESA DE AYUDA / CAMBIO)           -->
+<!-- ========================================================================= -->
+<div *ngIf="isNewTicketModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold text-white">Registrar Solicitud de Soporte o Cambio Técnico (Semana 10 &rarr; 11)</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form (ngSubmit)="saveNewTicket()">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label fw-bold">Título de la Solicitud / Requerimiento <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="newTitulo" name="titulo"
+                placeholder="Ej. Actualización de límite de timeout SMTP o desbloqueo de usuario" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Tipo de Solicitud (ITSM)</label>
+              <select class="form-select" [(ngModel)]="newTipoSolicitud" name="tipoSolicitud">
+                <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda</option>
+                <option value="Acceso / Credenciales">Acceso / Credenciales (SRQ-ACC)</option>
+                <option value="Requerimiento de Cambio">Requerimiento de Cambio (RFC)</option>
+                <option value="Incidente Técnico">Incidente Técnico</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Solicitante</label>
+              <input type="text" class="form-control" [(ngModel)]="newSolicitanteNombre" name="solicitanteNombre" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Prioridad SLA</label>
+              <select class="form-select" [(ngModel)]="newPrioridad" name="prioridad">
+                <option value="Baja">Baja (SLA 24h)</option>
+                <option value="Media">Media (SLA 8h)</option>
+                <option value="Alta">Alta (SLA 2h)</option>
+                <option value="Crítica">Crítica (Hotfix &lt; 30m)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Componente Afectado</label>
+              <select class="form-select" [(ngModel)]="newComponente" name="componente">
+                <option value="Frontend Angular (Vercel)">Frontend Angular (Vercel)</option>
+                <option value="Backend Express (Render Cloud)">Backend Express (Render Cloud)</option>
+                <option value="Base de Datos (TiDB Cloud)">Base de Datos (TiDB Cloud)</option>
+                <option value="Swagger / Documentación Técnica">Swagger / Documentación Técnica</option>
+                <option value="Calendario FSC / Cron Jobs">Calendario FSC / Cron Jobs</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Descripción Técnica Detallada <span class="text-danger">*</span></label>
+              <textarea class="form-control" rows="3" [(ngModel)]="newDescripcion" name="descripcion"
+                placeholder="Detalle el síntoma, requerimiento o cambio técnico solicitado..." required></textarea>
+            </div>
+
+            <!-- SECCIÓN DE PRE-CLASIFICACIÓN A CONTROL DE CAMBIOS -->
+            <div class="col-12">
+              <div class="p-3 bg-light rounded border">
+                <h6 class="fw-bold text-primary mb-2">Evaluación Inicial de Control de Cambios (Opcional en Registro)</h6>
+                <div class="row g-2">
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">¿Aplica como Control de Cambio?</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="newAplicaDirecto" name="aplicaDirecto" (change)="onAplicaDirectoChange()">
+                      <option value="Pendiente Evaluación">Pendiente Evaluación en Bandeja</option>
+                      <option value="Si Aplica (RFC)">Sí Aplica (Escalar a RFC)</option>
+                      <option value="No Aplica (Soporte Directo)">No Aplica (Atención Directa Mesa de Ayuda)</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">Dimensión Técnica</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="newDimensionDirecta" name="dimensionDirecta">
+                      <option value="Por Clasificar">Por Clasificar</option>
+                      <option value="Infraestructura">1. Infraestructura</option>
+                      <option value="Aplicaciones y BD">2. Aplicaciones y BD</option>
+                      <option value="Documentación">3. Documentación</option>
+                      <option value="Calendario">4. Calendario</option>
+                      <option value="N/A - Mesa de Ayuda">N/A - Mesa de Ayuda</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">Tipo de Cambio ITIL</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="newTipoItilDirecto" name="tipoItilDirecto">
+                      <option value="No Aplica">No Aplica</option>
+                      <option value="Estándar (CHS)">Estándar (CHS)</option>
+                      <option value="Normal (CHN)">Normal (CHN)</option>
+                      <option value="Emergencia (CHE)">Emergencia (CHE)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
+            <button type="submit" class="btn btn-primary fw-bold">Guardar en Bandeja</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 2: CALIFICACIÓN CAB Y ASIGNACIÓN DE DIMENSIÓN TÉCNICA (SEMANA 11)   -->
+<!-- ========================================================================= -->
+<div *ngIf="isQualifyModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title fw-bold text-white">
+          Calificación CAB y Control de Cambios — {{ selectedTicket.id_ticket }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-secondary py-2 mb-3">
+          <strong>Solicitud:</strong> {{ selectedTicket.titulo }}
+        </div>
+        <form (ngSubmit)="saveQualification()">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">¿Aplica Control de Cambio?</label>
+              <select class="form-select" [(ngModel)]="qualifyAplicaCambio" name="qualifyAplica" (change)="onQualifyAplicaChange()">
+                <option value="Si Aplica (RFC)">Sí Aplica (RFC)</option>
+                <option value="No Aplica (Soporte Directo)">No Aplica (Soporte Directo)</option>
+                <option value="Pendiente Evaluación">Pendiente Evaluación</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Dimensión Técnica (4 Niveles)</label>
+              <select class="form-select" [(ngModel)]="qualifyDimension" name="qualifyDimension">
+                <option value="Infraestructura">1. Infraestructura</option>
+                <option value="Aplicaciones y BD">2. Aplicaciones y BD</option>
+                <option value="Documentación">3. Documentación</option>
+                <option value="Calendario">4. Calendario</option>
+                <option value="N/A - Mesa de Ayuda">N/A - Mesa de Ayuda</option>
+                <option value="Por Clasificar">Por Clasificar</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Estado del Cambio / Ticket</label>
+              <select class="form-select" [(ngModel)]="qualifyEstado" name="qualifyEstado">
+                <option value="Abierto">Abierto</option>
+                <option value="En Proceso">En Proceso</option>
+                <option value="Completado">Completado</option>
+                <option value="Rechazado">Rechazado</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Código Ticket Jira</label>
+              <input type="text" class="form-control" [(ngModel)]="qualifyCodigoJira" name="qualifyJira" placeholder="FCC-101" />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Tipo de Cambio ITIL</label>
+              <select class="form-select" [(ngModel)]="qualifyTipoItil" name="qualifyTipoItil">
+                <option value="Estándar (CHS)">Estándar (CHS)</option>
+                <option value="Normal (CHN)">Normal (CHN)</option>
+                <option value="Emergencia (CHE)">Emergencia (CHE)</option>
+                <option value="No Aplica">No Aplica</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Prioridad</label>
+              <select class="form-select" [(ngModel)]="qualifyPrioridad" name="qualifyPrioridad">
+                <option value="Baja">Baja</option>
+                <option value="Media">Media</option>
+                <option value="Alta">Alta</option>
+                <option value="Crítica">Crítica</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Ventana de Calendarización (FSC)</label>
+              <input type="text" class="form-control" [(ngModel)]="qualifyVentana" name="qualifyVentana" />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Documento de Pase Vinculado</label>
+              <input type="text" class="form-control" [(ngModel)]="qualifyDocPase" name="qualifyDocPase" />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Plan de Rollback Técnico</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="qualifyRollback" name="qualifyRollback"></textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Resolución / Evidencia Técnica Post-Pase</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="qualifyResolucion" name="qualifyResolucion"></textarea>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
+            <button type="submit" class="btn btn-success fw-bold">Guardar Calificación y Actualizar Métricas</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 3: DETALLE DE FICHA TÉCNICA Y ACTA DE PASE A PRODUCCIÓN             -->
+<!-- ========================================================================= -->
+<div *ngIf="isDetailModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold text-white">
+          Ficha de Trazabilidad &amp; Acta de Pase — {{ selectedTicket.codigo_jira }} ({{ selectedTicket.id_ticket }})
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="badge bg-dark fs-6">{{ selectedTicket.codigo_jira }}</span>
+          <span class="badge bg-primary fs-6">{{ selectedTicket.dimension_tecnica }}</span>
+          <span class="badge bg-secondary fs-6">{{ selectedTicket.tipo_cambio_itil }}</span>
+          <span class="badge fs-6" [ngClass]="{
+            'bg-warning text-dark': selectedTicket.estado === 'Abierto',
+            'bg-info text-dark': selectedTicket.estado === 'En Proceso',
+            'bg-success': selectedTicket.estado === 'Completado'
+          }">Estado: {{ selectedTicket.estado }}</span>
+        </div>
+
+        <h5 class="fw-bold text-dark">{{ selectedTicket.titulo }}</h5>
+        <p class="text-muted">{{ selectedTicket.descripcion }}</p>
+
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <div class="small text-muted fw-bold text-uppercase">Componente Afectado</div>
+              <div class="fw-semibold text-dark mt-1">{{ selectedTicket.componente_afectado }}</div>
+              <div class="small text-muted fw-bold text-uppercase mt-3">Ventana de Calendarización (FSC)</div>
+              <div class="fw-semibold text-dark mt-1">{{ selectedTicket.ventana_calendarizacion }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <div class="small text-muted fw-bold text-uppercase">Documentación de Pase en Repositorio</div>
+              <div class="fw-semibold text-primary mt-1"><code>{{ selectedTicket.doc_pase_referencia }}</code></div>
+              <div class="small text-muted fw-bold text-uppercase mt-3">Solicitante / Responsable</div>
+              <div class="fw-semibold text-dark mt-1">{{ selectedTicket.solicitante_nombre }} ({{ selectedTicket.solicitante_rol }})</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="p-3 bg-warning-subtle rounded border border-warning-subtle">
+              <div class="small fw-bold text-uppercase text-dark">Plan de Rollback Inmediato</div>
+              <div class="small text-dark mt-1">{{ selectedTicket.plan_rollback }}</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="p-3 bg-success-subtle rounded border border-success-subtle">
+              <div class="small fw-bold text-uppercase text-success-emphasis">Evidencia / Resolución Técnica</div>
+              <div class="small text-dark mt-1">{{ selectedTicket.resolucion_tecnica }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-outline-primary" (click)="closeAllModals(); openQualifyModal(selectedTicket!)">
+            Editar Calificación CAB
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

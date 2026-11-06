@@ -101,7 +101,7 @@ export const NavigationItems: NavigationItem[] = [
   },
   {
     id: 'finnova-analysis',
-    title: 'Finnova: Análisis',
+    title: 'Finnova: Análisis y Soporte ITSM',
     type: 'group',
     icon: 'icon-navigation',
     children: [
@@ -112,6 +112,14 @@ export const NavigationItems: NavigationItem[] = [
         classes: 'nav-item',
         url: '/dashboard/reports',
         icon: 'bar-chart'
+      },
+      {
+        id: 'support-changes',
+        title: 'Mesa de Ayuda & Cambios',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/support-changes',
+        icon: 'profile'
       }
     ]
   },

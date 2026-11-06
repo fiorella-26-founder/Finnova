@@ -56,6 +56,14 @@ const AsesorNavigationItems: NavigationItem[] = [
         classes: 'nav-item',
         url: '/dashboard/appointments',
         icon: 'calendar'
+      },
+      {
+        id: 'support-changes',
+        title: 'Mesa de Ayuda & Cambios',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/support-changes',
+        icon: 'profile'
       }
     ]
   }
@@ -83,6 +91,14 @@ const ClienteNavigationItems: NavigationItem[] = [
         classes: 'nav-item',
         url: '/dashboard/appointments',
         icon: 'calendar'
+      },
+      {
+        id: 'support-changes',
+        title: 'Mesa de Ayuda & Soporte',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/support-changes',
+        icon: 'profile'
       }
     ]
   }
