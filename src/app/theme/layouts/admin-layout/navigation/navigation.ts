@@ -120,6 +120,14 @@ export const NavigationItems: NavigationItem[] = [
         classes: 'nav-item',
         url: '/dashboard/support-changes',
         icon: 'profile'
+      },
+      {
+        id: 'test-view',
+        title: 'Vista Test (Demo PR)',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/test-view',
+        icon: 'chrome'
       }
     ]
   }

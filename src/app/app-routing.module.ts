@@ -108,6 +108,12 @@ const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: ['Administrador', 'Asesor', 'Cliente'] },
         loadComponent: () => import('./demo/pages/finnova/support-changes/support-changes').then((c) => c.SupportChangesManagement)
+      },
+      {
+        path: 'test-view',
+        canActivate: [authGuard],
+        data: { roles: ['Administrador', 'Asesor', 'Cliente'] },
+        loadComponent: () => import('./demo/pages/finnova/test-view/test-view').then((c) => c.TestViewComponent)
       }
     ]
   },
