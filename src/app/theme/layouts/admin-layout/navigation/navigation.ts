@@ -101,7 +101,7 @@ export const NavigationItems: NavigationItem[] = [
   },
   {
     id: 'finnova-analysis',
-    title: 'Finnova: Análisis y Soporte ITSM',
+    title: 'Finnova: Análisis y Soporte',
     type: 'group',
     icon: 'icon-navigation',
     children: [
@@ -122,29 +122,5 @@ export const NavigationItems: NavigationItem[] = [
         icon: 'profile'
       }
     ]
-  },
-  // {
-  //   id: 'public-access',
-  //   title: 'Vistas Públicas',
-  //   type: 'group',
-  //   icon: 'icon-navigation',
-  //   children: [
-  //     {
-  //       id: 'landing',
-  //       title: 'Portal Landing',
-  //       type: 'item',
-  //       url: '/landing',
-  //       classes: 'nav-item',
-  //       icon: 'home'
-  //     },
-  //     {
-  //       id: 'request-form',
-  //       title: 'Formulario de Solicitud',
-  //       type: 'item',
-  //       url: '/request-form',
-  //       classes: 'nav-item',
-  //       icon: 'file-add'
-  //     }
-  //   ]
-  // }
+  }
 ];

@@ -1,13 +1,13 @@
-<!-- CABECERA Y KPIS EN TIEMPO REAL (SEMANA 10 & SEMANA 11) -->
+<!-- CABECERA Y KPIS EN TIEMPO REAL -->
 <div class="row g-3 mb-3">
   <div class="col-12">
     <div class="card border-0 shadow-sm bg-primary text-white">
       <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-          <span class="badge bg-light text-primary fw-bold mb-2">ITIL 4 — GESTIÓN DE SOLICITUDES (SEM 10) & CONTROL DE CAMBIOS (SEM 11)</span>
-          <h4 class="text-white fw-bold mb-1">Mesa de Ayuda, Bandeja de Triaje RFC y Control de Cambios por Dimensión</h4>
+          <span class="badge bg-light text-primary fw-bold mb-2">SOPORTE OPERATIVO &amp; CONTROL DE CAMBIOS</span>
+          <h4 class="text-white fw-bold mb-1">Mesa de Ayuda y Control de Cambios</h4>
           <p class="mb-0 text-white-50 small">
-            Trazabilidad conectada a TiDB Cloud (<code>tickets_soporte_cambios</code>), Jira ITSM (<code>FCC-101..112</code>) y Runbooks de Pase (<code>docs/PASE_A_PRODUCCION.md</code>).
+            Bandeja centralizada de soporte técnico, evaluación de cambios por dimensión y trazabilidad de pases a producción (<code>tickets_soporte_cambios</code>).
           </p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
@@ -28,7 +28,7 @@
           <h3 class="fw-bold text-dark mb-0">{{ totalBandejaCount }}</h3>
           <span class="badge bg-secondary-subtle text-secondary border">{{ totalMesaAyudaCount }} Soporte Directo</span>
         </div>
-        <div class="small text-muted mt-1">Solicitudes Semana 10 + RFCs</div>
+        <div class="small text-muted mt-1">Solicitudes de Mesa de Ayuda + Cambios</div>
       </div>
     </div>
   </div>
@@ -92,17 +92,17 @@
     <ul class="nav nav-pills gap-2">
       <li class="nav-item">
         <button class="nav-link fw-semibold" [class.active]="activeTab === 'dimensiones'" (click)="activeTab = 'dimensiones'">
-          1. Métricas y Cambios por las 4 Dimensiones (Semana 11)
+          1. Control de Cambios por Dimensión Técnica
         </button>
       </li>
       <li class="nav-item">
         <button class="nav-link fw-semibold" [class.active]="activeTab === 'bandeja'" (click)="activeTab = 'bandeja'">
-          2. Bandeja de Solicitudes y Triaje Mesa de Ayuda &rarr; RFC (Semana 10 y 11)
+          2. Bandeja de Mesa de Ayuda y Solicitudes
         </button>
       </li>
       <li class="nav-item">
         <button class="nav-link fw-semibold" [class.active]="activeTab === 'pase-calendario'" (click)="activeTab = 'pase-calendario'">
-          3. Documentación de Pase (Front/Back) y Calendarización
+          3. Documentación de Pase y Calendarización
         </button>
       </li>
     </ul>
@@ -110,14 +110,14 @@
 
   <div class="card-body p-4">
     <!-- ========================================================================= -->
-    <!-- PESTAÑA 1: MATRIZ Y TABLERO POR LAS 4 DIMENSIONES TÉCNICAS (SEMANA 11)    -->
+    <!-- PESTAÑA 1: MATRIZ Y TABLERO POR LAS 4 DIMENSIONES TÉCNICAS                -->
     <!-- ========================================================================= -->
     <div *ngIf="activeTab === 'dimensiones'">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
-          <h5 class="fw-bold text-dark mb-1">Consolidado de Cambios por Dimensión Técnica y Estado (Feedback Semana 11)</h5>
+          <h5 class="fw-bold text-dark mb-1">Consolidado de Cambios por Dimensión Técnica y Estado</h5>
           <p class="text-muted small mb-0">
-            Refleja exactamente cuántos cambios existen en cada dimensión (<strong>Infraestructura</strong>, <strong>Aplicaciones y BD</strong>, <strong>Documentación</strong> y <strong>Calendario</strong>) y cuántos están <strong>Abiertos</strong>, <strong>En Proceso</strong> y <strong>Completados</strong>.
+            Resumen operativo de cambios por dimensión técnica (<strong>Infraestructura</strong>, <strong>Aplicaciones y BD</strong>, <strong>Documentación</strong> y <strong>Calendario</strong>) según su estado actual (<strong>Abiertos</strong>, <strong>En Proceso</strong> y <strong>Completados</strong>).
           </p>
         </div>
         <span class="badge bg-primary-subtle text-primary border px-3 py-2">
@@ -238,7 +238,7 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- PESTAÑA 2: BANDEJA DE SOLICITUDES Y TRIAJE MESA DE AYUDA -> RFC           -->
+    <!-- PESTAÑA 2: BANDEJA DE MESA DE AYUDA Y SOLICITUDES                         -->
     <!-- ========================================================================= -->
     <div *ngIf="activeTab === 'bandeja'">
       <div class="row g-2 align-items-end mb-3">
@@ -286,7 +286,7 @@
               <th>Solicitud / Incidencia Técnica</th>
               <th>¿Aplica Cambio? (Triaje)</th>
               <th>Dimensión Técnica</th>
-              <th>Tipo ITIL & Ventana</th>
+              <th>Clasificación &amp; Ventana</th>
               <th>Estado</th>
               <th class="text-end" style="min-width: 210px;">Acciones</th>
             </tr>
@@ -368,9 +368,9 @@
     <div *ngIf="activeTab === 'pase-calendario'">
       <!-- EXPLICACIÓN TÉCNICA DE CAMBIO DE CALENDARIZACIÓN -->
       <div class="alert alert-info border-info mb-4">
-        <h6 class="fw-bold text-dark mb-1">¿Qué es un Cambio de Calendarización (Dimensión Calendario) en Finnova?</h6>
+        <h6 class="fw-bold text-dark mb-1">Esquema de Calendarización y Ventanas Operativas en Finnova</h6>
         <p class="small mb-2 text-dark">
-          En <strong>ITIL 4 (Change Enablement / Forward Schedule of Changes - FSC)</strong> e Ingeniería de Sistemas, un <strong>Cambio de Calendarización</strong> controla cuándo y con qué frecuencia se ejecutan procesos o despliegues para no impactar la operación del negocio financiero. En Finnova abarca dos niveles reales:
+          La dimensión de <strong>Calendario (Calendarización)</strong> controla cuándo y con qué frecuencia se ejecutan procesos automatizados o despliegues a producción para no impactar la operación del negocio financiero. En Finnova abarca dos niveles reales:
         </p>
         <div class="row g-2 small">
           <div class="col-md-6">
@@ -455,7 +455,7 @@
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-bold text-white">Registrar Solicitud de Soporte o Cambio Técnico (Semana 10 &rarr; 11)</h5>
+        <h5 class="modal-title fw-bold text-white">Registrar Solicitud de Soporte o Cambio Técnico</h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
       </div>
       <div class="modal-body p-4">
@@ -467,7 +467,7 @@
                 placeholder="Ej. Actualización de límite de timeout SMTP o desbloqueo de usuario" required />
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-bold">Tipo de Solicitud (ITSM)</label>
+              <label class="form-label fw-bold">Tipo de Solicitud</label>
               <select class="form-select" [(ngModel)]="newTipoSolicitud" name="tipoSolicitud">
                 <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda</option>
                 <option value="Acceso / Credenciales">Acceso / Credenciales (SRQ-ACC)</option>
@@ -531,7 +531,7 @@
                     </select>
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label small fw-bold">Tipo de Cambio ITIL</label>
+                    <label class="form-label small fw-bold">Clasificación del Cambio</label>
                     <select class="form-select form-select-sm" [(ngModel)]="newTipoItilDirecto" name="tipoItilDirecto">
                       <option value="No Aplica">No Aplica</option>
                       <option value="Estándar (CHS)">Estándar (CHS)</option>
@@ -555,7 +555,7 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 2: CALIFICACIÓN CAB Y ASIGNACIÓN DE DIMENSIÓN TÉCNICA (SEMANA 11)   -->
+<!-- MODAL 2: CALIFICACIÓN CAB Y ASIGNACIÓN DE DIMENSIÓN TÉCNICA               -->
 <!-- ========================================================================= -->
 <div *ngIf="isQualifyModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
   <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -609,7 +609,7 @@
             </div>
 
             <div class="col-md-4">
-              <label class="form-label fw-bold">Tipo de Cambio ITIL</label>
+              <label class="form-label fw-bold">Clasificación del Cambio</label>
               <select class="form-select" [(ngModel)]="qualifyTipoItil" name="qualifyTipoItil">
                 <option value="Estándar (CHS)">Estándar (CHS)</option>
                 <option value="Normal (CHN)">Normal (CHN)</option>
