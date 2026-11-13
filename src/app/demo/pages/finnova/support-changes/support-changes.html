@@ -4,31 +4,52 @@
     <div class="card border-0 shadow-sm bg-primary text-white">
       <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-          <span class="badge bg-light text-primary fw-bold mb-2">SOPORTE OPERATIVO &amp; CONTROL DE CAMBIOS</span>
-          <h4 class="text-white fw-bold mb-1">Mesa de Ayuda y Control de Cambios</h4>
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="badge bg-light text-primary fw-bold">SEMANA 14: ITIL 4 INCIDENT MANAGEMENT &amp; SLA</span>
+            <span class="badge bg-white text-dark fw-bold border">
+              Rol Activo: {{ activeRole }} ({{ activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza - L2 DevOps' : (activeRole === 'Administrador' ? 'Fiorella Gamarra - CAB Lead' : (activeRole === 'Asesor' ? 'Juan Pérez' : 'María López')) }})
+            </span>
+          </div>
+          <h4 class="text-white fw-bold mb-1">Centro de Gestión de Incidentes, Soporte &amp; Control de Cambios</h4>
           <p class="mb-0 text-white-50 small">
-            Bandeja centralizada de soporte técnico, evaluación de cambios por dimensión y trazabilidad de pases a producción (<code>tickets_soporte_cambios</code>).
+            Flujo profesional de detección, clasificación matricial (Impacto &times; Urgencia), SLAs dinámicos, escalamiento L1&rarr;L2&rarr;L3 y trazabilidad de pases en producción.
           </p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
           <button class="btn btn-light text-primary fw-bold d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
-            <span>+ Registrar Solicitud / Cambio</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+            <span>+ Registrar Incidente / Solicitud</span>
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 5 TARJETAS KPI -->
+  <!-- 5 TARJETAS KPI EN VIVO -->
   <div class="col-6 col-md-4 col-xl">
-    <div class="card border shadow-sm h-100 mb-0">
+    <div class="card border border-danger-subtle shadow-sm h-100 mb-0">
       <div class="card-body p-3">
-        <div class="text-muted small fw-semibold text-uppercase">Total en Bandeja</div>
+        <div class="text-danger small fw-semibold text-uppercase">Incidentes Activos (S14)</div>
         <div class="d-flex align-items-baseline justify-content-between mt-1">
-          <h3 class="fw-bold text-dark mb-0">{{ totalBandejaCount }}</h3>
-          <span class="badge bg-secondary-subtle text-secondary border">{{ totalMesaAyudaCount }} Soporte Directo</span>
+          <h3 class="fw-bold text-danger mb-0">{{ totalIncidentsCount }}</h3>
+          <span class="badge bg-danger text-white">{{ p1Count }} Críticos (P1)</span>
         </div>
-        <div class="small text-muted mt-1">Solicitudes de Mesa de Ayuda + Cambios</div>
+        <div class="small text-muted mt-1">{{ p2Count }} P2 Altos &bull; {{ p3Count }} P3 &bull; {{ p4Count }} P4</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card border border-success-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-success small fw-semibold text-uppercase">Cumplimiento de SLA</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-success mb-0">{{ slaComplianceRate }}%</h3>
+          <span class="badge bg-success text-white">{{ incidentsEnSlaCount }}/{{ totalIncidentsCount }} en SLA</span>
+        </div>
+        <div class="small text-muted mt-1">MTTA Prom: <strong>{{ avgMttaMin }}m</strong> &bull; MTTR: <strong>{{ avgMttrHours }}h</strong></div>
       </div>
     </div>
   </div>
@@ -36,73 +57,65 @@
   <div class="col-6 col-md-4 col-xl">
     <div class="card border border-primary-subtle shadow-sm h-100 mb-0">
       <div class="card-body p-3">
-        <div class="text-primary small fw-semibold text-uppercase">Escalados a Cambio (RFC)</div>
+        <div class="text-primary small fw-semibold text-uppercase">Escalados a RFC (S11)</div>
         <div class="d-flex align-items-baseline justify-content-between mt-1">
           <h3 class="fw-bold text-primary mb-0">{{ totalRfcCount }}</h3>
           <span class="badge bg-primary-subtle text-primary border">4 Dimensiones</span>
         </div>
-        <div class="small text-muted mt-1">Tickets Jira <code>FCC-*</code> activos</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-6 col-md-4 col-xl">
-    <div class="card border border-warning-subtle shadow-sm h-100 mb-0">
-      <div class="card-body p-3">
-        <div class="text-warning-emphasis small fw-semibold text-uppercase">Cambios Abiertos</div>
-        <div class="d-flex align-items-baseline justify-content-between mt-1">
-          <h3 class="fw-bold text-warning-emphasis mb-0">{{ totalRfcAbiertos }}</h3>
-          <span class="badge bg-warning text-dark">Pendientes / CAB</span>
-        </div>
-        <div class="small text-muted mt-1">Programados en Calendario</div>
+        <div class="small text-muted mt-1">Tickets Jira <code>FCC-*</code> vinculados</div>
       </div>
     </div>
   </div>
 
   <div class="col-6 col-md-6 col-xl">
-    <div class="card border border-info-subtle shadow-sm h-100 mb-0">
+    <div class="card border border-warning-subtle shadow-sm h-100 mb-0">
       <div class="card-body p-3">
-        <div class="text-info-emphasis small fw-semibold text-uppercase">Cambios En Proceso</div>
+        <div class="text-warning-emphasis small fw-semibold text-uppercase">Cambios Abiertos / CI</div>
         <div class="d-flex align-items-baseline justify-content-between mt-1">
-          <h3 class="fw-bold text-info-emphasis mb-0">{{ totalRfcEnProceso }}</h3>
-          <span class="badge bg-info text-dark">Desarrollo / CI</span>
+          <h3 class="fw-bold text-warning-emphasis mb-0">{{ totalRfcAbiertos + totalRfcEnProceso }}</h3>
+          <span class="badge bg-warning text-dark">{{ totalRfcAbiertos }} CAB / {{ totalRfcEnProceso }} Dev</span>
         </div>
-        <div class="small text-muted mt-1">En GitHub Actions / Staging</div>
+        <div class="small text-muted mt-1">En GitHub Actions &amp; Staging</div>
       </div>
     </div>
   </div>
 
   <div class="col-12 col-md-6 col-xl">
-    <div class="card border border-success-subtle shadow-sm h-100 mb-0">
+    <div class="card border border-info-subtle shadow-sm h-100 mb-0">
       <div class="card-body p-3">
-        <div class="text-success small fw-semibold text-uppercase">Cambios Completados</div>
+        <div class="text-info-emphasis small fw-semibold text-uppercase">Pases a Producción</div>
         <div class="d-flex align-items-baseline justify-content-between mt-1">
-          <h3 class="fw-bold text-success mb-0">{{ totalRfcCompletados }}</h3>
-          <span class="badge bg-success">En Producción</span>
+          <h3 class="fw-bold text-info-emphasis mb-0">{{ totalRfcCompletados }}</h3>
+          <span class="badge bg-info text-dark">Vercel &amp; Render</span>
         </div>
-        <div class="small text-muted mt-1">Con Acta de Pase verificada</div>
+        <div class="small text-muted mt-1">Actas de Pase con RTO &lt; 3 min</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- PESTAÑAS DE NAVEGACIÓN DEL MÓDULO -->
+<!-- NAVEGACIÓN PRINCIPAL POR PESTAÑAS -->
 <div class="card border shadow-sm mb-3">
   <div class="card-header bg-white border-bottom p-2">
-    <ul class="nav nav-pills gap-2">
+    <ul class="nav nav-pills gap-2 flex-wrap">
+      <li class="nav-item">
+        <button class="nav-link fw-bold" [class.active]="activeTab === 'incidentes'" (click)="activeTab = 'incidentes'">
+          1. Gestión Profesional de Incidentes &amp; SLA (Semana 14)
+        </button>
+      </li>
       <li class="nav-item">
         <button class="nav-link fw-semibold" [class.active]="activeTab === 'dimensiones'" (click)="activeTab = 'dimensiones'">
-          1. Control de Cambios por Dimensión Técnica
+          2. Control de Cambios por Dimensión Técnica (Semana 11)
         </button>
       </li>
       <li class="nav-item">
         <button class="nav-link fw-semibold" [class.active]="activeTab === 'bandeja'" (click)="activeTab = 'bandeja'">
-          2. Bandeja de Mesa de Ayuda y Solicitudes
+          3. Bandeja Unificada de Incidentes &amp; Solicitudes
         </button>
       </li>
       <li class="nav-item">
         <button class="nav-link fw-semibold" [class.active]="activeTab === 'pase-calendario'" (click)="activeTab = 'pase-calendario'">
-          3. Documentación de Pase y Calendarización
+          4. Documentación de Pase &amp; Calendarización
         </button>
       </li>
     </ul>
@@ -110,14 +123,412 @@
 
   <div class="card-body p-4">
     <!-- ========================================================================= -->
-    <!-- PESTAÑA 1: MATRIZ Y TABLERO POR LAS 4 DIMENSIONES TÉCNICAS                -->
+    <!-- PESTAÑA 1: GESTIÓN PROFESIONAL DE INCIDENTES & SLA (SEMANA 14)             -->
+    <!-- ========================================================================= -->
+    <div *ngIf="activeTab === 'incidentes'">
+
+      <!-- BLOQUE 1.1: GOBERNANZA & MATRIZ RACI ("QUIÉN CONTROLA QUÉ COSA") -->
+      <div class="alert alert-light border shadow-sm mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <div>
+            <span class="badge bg-primary me-2">GOBIERNO TI &amp; CONTROL DE ACCESO (RBAC)</span>
+            <strong class="text-dark fs-6">Matriz de Responsabilidades RACI en Finnova</strong>
+          </div>
+          <span class="badge bg-success-subtle text-success border px-2 py-1">
+            Nuevo Rol Incorporado: <strong>Soporte TI / Ingeniero DevOps L2</strong>
+          </span>
+        </div>
+        <p class="small text-muted mb-3">
+          Respuesta a la observación docente: <em>"Definir quién controla qué cosa en solicitudes y cambios, e incorporar un rol específico de TI para segregar funciones del Administrador"</em>. A continuación se detalla la asignación estricta de roles:
+        </p>
+
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered text-center align-middle mb-2 bg-white small">
+            <thead class="table-dark">
+              <tr>
+                <th class="text-start" style="min-width: 260px;">Fase / Actividad Técnica del Proceso</th>
+                <th>Cliente</th>
+                <th>Asesor</th>
+                <th class="bg-primary text-white">Soporte TI (L1/L2)</th>
+                <th>Tech Lead / DBA (L3)</th>
+                <th class="bg-dark text-white">Administrador (CAB)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-start fw-semibold">1. Detección y Registro de Solicitud / Incidente</td>
+                <td><span class="badge bg-primary">R</span> (Reporta)</td>
+                <td><span class="badge bg-primary">R</span> (Reporta)</td>
+                <td><span class="badge bg-secondary">C</span> (Asiste)</td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+              </tr>
+              <tr>
+                <td class="text-start fw-semibold">2. Triaje Técnico y Clasificación Matricial P1&ndash;P4 (MTTA)</td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+                <td><span class="badge bg-danger">A / R</span> (Ejecuta Triaje)</td>
+                <td><span class="badge bg-secondary">C</span> (Consulta)</td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+              </tr>
+              <tr>
+                <td class="text-start fw-semibold">3. Diagnóstico de Error y Aplicación de Workaround (MTTR)</td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+                <td><span class="badge bg-danger">R</span> (Aplica Workaround)</td>
+                <td><span class="badge bg-primary">R</span> (Soporte L3)</td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+              </tr>
+              <tr>
+                <td class="text-start fw-semibold">4. Escalamiento a Solicitud de Cambio (RFC / Hotfix)</td>
+                <td><span class="badge bg-light text-muted border">-</span></td>
+                <td><span class="badge bg-light text-muted border">-</span></td>
+                <td><span class="badge bg-primary">R</span> (Genera RFC)</td>
+                <td><span class="badge bg-primary">R</span> (Diseña Parche)</td>
+                <td><span class="badge bg-secondary">C</span></td>
+              </tr>
+              <tr>
+                <td class="text-start fw-semibold">5. Aprobación en Comité CAB / eCAB para Pase</td>
+                <td><span class="badge bg-light text-muted border">-</span></td>
+                <td><span class="badge bg-light text-muted border">-</span></td>
+                <td><span class="badge bg-secondary">C</span> (Sustenta)</td>
+                <td><span class="badge bg-secondary">C</span> (Valida CI)</td>
+                <td><span class="badge bg-success">A</span> (Autoriza Despliegue)</td>
+              </tr>
+              <tr>
+                <td class="text-start fw-semibold">6. Cierre Técnico, Análisis de Causa Raíz (RCA) &amp; PIR</td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+                <td><span class="badge bg-light text-muted border">I</span></td>
+                <td><span class="badge bg-primary">R</span> (Documenta logs)</td>
+                <td><span class="badge bg-primary">R</span> (5 Porqués)</td>
+                <td><span class="badge bg-success">A</span> (Aprueba Acta)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 text-muted small pt-1">
+          <div>
+            <strong>Leyenda RACI:</strong> <span class="badge bg-primary me-1">R: Responsable</span> <span class="badge bg-success me-1">A: Aprobador (Accountable)</span> <span class="badge bg-secondary me-1">C: Consultado</span> <span class="badge bg-light text-dark border">I: Informado</span>
+          </div>
+          <div class="small">
+            <em>Usa el selector superior derecho de la barra superior para cambiar entre <strong>Admin</strong>, <strong>Soporte TI</strong>, <strong>Asesor</strong> y <strong>Cliente</strong>.</em>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOQUE 1.2: FLUJO DE ATENCIÓN EN NOTACIÓN BPMN 2.0 INTERACTIVO -->
+      <div class="card border shadow-sm mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2 px-3">
+          <div>
+            <span class="badge bg-light text-dark me-2">BPMN 2.0</span>
+            <strong class="text-white">Flujo de Atención y Escalamiento de Incidentes (5 Carriles)</strong>
+          </div>
+          <span class="badge bg-primary">ITIL 4 Aligned</span>
+        </div>
+        <div class="card-body p-3">
+          <p class="small text-muted mb-3">
+            El flujo modela la interacción entre los 5 carriles (<em>Swimlanes</em>) de Finnova: desde el reporte inicial, la compuerta de clasificación matricial P1&ndash;P4, el diagnóstico y aplicación de workaround temporal en L2, el escalamiento a Control de Cambios y el cierre formal con Post-Mortem (PIR).
+          </p>
+
+          <!-- PASOS VISUALES DEL FLUJO BPMN -->
+          <div class="row g-2">
+            <div class="col-12 col-md">
+              <div class="p-3 rounded border bg-light h-100 border-start border-4 border-secondary">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="badge bg-secondary">Carril 1</span>
+                  <span class="badge bg-white text-muted border">Evento Inicio</span>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">1. Detección &amp; Reporte</h6>
+                <p class="small text-muted mb-0">
+                  Cliente o Asesor experimenta error y completa el <strong>Formulario Extendido</strong> con impacto, urgencia y código de error.
+                </p>
+              </div>
+            </div>
+
+            <div class="col-12 col-md">
+              <div class="p-3 rounded border bg-light h-100 border-start border-4 border-info">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="badge bg-info text-dark">Carril 2</span>
+                  <span class="badge bg-warning text-dark">Timer MTTA</span>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">2. Triaje L1 (Mesa de Ayuda)</h6>
+                <p class="small text-muted mb-0">
+                  Soporte TI valida severidad (P1&ndash;P4) en &le; 15 min. Si es solicitud estándar aplica script L1; si es falla técnica escala a L2.
+                </p>
+              </div>
+            </div>
+
+            <div class="col-12 col-md">
+              <div class="p-3 rounded border bg-light h-100 border-start border-4 border-danger">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="badge bg-danger">Carril 3</span>
+                  <span class="badge bg-primary">Workaround L2</span>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">3. Diagnóstico L2 / DevOps</h6>
+                <p class="small text-muted mb-0">
+                  Ing. de TI inspecciona logs de Render/TiDB, aplica <strong>Workaround temporal</strong> para recuperar el SLA (MTTR) y evalúa si requiere RFC.
+                </p>
+              </div>
+            </div>
+
+            <div class="col-12 col-md">
+              <div class="p-3 rounded border bg-light h-100 border-start border-4 border-primary">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="badge bg-primary">Carril 4</span>
+                  <span class="badge bg-dark">Rama Hotfix</span>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">4. Hotfix L3 / Tech Lead</h6>
+                <p class="small text-muted mb-0">
+                  Si se detecta bug de software, se abre rama <code>hotfix/*</code>, se ejecuta pipeline CI en GitHub Actions y se diseña el Runbook de Pase.
+                </p>
+              </div>
+            </div>
+
+            <div class="col-12 col-md">
+              <div class="p-3 rounded border bg-light h-100 border-start border-4 border-success">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="badge bg-success">Carril 5</span>
+                  <span class="badge bg-success text-white">Evento Fin</span>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">5. Comité CAB &amp; Cierre</h6>
+                <p class="small text-muted mb-0">
+                  Administrador aprueba pase a producción en Vercel/Render, ejecuta Smoke Test y registra el <strong>Post-Mortem / RCA (5 Porqués)</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOQUE 1.3: DEFINICIÓN DE SLAS FORMALES (MTTA & MTTR) -->
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-7">
+          <div class="card border shadow-sm h-100">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2 px-3">
+              <strong class="text-dark">Matriz de Clasificación de Incidentes y Acuerdos de Nivel de Servicio (SLA)</strong>
+              <span class="badge bg-success">Disponibilidad Objetivo: 99.9%</span>
+            </div>
+            <div class="card-body p-3">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0 small">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Severidad</th>
+                      <th>Criterio de Impacto y Urgencia</th>
+                      <th class="text-center">MTTA (Respuesta)</th>
+                      <th class="text-center">MTTR (Resolución)</th>
+                      <th>Escalamiento Obligatorio</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="table-danger-subtle">
+                      <td><span class="badge bg-danger">P1 - Crítico</span></td>
+                      <td>Impacto Global (Toda la Plataforma) &amp; Urgencia Crítica. Caída pasarela Yape o BD TiDB.</td>
+                      <td class="text-center fw-bold">&le; 15 min</td>
+                      <td class="text-center fw-bold">&le; 2 horas</td>
+                      <td>L2 DevOps &rarr; Tech Lead &rarr; Comité eCAB (CHE)</td>
+                    </tr>
+                    <tr class="table-warning-subtle">
+                      <td><span class="badge bg-warning text-dark">P2 - Alto</span></td>
+                      <td>Impacto Global o Departamental con degradación severa. Cold start prolongado (&gt;50s).</td>
+                      <td class="text-center fw-bold">&le; 30 min</td>
+                      <td class="text-center fw-bold">&le; 6 horas</td>
+                      <td>L2 DevOps &rarr; Tech Lead &rarr; RFC Normal (CHN)</td>
+                    </tr>
+                    <tr class="table-info-subtle">
+                      <td><span class="badge bg-info text-dark">P3 - Medio</span></td>
+                      <td>Afectación parcial de módulo no crítico o subida lenta de vouchers &gt;3MB.</td>
+                      <td class="text-center fw-bold">&le; 2 horas</td>
+                      <td class="text-center fw-bold">&le; 24 horas</td>
+                      <td>Mesa de Ayuda L1 &rarr; Soporte L2</td>
+                    </tr>
+                    <tr>
+                      <td><span class="badge bg-secondary">P4 - Bajo</span></td>
+                      <td>Problema cosmético visual o consulta técnica sin afectación operativa.</td>
+                      <td class="text-center fw-bold">&le; 8 horas</td>
+                      <td class="text-center fw-bold">&le; 72 horas</td>
+                      <td>Mesa de Ayuda L1 (Atención Directa)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+          <div class="card border shadow-sm h-100">
+            <div class="card-header bg-light py-2 px-3">
+              <strong class="text-dark">Estrategia de Escalamiento Funcional &amp; Jerárquico</strong>
+            </div>
+            <div class="card-body p-3 small">
+              <div class="d-flex align-items-start gap-2 mb-2 pb-2 border-bottom">
+                <span class="badge bg-primary mt-1">L1</span>
+                <div>
+                  <strong>Mesa de Ayuda Inicial (Soporte L1):</strong>
+                  Atiende consultas, desbloqueo de usuarios (<code>SRQ-ACC</code>) y validación de comprobantes según manual de procedimientos.
+                </div>
+              </div>
+              <div class="d-flex align-items-start gap-2 mb-2 pb-2 border-bottom">
+                <span class="badge bg-warning text-dark mt-1">L2</span>
+                <div>
+                  <strong>Ingeniero de TI / DevOps (Soporte L2):</strong>
+                  Diagnostica infraestructura en Render y TiDB Cloud, inspecciona métricas de CPU/RAM, aplica <em>workarounds</em> y genera RFCs.
+                </div>
+              </div>
+              <div class="d-flex align-items-start gap-2 mb-2 pb-2 border-bottom">
+                <span class="badge bg-danger mt-1">L3</span>
+                <div>
+                  <strong>Tech Lead / DBA (Especialista L3):</strong>
+                  Depura código en caliente, ejecuta DDL en base de datos y compila artefactos en ramas de emergencia.
+                </div>
+              </div>
+              <div class="d-flex align-items-start gap-2">
+                <span class="badge bg-dark mt-1">CAB</span>
+                <div>
+                  <strong>Comité CAB &amp; Dirección:</strong>
+                  Aprueba cambios normales en Ventana FSC o autoriza Pases de Emergencia (CHE) ante fallas P1.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOQUE 1.4: TABLERO EN VIVO DE INCIDENTES CLASIFICADOS (P1 A P4) -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h5 class="fw-bold text-dark mb-0">Catálogo de Incidentes Registrados en Finnova (Ejecuciones Reales)</h5>
+          <span class="small text-muted">Incidentes con trazabilidad técnica, códigos de error HTTP/SQL y estado de SLA</span>
+        </div>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" [(ngModel)]="filterSeveridad" style="width: auto;">
+            <option value="TODAS">Todas las Severidades</option>
+            <option value="P1 - Crítico">P1 - Crítico (Outage Pasarela/BD)</option>
+            <option value="P2 - Alto">P2 - Alto (Cold Start Render)</option>
+            <option value="P3 - Medio">P3 - Medio (Payload Vouchers)</option>
+            <option value="P4 - Bajo">P4 - Bajo (Cosmético)</option>
+          </select>
+          <select class="form-select form-select-sm" [(ngModel)]="filterIncidenteEstado" style="width: auto;">
+            <option value="TODOS">Todos los Estados</option>
+            <option value="Abierto">Abierto</option>
+            <option value="En Proceso">En Proceso</option>
+            <option value="Completado">Completado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12" *ngFor="let inc of filteredIncidents">
+          <div class="card border shadow-sm mb-0" [ngClass]="{
+            'border-danger border-2': inc.severidad_sla === 'P1 - Crítico',
+            'border-warning border-2': inc.severidad_sla === 'P2 - Alto',
+            'border-info': inc.severidad_sla === 'P3 - Medio',
+            'border-secondary': inc.severidad_sla === 'P4 - Bajo'
+          }">
+            <div class="card-body p-3">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="badge fs-6" [ngClass]="{
+                    'bg-danger text-white': inc.severidad_sla === 'P1 - Crítico',
+                    'bg-warning text-dark': inc.severidad_sla === 'P2 - Alto',
+                    'bg-info text-dark': inc.severidad_sla === 'P3 - Medio',
+                    'bg-secondary': inc.severidad_sla === 'P4 - Bajo'
+                  }">{{ inc.severidad_sla }}</span>
+                  <span class="badge bg-dark fw-bold">{{ inc.codigo_jira }}</span>
+                  <span class="badge bg-light text-primary border">{{ inc.id_ticket }}</span>
+                  <span class="badge bg-light text-dark border">Entorno: {{ inc.entorno || 'Producción' }}</span>
+                  <span class="badge bg-danger-subtle text-danger border" *ngIf="inc.codigo_error">
+                    <code>{{ inc.codigo_error }}</code>
+                  </span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-success-subtle text-success border px-2 py-1">
+                    SLA: {{ inc.cumplimiento_sla || 'Dentro de SLA' }} (MTTA: {{ inc.mtta_sla_min }}m / MTTR: {{ inc.mttr_sla_horas }}h)
+                  </span>
+                  <span class="badge" [ngClass]="{
+                    'bg-warning text-dark': inc.estado === 'Abierto',
+                    'bg-info text-dark': inc.estado === 'En Proceso',
+                    'bg-success': inc.estado === 'Completado',
+                    'bg-danger': inc.estado === 'Rechazado'
+                  }">{{ inc.estado }}</span>
+                </div>
+              </div>
+
+              <h5 class="fw-bold text-dark mb-1">{{ inc.titulo }}</h5>
+              <p class="text-muted small mb-2">{{ inc.descripcion }}</p>
+
+              <div class="row g-2 small mb-2">
+                <div class="col-md-6">
+                  <div class="p-2 bg-light rounded border h-100">
+                    <strong>Componente:</strong> {{ inc.componente_afectado }}<br>
+                    <strong>Asignado a:</strong> <span class="badge bg-secondary-subtle text-dark border">{{ inc.asignado_a_rol || 'Ingeniero TI L2' }}</span><br>
+                    <strong>Atendido por:</strong> {{ inc.atendido_por || 'Ing. Carlos Mendoza (Soporte TI L2)' }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="p-2 bg-light rounded border h-100">
+                    <strong class="text-danger">Solución Temporal (Workaround):</strong>
+                    <div class="text-dark mt-1">{{ inc.solucion_temporal_workaround || 'Pendiente de formulación por Soporte TI.' }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="inc.rca_causa_raiz" class="p-2 bg-success-subtle rounded border border-success-subtle small mb-2">
+                <strong class="text-success-emphasis">Análisis Causa Raíz (RCA / 5 Porqués):</strong>
+                <div class="text-dark mt-1" style="white-space: pre-line;">{{ inc.rca_causa_raiz }}</div>
+              </div>
+
+              <!-- BARRA DE ACCIONES SEGÚN ROL (RBAC DEMO) -->
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
+                <div class="small text-muted">
+                  <strong>Registrado por:</strong> {{ inc.solicitante_nombre }} ({{ inc.solicitante_rol }}) &bull; {{ inc.fecha_registro }}
+                </div>
+                <div class="d-flex gap-1 flex-wrap">
+                  <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(inc)">
+                    Ficha Técnica
+                  </button>
+
+                  <!-- Botón Atender L1/L2 para Soporte TI o Admin -->
+                  <button *ngIf="canApplyWorkaround" class="btn btn-sm btn-warning text-dark fw-bold" (click)="openWorkaroundModal(inc)">
+                    Aplicar Workaround L1/L2
+                  </button>
+
+                  <!-- Botón Escalar a RFC -->
+                  <button *ngIf="canQualifyCab && inc.aplica_cambio !== 'Si Aplica (RFC)'" class="btn btn-sm btn-outline-primary" (click)="escalateToRfc(inc)">
+                    Escalar a RFC
+                  </button>
+
+                  <!-- Botón Post-Mortem para Admin / CAB -->
+                  <button *ngIf="isAdmin" class="btn btn-sm btn-outline-success" (click)="openPirModal(inc)">
+                    Auditar Post-Mortem (PIR)
+                  </button>
+
+                  <!-- Botón Calificar / Editar CAB -->
+                  <button *ngIf="canQualifyCab" class="btn btn-sm btn-primary" (click)="openQualifyModal(inc)">
+                    Gestión CAB
+                  </button>
+
+                  <button *ngIf="canDelete" class="btn btn-sm btn-outline-danger" (click)="deleteTicket(inc)" title="Eliminar">
+                    &times;
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- PESTAÑA 2: CONTROL DE CAMBIOS POR LAS 4 DIMENSIONES (SEMANA 11)           -->
     <!-- ========================================================================= -->
     <div *ngIf="activeTab === 'dimensiones'">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
           <h5 class="fw-bold text-dark mb-1">Consolidado de Cambios por Dimensión Técnica y Estado</h5>
           <p class="text-muted small mb-0">
-            Resumen operativo de cambios por dimensión técnica (<strong>Infraestructura</strong>, <strong>Aplicaciones y BD</strong>, <strong>Documentación</strong> y <strong>Calendario</strong>) según su estado actual (<strong>Abiertos</strong>, <strong>En Proceso</strong> y <strong>Completados</strong>).
+            Resumen operativo de cambios en <strong>Infraestructura</strong>, <strong>Aplicaciones y BD</strong>, <strong>Documentación</strong> y <strong>Calendario</strong> según su estado actual (<strong>Abiertos</strong>, <strong>En Proceso</strong> y <strong>Completados</strong>).
           </p>
         </div>
         <span class="badge bg-primary-subtle text-primary border px-3 py-2">
@@ -225,7 +636,7 @@
                     <button class="btn btn-sm btn-outline-secondary py-0 px-2" (click)="openDetailModal(item)">
                       Ver Acta
                     </button>
-                    <button class="btn btn-sm btn-outline-primary py-0 px-2" (click)="openQualifyModal(item)">
+                    <button *ngIf="canQualifyCab" class="btn btn-sm btn-outline-primary py-0 px-2" (click)="openQualifyModal(item)">
                       Editar / Estado
                     </button>
                   </div>
@@ -238,20 +649,30 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- PESTAÑA 2: BANDEJA DE MESA DE AYUDA Y SOLICITUDES                         -->
+    <!-- PESTAÑA 3: BANDEJA UNIFICADA DE INCIDENTES Y SOLICITUDES                  -->
     <!-- ========================================================================= -->
     <div *ngIf="activeTab === 'bandeja'">
       <div class="row g-2 align-items-end mb-3">
         <div class="col-12 col-md-3">
-          <label class="form-label small fw-bold mb-1">Filtrar por Dimensión Técnica</label>
+          <label class="form-label small fw-bold mb-1">Tipo de Solicitud</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterTipoTicket">
+            <option value="TODOS">Todos los Tipos</option>
+            <option value="Incidente Técnico">Incidentes Técnicos (INC)</option>
+            <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda (SRQ)</option>
+            <option value="Acceso / Credenciales">Acceso / Credenciales</option>
+            <option value="Requerimiento de Cambio">Requerimiento de Cambio (RFC)</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small fw-bold mb-1">Dimensión Técnica</label>
           <select class="form-select form-select-sm" [(ngModel)]="filterDimension">
             <option value="TODAS">Todas las Dimensiones</option>
             <option value="Infraestructura">1. Infraestructura</option>
             <option value="Aplicaciones y BD">2. Aplicaciones y BD</option>
             <option value="Documentación">3. Documentación</option>
             <option value="Calendario">4. Calendario</option>
-            <option value="Por Clasificar">Por Clasificar (Nuevas)</option>
-            <option value="N/A - Mesa de Ayuda">N/A - Atención Directa Mesa de Ayuda</option>
+            <option value="Por Clasificar">Por Clasificar</option>
+            <option value="N/A - Mesa de Ayuda">N/A - Atención Directa</option>
           </select>
         </div>
         <div class="col-6 col-md-2">
@@ -263,18 +684,9 @@
             <option value="Completado">Completado</option>
           </select>
         </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label small fw-bold mb-1">¿Aplica Control de Cambio?</label>
-          <select class="form-select form-select-sm" [(ngModel)]="filterAplica">
-            <option value="TODOS">Todos (Mesa de Ayuda + RFC)</option>
-            <option value="Si Aplica (RFC)">Sí Aplica (Escalado a RFC)</option>
-            <option value="No Aplica (Soporte Directo)">No Aplica (Soporte Directo)</option>
-            <option value="Pendiente Evaluación">Pendiente de Evaluación</option>
-          </select>
-        </div>
         <div class="col-12 col-md-4">
-          <label class="form-label small fw-bold mb-1">Buscar por Jira, Código o Título</label>
-          <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm" placeholder="Ej. FCC-101, keepAlive, trust proxy, Yape..." />
+          <label class="form-label small fw-bold mb-1">Buscar por Jira, Código, Título o Error</label>
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm" placeholder="Ej. INC-2026-001, FCC-101, ER_CON_COUNT_ERROR..." />
         </div>
       </div>
 
@@ -284,9 +696,9 @@
             <tr>
               <th>Ticket / Jira</th>
               <th>Solicitud / Incidencia Técnica</th>
-              <th>¿Aplica Cambio? (Triaje)</th>
+              <th>Severidad &amp; SLA</th>
+              <th>¿Aplica Cambio?</th>
               <th>Dimensión Técnica</th>
-              <th>Clasificación &amp; Ventana</th>
               <th>Estado</th>
               <th class="text-end" style="min-width: 210px;">Acciones</th>
             </tr>
@@ -301,11 +713,26 @@
                 <div class="small text-muted">{{ t.solicitante_nombre }}</div>
                 <span class="badge bg-secondary-subtle text-secondary border small">{{ t.tipo_solicitud }}</span>
               </td>
-              <td style="max-width: 310px;">
+              <td style="max-width: 320px;">
                 <div class="fw-bold text-dark">{{ t.titulo }}</div>
                 <div class="small text-muted text-truncate" [title]="t.descripcion">{{ t.descripcion }}</div>
                 <div class="small text-primary mt-1">
                   <strong>Componente:</strong> {{ t.componente_afectado }}
+                </div>
+                <div *ngIf="t.codigo_error" class="small text-danger">
+                  <code>{{ t.codigo_error }}</code>
+                </div>
+              </td>
+              <td>
+                <span *ngIf="t.severidad_sla" class="badge" [ngClass]="{
+                  'bg-danger text-white': t.severidad_sla === 'P1 - Crítico',
+                  'bg-warning text-dark': t.severidad_sla === 'P2 - Alto',
+                  'bg-info text-dark': t.severidad_sla === 'P3 - Medio',
+                  'bg-secondary': t.severidad_sla === 'P4 - Bajo'
+                }">{{ t.severidad_sla }}</span>
+                <span *ngIf="!t.severidad_sla" class="badge bg-light text-muted border">{{ t.prioridad }}</span>
+                <div class="small text-muted mt-1" *ngIf="t.mtta_sla_min">
+                  MTTA: {{ t.mtta_sla_min }}m &bull; MTTR: {{ t.mttr_sla_horas }}h
                 </div>
               </td>
               <td>
@@ -329,10 +756,6 @@
                 </span>
               </td>
               <td>
-                <div class="fw-semibold small text-dark">{{ t.tipo_cambio_itil }}</div>
-                <div class="small text-muted">{{ t.ventana_calendarizacion }}</div>
-              </td>
-              <td>
                 <span class="badge" [ngClass]="{
                   'bg-warning text-dark': t.estado === 'Abierto',
                   'bg-info text-dark': t.estado === 'En Proceso',
@@ -343,15 +766,17 @@
                 </span>
               </td>
               <td class="text-end">
-                <div class="d-inline-flex gap-1">
+                <div class="d-inline-flex gap-1 flex-wrap">
                   <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(t)">
-                    Ficha / Pase
+                    Ficha
                   </button>
-                  <button class="btn btn-sm btn-primary" (click)="openQualifyModal(t)">
+                  <button *ngIf="canApplyWorkaround" class="btn btn-sm btn-outline-warning text-dark" (click)="openWorkaroundModal(t)">
+                    Workaround
+                  </button>
+                  <button *ngIf="canQualifyCab" class="btn btn-sm btn-primary" (click)="openQualifyModal(t)">
                     Calificar CAB
                   </button>
-                  <button *ngIf="(dataService.activeRole$ | async) === 'Administrador'"
-                    class="btn btn-sm btn-outline-danger" (click)="deleteTicket(t)" title="Eliminar">
+                  <button *ngIf="canDelete" class="btn btn-sm btn-outline-danger" (click)="deleteTicket(t)" title="Eliminar">
                     &times;
                   </button>
                 </div>
@@ -363,20 +788,20 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- PESTAÑA 3: DOCUMENTACIÓN DE PASE (FRONT/BACK) Y CALENDARIZACIÓN           -->
+    <!-- PESTAÑA 4: DOCUMENTACIÓN DE PASE Y CALENDARIZACIÓN                        -->
     <!-- ========================================================================= -->
     <div *ngIf="activeTab === 'pase-calendario'">
       <!-- EXPLICACIÓN TÉCNICA DE CAMBIO DE CALENDARIZACIÓN -->
       <div class="alert alert-info border-info mb-4">
         <h6 class="fw-bold text-dark mb-1">Esquema de Calendarización y Ventanas Operativas en Finnova</h6>
         <p class="small mb-2 text-dark">
-          La dimensión de <strong>Calendario (Calendarización)</strong> controla cuándo y con qué frecuencia se ejecutan procesos automatizados o despliegues a producción para no impactar la operación del negocio financiero. En Finnova abarca dos niveles reales:
+          La dimensión de <strong>Calendario (Calendarización)</strong> controla cuándo y con qué frecuencia se ejecutan procesos automatizados o despliegues a producción para no impactar la operación del negocio financiero:
         </p>
         <div class="row g-2 small">
           <div class="col-md-6">
             <div class="p-2 bg-white rounded border">
               <strong>1. Nivel Automatización / Cron Jobs (Código Real):</strong>
-              Modificación o programación de tareas automatizadas por tiempo. Ejemplo en Finnova: <code>scripts/keepAlive.js</code> (Ticket <code>FCC-110</code>) que ejecuta pings cada <strong>10 minutos</strong> entre 08:00 y 22:00 h hacia <code>/api/health</code> para evitar el <em>Cold Start</em> en Render.
+              Modificación o programación de tareas automatizadas por tiempo. Ejemplo en Finnova: <code>scripts/keepAlive.js</code> (Ticket <code>FCC-110</code> / Incidente <code>INC-2026-003</code>) que ejecuta pings cada <strong>10 minutos</strong> entre 08:00 y 22:00 h hacia <code>/api/health</code> para evitar el <em>Cold Start</em> en Render.
             </div>
           </div>
           <div class="col-md-6">
@@ -449,104 +874,191 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 1: FORMULARIO DE NUEVA SOLICITUD (MESA DE AYUDA / CAMBIO)           -->
+<!-- MODAL 1: FORMULARIO EXTENDIDO DE SOPORTE E INCIDENTES TÉCNICOS (SEMANA 14) -->
 <!-- ========================================================================= -->
 <div *ngIf="isNewTicketModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title fw-bold text-white">Registrar Solicitud de Soporte o Cambio Técnico</h5>
+        <div>
+          <h5 class="modal-title fw-bold text-white mb-0">Formulario Técnico Extendido: Registro de Incidentes &amp; Solicitudes</h5>
+          <span class="small text-white-50">Cálculo dinámico de Severidad ITIL (Urgencia &times; Impacto) y Asignación de SLA</span>
+        </div>
         <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
       </div>
       <div class="modal-body p-4">
         <form (ngSubmit)="saveNewTicket()">
           <div class="row g-3">
-            <div class="col-md-8">
-              <label class="form-label fw-bold">Título de la Solicitud / Requerimiento <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" [(ngModel)]="newTitulo" name="titulo"
-                placeholder="Ej. Actualización de límite de timeout SMTP o desbloqueo de usuario" required />
-            </div>
+
+            <!-- TIPO DE SOLICITUD Y TITULO -->
             <div class="col-md-4">
-              <label class="form-label fw-bold">Tipo de Solicitud</label>
-              <select class="form-select" [(ngModel)]="newTipoSolicitud" name="tipoSolicitud">
-                <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda</option>
-                <option value="Acceso / Credenciales">Acceso / Credenciales (SRQ-ACC)</option>
+              <label class="form-label fw-bold">Tipo de Solicitud / Ticket <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="newTipoSolicitud" name="tipoSolicitud" (change)="onTipoSolicitudChange()">
+                <option value="Incidente Técnico">Incidente Técnico (Falla Operativa)</option>
+                <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda (Consulta L1)</option>
+                <option value="Acceso / Credenciales">Acceso / Credenciales (Desbloqueo)</option>
                 <option value="Requerimiento de Cambio">Requerimiento de Cambio (RFC)</option>
-                <option value="Incidente Técnico">Incidente Técnico</option>
               </select>
             </div>
-
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Solicitante</label>
-              <input type="text" class="form-control" [(ngModel)]="newSolicitanteNombre" name="solicitanteNombre" />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Prioridad SLA</label>
-              <select class="form-select" [(ngModel)]="newPrioridad" name="prioridad">
-                <option value="Baja">Baja (SLA 24h)</option>
-                <option value="Media">Media (SLA 8h)</option>
-                <option value="Alta">Alta (SLA 2h)</option>
-                <option value="Crítica">Crítica (Hotfix &lt; 30m)</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Componente Afectado</label>
-              <select class="form-select" [(ngModel)]="newComponente" name="componente">
-                <option value="Frontend Angular (Vercel)">Frontend Angular (Vercel)</option>
-                <option value="Backend Express (Render Cloud)">Backend Express (Render Cloud)</option>
-                <option value="Base de Datos (TiDB Cloud)">Base de Datos (TiDB Cloud)</option>
-                <option value="Swagger / Documentación Técnica">Swagger / Documentación Técnica</option>
-                <option value="Calendario FSC / Cron Jobs">Calendario FSC / Cron Jobs</option>
-              </select>
+            <div class="col-md-8">
+              <label class="form-label fw-bold">Título Técnico del Ticket <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="newTitulo" name="titulo"
+                placeholder="Ej. [P1] Saturación de sockets TLS en TiDB Cloud durante validación Yape" required />
             </div>
 
-            <div class="col-12">
-              <label class="form-label fw-bold">Descripción Técnica Detallada <span class="text-danger">*</span></label>
-              <textarea class="form-control" rows="3" [(ngModel)]="newDescripcion" name="descripcion"
-                placeholder="Detalle el síntoma, requerimiento o cambio técnico solicitado..." required></textarea>
-            </div>
+            <!-- MATRIZ INTERACTIVA: IMPACTO X URGENCIA = SEVERIDAD & SLA -->
+            <div class="col-12" *ngIf="newTipoSolicitud === 'Incidente Técnico'">
+              <div class="p-3 rounded border bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                  <h6 class="fw-bold text-primary mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                      <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h4v-3zM9 1h-2v3h2V1zm0 4H7v3h2V5zm0 4H7v3h2V9zm0 4H7v3h2v-3zM5 1H2a1 1 0 0 0-1 1v2h4V1zm0 4H1v3h4V5zm0 4H1v3h4V9zm0 4H1v2a1 1 0 0 0 1 1h3v-3z"/>
+                    </svg>
+                    Matriz Interactiva de Clasificación ITIL (Impacto &times; Urgencia)
+                  </h6>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted">Severidad Resultante:</span>
+                    <span class="badge fs-6 px-3 py-1" [ngClass]="{
+                      'bg-danger text-white': newSeveridad === 'P1 - Crítico',
+                      'bg-warning text-dark': newSeveridad === 'P2 - Alto',
+                      'bg-info text-dark': newSeveridad === 'P3 - Medio',
+                      'bg-secondary': newSeveridad === 'P4 - Bajo'
+                    }">{{ newSeveridad }}</span>
+                  </div>
+                </div>
 
-            <!-- SECCIÓN DE PRE-CLASIFICACIÓN A CONTROL DE CAMBIOS -->
-            <div class="col-12">
-              <div class="p-3 bg-light rounded border">
-                <h6 class="fw-bold text-primary mb-2">Evaluación Inicial de Control de Cambios (Opcional en Registro)</h6>
-                <div class="row g-2">
+                <div class="row g-2 align-items-center">
                   <div class="col-md-4">
-                    <label class="form-label small fw-bold">¿Aplica como Control de Cambio?</label>
-                    <select class="form-select form-select-sm" [(ngModel)]="newAplicaDirecto" name="aplicaDirecto" (change)="onAplicaDirectoChange()">
-                      <option value="Pendiente Evaluación">Pendiente Evaluación en Bandeja</option>
-                      <option value="Si Aplica (RFC)">Sí Aplica (Escalar a RFC)</option>
-                      <option value="No Aplica (Soporte Directo)">No Aplica (Atención Directa Mesa de Ayuda)</option>
+                    <label class="form-label small fw-bold">Nivel de Impacto</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="newImpacto" name="impacto" (change)="onMatrixChange()">
+                      <option value="Global (Toda la Plataforma)">Global (Toda la Plataforma / Pasarela Yape)</option>
+                      <option value="Departamental (Asesores/Cobranzas)">Departamental (Asesores / Cobranzas)</option>
+                      <option value="Individual (Usuario/Cliente)">Individual (Usuario o Cliente único)</option>
                     </select>
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label small fw-bold">Dimensión Técnica</label>
+                    <label class="form-label small fw-bold">Nivel de Urgencia</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="newUrgencia" name="urgencia" (change)="onMatrixChange()">
+                      <option value="Crítica">Crítica (Operación Detenida)</option>
+                      <option value="Alta">Alta (Degradación Severa)</option>
+                      <option value="Media">Media (Operación con Retraso)</option>
+                      <option value="Baja">Baja (Sin Afectación Operativa)</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="p-2 bg-white rounded border text-center">
+                      <div class="small text-muted fw-bold">Acuerdo SLA Calculado</div>
+                      <div class="d-flex justify-content-around mt-1">
+                        <div><span class="text-danger fw-bold">MTTA:</span> &le; {{ newMttaMin }}m</div>
+                        <div><span class="text-primary fw-bold">MTTR:</span> &le; {{ newMttrHoras }}h</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- COMPONENTE, ENTORNO, CÓDIGO DE ERROR Y ASIGNACIÓN -->
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Componente Afectado</label>
+              <select class="form-select" [(ngModel)]="newComponente" name="componente">
+                <option value="Backend Express (Render Cloud)">Backend Express (Render Cloud)</option>
+                <option value="Frontend Angular (Vercel)">Frontend Angular (Vercel)</option>
+                <option value="Base de Datos (TiDB Cloud)">Base de Datos (TiDB Cloud)</option>
+                <option value="Integración Pasarela Yape">Integración Pasarela Yape</option>
+                <option value="Cron keepAlive.js">Cron keepAlive.js</option>
+                <option value="Servicio de Autenticación JWT">Servicio de Autenticación JWT</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Entorno de Ocurrencia</label>
+              <select class="form-select" [(ngModel)]="newEntorno" name="entorno">
+                <option value="Producción">Producción (Live)</option>
+                <option value="Staging / QA">Staging / QA</option>
+                <option value="Desarrollo">Desarrollo (Local)</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Código de Error / Excepción</label>
+              <input type="text" class="form-control" [(ngModel)]="newCodigoError" name="codigoError"
+                placeholder="Ej. ER_CON_COUNT_ERROR, HTTP 504, 429..." />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Nivel Asignado (Carril)</label>
+              <select class="form-select" [(ngModel)]="newAsignadoRol" name="asignadoRol">
+                <option value="Mesa de Ayuda L1">Mesa de Ayuda L1</option>
+                <option value="Ingeniero TI L2">Ingeniero TI L2 / DevOps</option>
+                <option value="Tech Lead / DBA L3">Tech Lead / DBA L3</option>
+                <option value="Comité CAB">Comité CAB</option>
+              </select>
+            </div>
+
+            <!-- DESCRIPCIÓN Y PASOS DE REPRODUCCIÓN -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Descripción Técnica del Síntoma <span class="text-danger">*</span></label>
+              <textarea class="form-control" rows="3" [(ngModel)]="newDescripcion" name="descripcion"
+                placeholder="Detalle el fallo observado, comportamiento anómalo y afectación en usuarios..." required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Pasos para Reproducir (Reproduction Steps)</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="newPasosReproducir" name="pasosReproducir"
+                placeholder="1. Petición POST /api/...&#10;2. Adjuntar voucher 3MB&#10;3. Timeout tras 10s..."></textarea>
+            </div>
+
+            <!-- STACK TRACE & WORKAROUND TEMPORAL -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Logs de Servidor / Stack Trace de Error</label>
+              <textarea class="form-control font-monospace small" rows="3" [(ngModel)]="newStackTrace" name="stackTrace"
+                placeholder="Pegar aquí la excepción de consola de Render, TiDB o Angular..."></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Solución Temporal Inmediata (Workaround L1/L2)</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="newWorkaround" name="workaround"
+                placeholder="Instrucción temporal para restaurar el servicio en producción mientras se diseña el hotfix..."></textarea>
+            </div>
+
+            <!-- PRE-CLASIFICACIÓN A CONTROL DE CAMBIOS -->
+            <div class="col-12">
+              <div class="p-3 bg-light rounded border">
+                <h6 class="fw-bold text-dark mb-2">Evaluación para Control de Cambios (RFC) &amp; Despliegue</h6>
+                <div class="row g-2">
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">¿Requiere Control de Cambio (RFC)?</label>
+                    <select class="form-select form-select-sm" [(ngModel)]="newAplicaDirecto" name="aplicaDirecto">
+                      <option value="Si Aplica (RFC)">Sí Aplica (Requiere modificación código/infra)</option>
+                      <option value="No Aplica (Soporte Directo)">No Aplica (Solucionado con Workaround/Script L1)</option>
+                      <option value="Pendiente Evaluación">Pendiente de Evaluación en Triaje</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">Dimensión Técnica Asignada</label>
                     <select class="form-select form-select-sm" [(ngModel)]="newDimensionDirecta" name="dimensionDirecta">
+                      <option value="Infraestructura">1. Infraestructura (Vercel/Render/TiDB)</option>
+                      <option value="Aplicaciones y BD">2. Aplicaciones y BD (Angular/Express)</option>
+                      <option value="Documentación">3. Documentación (Runbooks/OpenAPI)</option>
+                      <option value="Calendario">4. Calendario (Cron keepAlive/FSC)</option>
                       <option value="Por Clasificar">Por Clasificar</option>
-                      <option value="Infraestructura">1. Infraestructura</option>
-                      <option value="Aplicaciones y BD">2. Aplicaciones y BD</option>
-                      <option value="Documentación">3. Documentación</option>
-                      <option value="Calendario">4. Calendario</option>
                       <option value="N/A - Mesa de Ayuda">N/A - Mesa de Ayuda</option>
                     </select>
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label small fw-bold">Clasificación del Cambio</label>
+                    <label class="form-label small fw-bold">Tipo de Cambio ITIL</label>
                     <select class="form-select form-select-sm" [(ngModel)]="newTipoItilDirecto" name="tipoItilDirecto">
+                      <option value="Emergencia (CHE)">Emergencia (CHE) - Hotfix Inmediato P1</option>
+                      <option value="Normal (CHN)">Normal (CHN) - En Ventana FSC</option>
+                      <option value="Estándar (CHS)">Estándar (CHS) - Pre-Aprobado</option>
                       <option value="No Aplica">No Aplica</option>
-                      <option value="Estándar (CHS)">Estándar (CHS)</option>
-                      <option value="Normal (CHN)">Normal (CHN)</option>
-                      <option value="Emergencia (CHE)">Emergencia (CHE)</option>
                     </select>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
-            <button type="submit" class="btn btn-primary fw-bold">Guardar en Bandeja</button>
+            <button type="submit" class="btn btn-primary fw-bold px-4">Guardar Ticket en Bandeja</button>
           </div>
         </form>
       </div>
@@ -555,20 +1067,114 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 2: CALIFICACIÓN CAB Y ASIGNACIÓN DE DIMENSIÓN TÉCNICA               -->
+<!-- MODAL 2: APLICAR WORKAROUND TÉCNICO (SOPORTE TI L1/L2)                     -->
+<!-- ========================================================================= -->
+<div *ngIf="isWorkaroundModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold mb-0">
+          Atención de Incidente: Registrar Diagnóstico &amp; Workaround L1/L2
+        </h5>
+        <button type="button" class="btn-close" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-secondary py-2 mb-3 small">
+          <strong>Incidente:</strong> {{ selectedTicket.id_ticket }} ({{ selectedTicket.codigo_jira }}) &mdash; {{ selectedTicket.titulo }}<br>
+          <strong>Severidad:</strong> {{ selectedTicket.severidad_sla || selectedTicket.prioridad }} &bull; <strong>Componente:</strong> {{ selectedTicket.componente_afectado }}
+        </div>
+
+        <form (ngSubmit)="saveWorkaround()">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Diagnóstico Técnico Especializado</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="workaroundDiagnostico" name="diagnostico"
+              placeholder="Explique el análisis técnico efectuado en logs, puertos o conexiones..." required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Solución Temporal Aplicada (Workaround)</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="workaroundSolucionTemporal" name="solucionTemporal"
+              placeholder="Describa el procedimiento temporal ejecutado para restablecer la operatividad..." required></textarea>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Actualizar Estado del Ticket</label>
+              <select class="form-select" [(ngModel)]="workaroundNuevoEstado" name="nuevoEstado">
+                <option value="En Proceso">En Proceso (Workaround Activo / En observación)</option>
+                <option value="Completado">Completado (Servicio Restablecido)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Especialista Responsable</label>
+              <input type="text" class="form-control bg-light" [value]="activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : 'Fiorella Gamarra (Admin / CAB)'" readonly />
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
+            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Guardar Workaround &amp; Validar SLA</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 3: POST-MORTEM & ANÁLISIS DE CAUSA RAÍZ RCA (ADMIN / CAB)           -->
+<!-- ========================================================================= -->
+<div *ngIf="isPirModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title fw-bold text-white mb-0">
+          Revisión Post-Incidente (PIR) &amp; Causa Raíz (5 Porqués) &mdash; {{ selectedTicket.id_ticket }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-secondary py-2 mb-3 small">
+          <strong>Incidente Evaluado:</strong> {{ selectedTicket.titulo }} ({{ selectedTicket.codigo_jira }})
+        </div>
+
+        <form (ngSubmit)="savePir()">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Análisis de los 5 Porqués (Root Cause Analysis - RCA)</label>
+            <textarea class="form-control font-monospace small" rows="6" [(ngModel)]="pir5Whys" name="pir5Whys" required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Acción Correctiva Definitiva &amp; Prevención Futura</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="pirAccionCorrectiva" name="pirAccionCorrectiva"
+              placeholder="Indique las medidas técnicas implementadas para asegurar que el fallo no vuelva a ocurrir..." required></textarea>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
+            <button type="submit" class="btn btn-success fw-bold px-4">Aprobar Post-Mortem y Cerrar Incidente</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 4: CALIFICACIÓN CAB Y ASIGNACIÓN DE DIMENSIÓN TÉCNICA (SEMANA 11)   -->
 <!-- ========================================================================= -->
 <div *ngIf="isQualifyModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-dark text-white">
         <h5 class="modal-title fw-bold text-white">
-          Calificación CAB y Control de Cambios — {{ selectedTicket.id_ticket }}
+          Calificación CAB y Control de Cambios &mdash; {{ selectedTicket.id_ticket }}
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
       </div>
       <div class="modal-body p-4">
-        <div class="alert alert-secondary py-2 mb-3">
-          <strong>Solicitud:</strong> {{ selectedTicket.titulo }}
+        <div class="alert alert-secondary py-2 mb-3 small">
+          <strong>Solicitud / Incidente:</strong> {{ selectedTicket.titulo }}
         </div>
         <form (ngSubmit)="saveQualification()">
           <div class="row g-3">
@@ -660,14 +1266,14 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 3: DETALLE DE FICHA TÉCNICA Y ACTA DE PASE A PRODUCCIÓN             -->
+<!-- MODAL 5: DETALLE DE FICHA TÉCNICA Y ACTA DE PASE A PRODUCCIÓN             -->
 <!-- ========================================================================= -->
 <div *ngIf="isDetailModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title fw-bold text-white">
-          Ficha de Trazabilidad &amp; Acta de Pase — {{ selectedTicket.codigo_jira }} ({{ selectedTicket.id_ticket }})
+          Ficha de Trazabilidad &amp; Acta de Pase &mdash; {{ selectedTicket.codigo_jira }} ({{ selectedTicket.id_ticket }})
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
       </div>
@@ -676,6 +1282,7 @@
           <span class="badge bg-dark fs-6">{{ selectedTicket.codigo_jira }}</span>
           <span class="badge bg-primary fs-6">{{ selectedTicket.dimension_tecnica }}</span>
           <span class="badge bg-secondary fs-6">{{ selectedTicket.tipo_cambio_itil }}</span>
+          <span *ngIf="selectedTicket.severidad_sla" class="badge fs-6 bg-danger">{{ selectedTicket.severidad_sla }}</span>
           <span class="badge fs-6" [ngClass]="{
             'bg-warning text-dark': selectedTicket.estado === 'Abierto',
             'bg-info text-dark': selectedTicket.estado === 'En Proceso',
@@ -703,9 +1310,15 @@
               <div class="fw-semibold text-dark mt-1">{{ selectedTicket.solicitante_nombre }} ({{ selectedTicket.solicitante_rol }})</div>
             </div>
           </div>
-          <div class="col-12">
+          <div class="col-12" *ngIf="selectedTicket.solucion_temporal_workaround">
             <div class="p-3 bg-warning-subtle rounded border border-warning-subtle">
-              <div class="small fw-bold text-uppercase text-dark">Plan de Rollback Inmediato</div>
+              <div class="small fw-bold text-uppercase text-dark">Solución Temporal (Workaround)</div>
+              <div class="small text-dark mt-1">{{ selectedTicket.solucion_temporal_workaround }}</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="p-3 bg-danger-subtle rounded border border-danger-subtle">
+              <div class="small fw-bold text-uppercase text-danger-emphasis">Plan de Rollback Inmediato</div>
               <div class="small text-dark mt-1">{{ selectedTicket.plan_rollback }}</div>
             </div>
           </div>
@@ -718,7 +1331,7 @@
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
-          <button type="button" class="btn btn-outline-primary" (click)="closeAllModals(); openQualifyModal(selectedTicket!)">
+          <button *ngIf="canQualifyCab" type="button" class="btn btn-outline-primary" (click)="closeAllModals(); openQualifyModal(selectedTicket!)">
             Editar Calificación CAB
           </button>
           <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cerrar</button>

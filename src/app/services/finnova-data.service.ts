@@ -4,7 +4,52 @@ import { AuthService } from './auth.service';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export type UserRole = 'Administrador' | 'Asesor' | 'Cliente';
+export type UserRole = 'Administrador' | 'Soporte TI' | 'Asesor' | 'Cliente';
+
+export type IncidentSeverity = 'P1 - Crítico' | 'P2 - Alto' | 'P3 - Medio' | 'P4 - Bajo';
+export type IncidentUrgency = 'Crítica' | 'Alta' | 'Media' | 'Baja';
+export type IncidentImpact = 'Global (Toda la Plataforma)' | 'Departamental (Asesores/Cobranzas)' | 'Individual (Usuario/Cliente)';
+export type IncidentEnvironment = 'Producción' | 'Staging / QA' | 'Desarrollo';
+export type SlaStatus = 'Dentro de SLA' | 'En Riesgo (< 25%)' | 'SLA Vencido';
+export type AssignedRoleLevel = 'Mesa de Ayuda L1' | 'Ingeniero TI L2' | 'Tech Lead / DBA L3' | 'Comité CAB' | 'Admin';
+
+export function computeIncidentSeverity(impacto: IncidentImpact, urgencia: IncidentUrgency): {
+  severidad: IncidentSeverity;
+  mtta: number;
+  mttr: number;
+} {
+  if (impacto === 'Global (Toda la Plataforma)') {
+    if (urgencia === 'Crítica' || urgencia === 'Alta') {
+      return { severidad: 'P1 - Crítico', mtta: 15, mttr: 2 };
+    }
+    if (urgencia === 'Media') {
+      return { severidad: 'P2 - Alto', mtta: 30, mttr: 6 };
+    }
+    return { severidad: 'P3 - Medio', mtta: 120, mttr: 24 };
+  }
+  
+  if (impacto === 'Departamental (Asesores/Cobranzas)') {
+    if (urgencia === 'Crítica') {
+      return { severidad: 'P1 - Crítico', mtta: 15, mttr: 2 };
+    }
+    if (urgencia === 'Alta') {
+      return { severidad: 'P2 - Alto', mtta: 30, mttr: 6 };
+    }
+    if (urgencia === 'Media') {
+      return { severidad: 'P3 - Medio', mtta: 120, mttr: 24 };
+    }
+    return { severidad: 'P4 - Bajo', mtta: 480, mttr: 72 };
+  }
+
+  // Individual (Usuario/Cliente)
+  if (urgencia === 'Crítica') {
+    return { severidad: 'P2 - Alto', mtta: 30, mttr: 6 };
+  }
+  if (urgencia === 'Alta') {
+    return { severidad: 'P3 - Medio', mtta: 120, mttr: 24 };
+  }
+  return { severidad: 'P4 - Bajo', mtta: 480, mttr: 72 };
+}
 
 export interface SystemUser {
   id: number;
@@ -136,6 +181,23 @@ export interface SupportChangeTicket {
   plan_rollback: string;
   resolucion_tecnica: string;
   fecha_registro?: string;
+
+  // SEMANA 14: GESTIÓN PROFESIONAL DE INCIDENTES & SLA
+  severidad_sla?: IncidentSeverity;
+  urgencia?: IncidentUrgency;
+  impacto?: IncidentImpact;
+  codigo_error?: string;
+  entorno?: IncidentEnvironment;
+  pasos_reproducir?: string;
+  stack_trace_logs?: string;
+  solucion_temporal_workaround?: string;
+  mtta_sla_min?: number;
+  mttr_sla_horas?: number;
+  cumplimiento_sla?: SlaStatus;
+  asignado_a_rol?: AssignedRoleLevel;
+  atendido_por?: string;
+  aprobado_por?: string;
+  rca_causa_raiz?: string;
 }
 
 export interface DimensionMetricsRow {
@@ -189,7 +251,7 @@ export class FinnovaDataService {
     this.authService.currentUser$
   ]).pipe(
     map(([clients, role, currentUser]) => {
-      if (role === 'Administrador') return clients;
+      if (role === 'Administrador' || role === 'Soporte TI') return clients;
       if (role === 'Asesor') {
         const userId = currentUser?.id_usuario;
         const userName = currentUser?.nombre_completo?.toLowerCase();
@@ -222,7 +284,7 @@ export class FinnovaDataService {
     this.authService.currentUser$
   ]).pipe(
     map(([requests, role, currentUser]) => {
-      if (role === 'Administrador') return requests;
+      if (role === 'Administrador' || role === 'Soporte TI') return requests;
       if (role === 'Asesor') {
         const userId = currentUser?.id_usuario;
         const userName = currentUser?.nombre_completo?.toLowerCase();
@@ -257,7 +319,7 @@ export class FinnovaDataService {
     this.authService.currentUser$
   ]).pipe(
     map(([appointments, role, currentUser]) => {
-      if (role === 'Administrador') return appointments;
+      if (role === 'Administrador' || role === 'Soporte TI') return appointments;
       if (role === 'Asesor') {
         const userId = currentUser?.id_usuario;
         const userName = currentUser?.nombre_completo?.toLowerCase();
@@ -324,6 +386,13 @@ export class FinnovaDataService {
       this.loadRequests();
       this.loadAppointments();
       this.loadCampaigns();
+      this.loadSupportTickets();
+    } else if (role === 'Soporte TI') {
+      this.loadServices();
+      this.loadClients();
+      this.loadRequests();
+      this.loadAppointments();
+      this.loadSupportTickets();
     } else if (role === 'Asesor') {
       this.loadServices();
       this.loadClients();
@@ -1341,9 +1410,187 @@ export class FinnovaDataService {
   // =========================================================================
   // 8. MESA DE AYUDA Y CONTROL DE CAMBIOS POR DIMENSIÓN (SEMANA 10 & 11)
   // =========================================================================
-  private readonly STORAGE_KEY_SUPPORT = 'finnova_support_changes_v1';
+  private readonly STORAGE_KEY_SUPPORT = 'finnova_support_changes_v4';
 
   private readonly DEFAULT_SUPPORT_TICKETS: SupportChangeTicket[] = [
+    // =========================================================================
+    // INCIDENTES CRÍTICOS Y OPERATIVOS FINNOVA (SEMANA 14 - ITIL 4 & SLA)
+    // =========================================================================
+    {
+      id_ticket: 'INC-2026-001',
+      codigo_jira: 'INC-TI-101',
+      titulo: '[P1-CRÍTICO] Saturación de conexiones SSL TiDB Cloud durante validación concurrente de pagos Yape',
+      descripcion: 'Agotamiento del pool de conexiones SSL/TLS hacia TiDB Cloud AWS ante ráfaga de 50 transacciones concurrentes de validación de comprobantes Yape, arrojando excepciones ER_CON_COUNT_ERROR y denegación de servicio a clientes.',
+      tipo_solicitud: 'Incidente Técnico',
+      solicitante_nombre: 'Ing. Carlos Mendoza (Soporte TI)',
+      solicitante_rol: 'Soporte TI',
+      prioridad: 'Crítica',
+      severidad_sla: 'P1 - Crítico',
+      urgencia: 'Crítica',
+      impacto: 'Global (Toda la Plataforma)',
+      codigo_error: 'ER_CON_COUNT_ERROR: Too many connections',
+      entorno: 'Producción',
+      pasos_reproducir: '1. Enviar 50 peticiones simultáneas a POST /api/solicitudes/validar-voucher.\n2. Conexiones SSL superan el pool inicial (limite: 5).\n3. TiDB rechaza nuevos sockets TLS con timeout de 10s.',
+      stack_trace_logs: 'Error: ER_CON_COUNT_ERROR at Pool.getConnection (mysql2/lib/pool.js:52)\nat async validarPago (/src/controllers/solicitudController.js:142)',
+      solucion_temporal_workaround: 'Incremento dinámico en caliente a connectionLimit: 15 y purga de conexiones inactivas idle en Render.',
+      mtta_sla_min: 15,
+      mttr_sla_horas: 2,
+      cumplimiento_sla: 'Dentro de SLA',
+      asignado_a_rol: 'Ingeniero TI L2',
+      atendido_por: 'Ing. Carlos Mendoza (Soporte TI L2)',
+      aprobado_por: 'Fiorella Gamarra (Admin / CAB)',
+      rca_causa_raiz: 'Pool de conexiones en Render no liberaba sockets cerrados por keep-alive bajo ráfagas concurrentes.',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Infraestructura',
+      tipo_cambio_itil: 'Normal (CHN)',
+      estado: 'Completado',
+      componente_afectado: 'TiDB Cloud Serverless / Pool de Conexiones',
+      ventana_calendarizacion: 'Pase ejecutado en Ventana FSC Dom 01:00 AM',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-02',
+      plan_rollback: 'Restaurar pool previo connectionLimit: 5 y reiniciar contenedor Render.',
+      resolucion_tecnica: 'Workaround estabilizó servicio en 25 min (MTTA: 8m, MTTR: 1.2h). Escala a RFC FCC-102.',
+      fecha_registro: '2026-11-08'
+    },
+    {
+      id_ticket: 'INC-2026-002',
+      codigo_jira: 'INC-TI-102',
+      titulo: '[P1-CRÍTICO] Bloqueo masivo HTTP 429 en login de asesores y pasarela por proxy inverso Render',
+      descripcion: 'El balanceador de carga de Render enmascaraba las IPs de origen de todos los asesores y clientes bajo una única IP interna compartida, disparando el middleware express-rate-limit y bloqueando el acceso general al sistema.',
+      tipo_solicitud: 'Incidente Técnico',
+      solicitante_nombre: 'Juan Pérez (Asesor)',
+      solicitante_rol: 'Asesor',
+      prioridad: 'Crítica',
+      severidad_sla: 'P1 - Crítico',
+      urgencia: 'Crítica',
+      impacto: 'Global (Toda la Plataforma)',
+      codigo_error: 'HTTP 429 Too Many Requests',
+      entorno: 'Producción',
+      pasos_reproducir: '1. Iniciar sesión desde 3 cuentas de asesor simultáneas desde la misma red.\n2. Al quinto intento la IP compartida del balanceador de Render es bloqueada.',
+      stack_trace_logs: 'RateLimitError: Demasiadas peticiones desde la IP 10.128.0.4. Intente en 15 minutos.\nat rateLimitMiddleware (/src/middlewares/authMiddleware.js:28)',
+      solucion_temporal_workaround: 'Bypass de lista blanca para subred de asesores y reinicio de caché en memoria de rateLimiter.',
+      mtta_sla_min: 15,
+      mttr_sla_horas: 2,
+      cumplimiento_sla: 'Dentro de SLA',
+      asignado_a_rol: 'Ingeniero TI L2',
+      atendido_por: 'Ing. Carlos Mendoza (Soporte TI L2)',
+      aprobado_por: 'Fiorella Gamarra (Admin / CAB)',
+      rca_causa_raiz: 'Falta de directiva app.set("trust proxy", 1) en Express provocaba que req.ip leyera la IP del reverse proxy.',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Infraestructura',
+      tipo_cambio_itil: 'Emergencia (CHE)',
+      estado: 'Completado',
+      componente_afectado: 'Backend Express / Rate Limiting',
+      ventana_calendarizacion: 'Hotfix Inmediato eCAB (18/10/2026)',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-01',
+      plan_rollback: 'Rollback to previous deploy en consola Render (RTO < 3 min).',
+      resolucion_tecnica: 'Resuelto con Pase de Emergencia FCC-101. MTTA: 10m, MTTR: 45m.',
+      fecha_registro: '2026-11-09'
+    },
+    {
+      id_ticket: 'INC-2026-003',
+      codigo_jira: 'INC-TI-103',
+      titulo: '[P2-ALTO] Timeout HTTP 504 en carga de catálogo por Cold Start prolongado (>55s) en Render Free Tier',
+      descripcion: 'Tras 15 minutos de inactividad, el contenedor de Render se suspende. Al ingresar un cliente a la landing page o solicitar servicio, el tiempo de arranque frío excedía los 50 segundos, generando aborto de petición en el frontend Angular.',
+      tipo_solicitud: 'Incidente Técnico',
+      solicitante_nombre: 'María López (Cliente)',
+      solicitante_rol: 'Cliente',
+      prioridad: 'Alta',
+      severidad_sla: 'P2 - Alto',
+      urgencia: 'Alta',
+      impacto: 'Global (Toda la Plataforma)',
+      codigo_error: 'HTTP 504 Gateway Timeout / ERR_CONNECTION_TIMED_OUT',
+      entorno: 'Producción',
+      pasos_reproducir: '1. Dejar la aplicación sin tráfico durante 20 minutos.\n2. Ingresar a https://finnova-nine.vercel.app/request-form.\n3. La consulta a /api/servicios demora más de 45s y falla.',
+      stack_trace_logs: 'HttpErrorResponse: Http failure response for https://backend-finnova.onrender.com/api/servicios: 504 Gateway Timeout',
+      solucion_temporal_workaround: 'Ejecución manual de curl https://backend-finnova.onrender.com/api/health desde terminal de soporte cada 15 min.',
+      mtta_sla_min: 30,
+      mttr_sla_horas: 6,
+      cumplimiento_sla: 'Dentro de SLA',
+      asignado_a_rol: 'Ingeniero TI L2',
+      atendido_por: 'Ing. Carlos Mendoza (Soporte TI L2)',
+      aprobado_por: 'Fiorella Gamarra (Admin / CAB)',
+      rca_causa_raiz: 'Comportamiento por diseño de contenedores serverless gratuitos en Render Cloud ante inactividad.',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Calendario',
+      tipo_cambio_itil: 'Estándar (CHS)',
+      estado: 'Completado',
+      componente_afectado: 'Cronograma Automatizado / scripts/keepAlive.js',
+      ventana_calendarizacion: 'Pase Estándar FCC-110 (Lunes a Sábado 08:00 - 22:00 h)',
+      doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-03',
+      plan_rollback: 'Detener proceso cron keepAlive.js en caso de saturar cuota mensual.',
+      resolucion_tecnica: 'Se implementó Cron Job keepAlive.js ping cada 10 min. Cold start erradicado (latencia actual: 180ms). MTTA: 18m, MTTR: 3.5h.',
+      fecha_registro: '2026-11-10'
+    },
+    {
+      id_ticket: 'INC-2026-004',
+      codigo_jira: 'INC-TI-104',
+      titulo: '[P3-MEDIO] Error 413 Payload Too Large al adjuntar voucher Yape en alta resolución (>3MB) desde móvil',
+      descripcion: 'Clientes reportan imposibilidad de finalizar su solicitud de crédito cuando la fotografía del voucher tomada con cámara de 48MP genera un string Base64 superior a 3.5MB, superando el límite express.json({ limit: "2mb" }).',
+      tipo_solicitud: 'Incidente Técnico',
+      solicitante_nombre: 'Juan Pérez (Asesor)',
+      solicitante_rol: 'Asesor',
+      prioridad: 'Media',
+      severidad_sla: 'P3 - Medio',
+      urgencia: 'Media',
+      impacto: 'Departamental (Asesores/Cobranzas)',
+      codigo_error: 'HTTP 413 Payload Too Large',
+      entorno: 'Producción',
+      pasos_reproducir: '1. Adjuntar fotografía de voucher capturada con cámara HD (> 3MB).\n2. Clic en Enviar Solicitud.\n3. La consola responde con Payload Too Large.',
+      stack_trace_logs: 'PayloadTooLargeError: request entity too large at readStream (raw-body/index.js:155)',
+      solucion_temporal_workaround: 'Instruir al cliente a recortar la foto o enviar captura de pantalla de menor resolución mientras se despliega compresión.',
+      mtta_sla_min: 120,
+      mttr_sla_horas: 24,
+      cumplimiento_sla: 'Dentro de SLA',
+      asignado_a_rol: 'Mesa de Ayuda L1',
+      atendido_por: 'Ing. Carlos Mendoza (Soporte TI L1)',
+      aprobado_por: 'Fiorella Gamarra (Admin)',
+      rca_causa_raiz: 'Falta de compresión client-side en canvas HTML5 previo a la codificación Base64 en el componente Angular.',
+      aplica_cambio: 'Si Aplica (RFC)',
+      dimension_tecnica: 'Aplicaciones y BD',
+      tipo_cambio_itil: 'Normal (CHN)',
+      estado: 'En Proceso',
+      componente_afectado: 'Frontend Angular (Vercel) / Compresión de Vouchers',
+      ventana_calendarizacion: 'Ventana FSC Próximo Domingo 01:00 AM',
+      doc_pase_referencia: 'proyecto-finnova/docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'Revertir a input standard y alertar límite de 2MB.',
+      resolucion_tecnica: 'En desarrollo en rama feature/voucher-compressor. MTTA: 35m, En curso dentro de SLA (14h / 24h).',
+      fecha_registro: '2026-11-11'
+    },
+    {
+      id_ticket: 'INC-2026-005',
+      codigo_jira: 'INC-TI-105',
+      titulo: '[P4-BAJO] Desalineación de badge de estado en modal de citas virtuales en resolución 1366x768',
+      descripcion: 'En pantallas de laptops con resolución 1366x768 píxeles, la etiqueta de estado de la cita se solapa 4px sobre el botón de enlace de Google Meet.',
+      tipo_solicitud: 'Incidente Técnico',
+      solicitante_nombre: 'María López (Cliente)',
+      solicitante_rol: 'Cliente',
+      prioridad: 'Baja',
+      severidad_sla: 'P4 - Bajo',
+      urgencia: 'Baja',
+      impacto: 'Individual (Usuario/Cliente)',
+      codigo_error: 'UI_CSS_OVERFLOW_DESKTOP',
+      entorno: 'Producción',
+      pasos_reproducir: '1. Abrir modal de detalle de cita en navegador con viewport de 1366x768.\n2. Observar solapamiento leve en esquina superior derecha.',
+      stack_trace_logs: 'N/A - Incidente Cosmético Frontend CSS Flexbox',
+      solucion_temporal_workaround: 'Ajustar zoom de visualización al 90% en el navegador.',
+      mtta_sla_min: 480,
+      mttr_sla_horas: 72,
+      cumplimiento_sla: 'Dentro de SLA',
+      asignado_a_rol: 'Mesa de Ayuda L1',
+      atendido_por: 'Ing. Carlos Mendoza (Soporte TI L1)',
+      aprobado_por: 'Fiorella Gamarra (Admin)',
+      rca_causa_raiz: 'Falta de clase responsive d-flex flex-wrap gap-2 en el contenedor del modal de citas.',
+      aplica_cambio: 'No Aplica (Soporte Directo)',
+      dimension_tecnica: 'N/A - Mesa de Ayuda',
+      tipo_cambio_itil: 'No Aplica',
+      estado: 'Abierto',
+      componente_afectado: 'Frontend Angular / Módulo de Citas',
+      ventana_calendarizacion: 'Pase menor en Sprint regular',
+      doc_pase_referencia: 'docs/PASE_A_PRODUCCION.md',
+      plan_rollback: 'N/A - Cambio cosmético.',
+      resolucion_tecnica: 'Catalogado en backlog cosmético. MTTA: 1.5h, SLA de 72h holgadamente cumplido.',
+      fecha_registro: '2026-11-12'
+    },
     // DIMENSIÓN 1: INFRAESTRUCTURA (3 Cambios: 1 Completado, 1 En Proceso, 1 Abierto)
     {
       id_ticket: 'RFC-2026-001',
@@ -1705,28 +1952,46 @@ export class FinnovaDataService {
 
   addSupportTicket(ticketData: Partial<SupportChangeTicket>, callback?: (err?: any) => void) {
     const user = this.authService.getUser();
+    const isInc = ticketData.tipo_solicitud === 'Incidente Técnico';
     const isRfc = ticketData.aplica_cambio === 'Si Aplica (RFC)';
-    const prefix = isRfc ? 'RFC' : 'SRQ';
-    const randomNum = Math.floor(115 + Math.random() * 800);
+    const prefix = isInc ? 'INC' : (isRfc ? 'RFC' : 'SRQ');
+    const randomNum = Math.floor(106 + Math.random() * 800);
     const newTicket: SupportChangeTicket = {
       id_ticket: ticketData.id_ticket || `${prefix}-2026-${randomNum}`,
-      codigo_jira: ticketData.codigo_jira || (isRfc ? `FCC-${randomNum}` : `SRQ-SOP-${randomNum}`),
-      titulo: ticketData.titulo || 'Nueva Solicitud Técnica',
+      codigo_jira: ticketData.codigo_jira || (isInc ? `INC-TI-${randomNum}` : (isRfc ? `FCC-${randomNum}` : `SRQ-SOP-${randomNum}`)),
+      titulo: ticketData.titulo || 'Nueva Solicitud / Incidente Técnico',
       descripcion: ticketData.descripcion || '',
-      tipo_solicitud: ticketData.tipo_solicitud || 'Soporte / Mesa de Ayuda',
-      solicitante_nombre: ticketData.solicitante_nombre || user?.nombre_completo || 'Fiorella Gamarra',
+      tipo_solicitud: ticketData.tipo_solicitud || (isInc ? 'Incidente Técnico' : 'Soporte / Mesa de Ayuda'),
+      solicitante_nombre: ticketData.solicitante_nombre || user?.nombre_completo || (this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI)' : 'Fiorella Gamarra'),
       solicitante_rol: ticketData.solicitante_rol || this.activeRole,
-      prioridad: ticketData.prioridad || 'Media',
-      aplica_cambio: ticketData.aplica_cambio || 'Pendiente Evaluación',
-      dimension_tecnica: ticketData.dimension_tecnica || 'Por Clasificar',
-      tipo_cambio_itil: ticketData.tipo_cambio_itil || 'No Aplica',
+      prioridad: ticketData.prioridad || (isInc ? 'Alta' : 'Media'),
+      aplica_cambio: ticketData.aplica_cambio || (isInc ? 'Si Aplica (RFC)' : 'Pendiente Evaluación'),
+      dimension_tecnica: ticketData.dimension_tecnica || (isInc ? 'Infraestructura' : 'Por Clasificar'),
+      tipo_cambio_itil: ticketData.tipo_cambio_itil || (isInc ? 'Normal (CHN)' : 'No Aplica'),
       estado: ticketData.estado || 'Abierto',
       componente_afectado: ticketData.componente_afectado || 'Plataforma Finnova',
       ventana_calendarizacion: ticketData.ventana_calendarizacion || 'Por definir en Comité CAB',
       doc_pase_referencia: ticketData.doc_pase_referencia || 'docs/PASE_A_PRODUCCION.md',
       plan_rollback: ticketData.plan_rollback || 'Instant Rollback en Vercel / Render ante anomalía en Smoke Test.',
-      resolucion_tecnica: ticketData.resolucion_tecnica || 'Registrado en bandeja para revisión técnica.',
-      fecha_registro: new Date().toISOString().split('T')[0]
+      resolucion_tecnica: ticketData.resolucion_tecnica || 'Registrado en bandeja de incidentes para atención técnica.',
+      fecha_registro: new Date().toISOString().split('T')[0],
+
+      // Campos Técnicos Semana 14
+      severidad_sla: ticketData.severidad_sla || (isInc ? 'P2 - Alto' : undefined),
+      urgencia: ticketData.urgencia || (isInc ? 'Alta' : undefined),
+      impacto: ticketData.impacto || (isInc ? 'Global (Toda la Plataforma)' : undefined),
+      codigo_error: ticketData.codigo_error || (isInc ? 'ERR_SYS_ANOMALY' : undefined),
+      entorno: ticketData.entorno || 'Producción',
+      pasos_reproducir: ticketData.pasos_reproducir || '',
+      stack_trace_logs: ticketData.stack_trace_logs || '',
+      solucion_temporal_workaround: ticketData.solucion_temporal_workaround || '',
+      mtta_sla_min: ticketData.mtta_sla_min || (isInc ? 30 : undefined),
+      mttr_sla_horas: ticketData.mttr_sla_horas || (isInc ? 6 : undefined),
+      cumplimiento_sla: ticketData.cumplimiento_sla || 'Dentro de SLA',
+      asignado_a_rol: ticketData.asignado_a_rol || (isInc ? 'Ingeniero TI L2' : 'Mesa de Ayuda L1'),
+      atendido_por: ticketData.atendido_por || (this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : 'Mesa de Ayuda Finnova'),
+      aprobado_por: ticketData.aprobado_por || (this.activeRole === 'Administrador' ? 'Fiorella Gamarra (Admin / CAB)' : 'Pendiente de Aprobación CAB'),
+      rca_causa_raiz: ticketData.rca_causa_raiz || ''
     };
 
     this.apiService.createSupportChangeTicket(newTicket).subscribe({

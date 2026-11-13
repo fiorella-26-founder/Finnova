@@ -104,6 +104,41 @@ const ClienteNavigationItems: NavigationItem[] = [
   }
 ];
 
+const SoporteTINavigationItems: NavigationItem[] = [
+  {
+    id: 'finnova-it-support',
+    title: 'Finnova: TI & Operaciones',
+    type: 'group',
+    icon: 'icon-navigation',
+    children: [
+      {
+        id: 'support-changes',
+        title: 'Mesa de Ayuda, Incidentes & Cambios',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/support-changes',
+        icon: 'profile'
+      },
+      {
+        id: 'reports',
+        title: 'Reportes y Rendimiento',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/reports',
+        icon: 'bar-chart'
+      },
+      {
+        id: 'services',
+        title: 'Catálogo de Servicios',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/services',
+        icon: 'appstore'
+      }
+    ]
+  }
+];
+
 @Component({
   selector: 'app-nav-content',
   imports: [CommonModule, RouterModule, NavGroupComponent, NgScrollbarModule],
@@ -157,6 +192,9 @@ export class NavContentComponent implements OnInit {
     }
     if (role === 'Asesor') {
       return AsesorNavigationItems;
+    }
+    if (role === 'Soporte TI') {
+      return SoporteTINavigationItems;
     }
     return AdminNavigationItems;
   }

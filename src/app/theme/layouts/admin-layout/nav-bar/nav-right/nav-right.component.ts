@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 
 // project import
 import { SharedModule } from 'src/app/theme/shared/shared.module';
-import { FinnovaDataService } from 'src/app/services/finnova-data.service';
+import { FinnovaDataService, UserRole } from 'src/app/services/finnova-data.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ConfirmDialogService } from 'src/app/services/confirm-dialog.service';
 
@@ -21,6 +21,19 @@ export class NavRightComponent {
   public authService = inject(AuthService);
   private confirmService = inject(ConfirmDialogService);
   private router = inject(Router);
+
+  switchRole(role: UserRole) {
+    this.dataService.setRole(role);
+    if (role === 'Cliente') {
+      this.router.navigate(['/dashboard/requests']);
+    } else if (role === 'Soporte TI') {
+      this.router.navigate(['/dashboard/support-changes']);
+    } else if (role === 'Asesor') {
+      this.router.navigate(['/dashboard/clients']);
+    } else if (role === 'Administrador') {
+      this.router.navigate(['/dashboard/support-changes']);
+    }
+  }
 
   // Modal Cambiar Contraseña
   isChangePasswordModalOpen = false;

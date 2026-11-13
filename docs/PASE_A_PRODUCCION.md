@@ -90,4 +90,5 @@ En caso de detectarse anomalías críticas durante el *Smoke Test*:
 | **`PASE-FE-2026-01`** | **`FCC-101`** | **Infraestructura** | Configuración de `vercel.json` (SPA Rewrites) y cabeceras CORS hacia Render Cloud. | 18/10/2026 (10:30 h) | **Completado** |
 | **`PASE-FE-2026-02`** | **`FCC-104`** | **Aplicaciones y BD** | Despliegue de validación de vouchers Yape Base64 y filtros por rol en `FinnovaDataService`. | 22/10/2026 (01:15 h) | **Completado** |
 | **`PASE-FE-2026-03`** | **`FCC-107`** | **Documentación** | Incorporación de Runbook de Pase a Producción (`docs/PASE_A_PRODUCCION.md`) y guía de componentes. | 06/11/2026 (10:00 h) | **Completado** |
-| **`PASE-FE-2026-04`** | **`FCC-105`** | **Aplicaciones y BD** | Pase del nuevo módulo **Mesa de Ayuda & Control de Cambios (`/dashboard/support-changes`)** conectado a bandeja RFC. | 06/11/2026 (En Curso) | **En Proceso** |
+| **`PASE-FE-2026-04`** | **`FCC-105`** | **Aplicaciones y BD** | Pase del nuevo módulo **Mesa de Ayuda & Control de Cambios (`/dashboard/support-changes`)** conectado a bandeja RFC. | 06/11/2026 (16:30 h) | **Completado** |
+| **`PASE-FE-2026-05`** | **`FCC-113`** | **Aplicaciones y BD** | Despliegue de Gestión Profesional de Incidentes (ITIL 4), nuevo rol Soporte TI, selector RBAC en vivo y formulario extendido. | 13/11/2026 (13:15 h) | **Completado** |

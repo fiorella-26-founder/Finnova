@@ -62,6 +62,8 @@ export class AuthService {
     const userRole = role || this.getUserRole();
     if (userRole === 'Administrador') {
       return '/dashboard/users';
+    } else if (userRole === 'Soporte TI') {
+      return '/dashboard/support-changes';
     } else if (userRole === 'Asesor') {
       return '/dashboard/clients';
     } else if (userRole === 'Cliente') {

@@ -1,9 +1,39 @@
 <ul class="list-unstyled d-flex align-items-center mb-0 gap-2 h-100">
-  <!-- Role Badge Pill -->
-  <li class="pc-h-item d-none d-sm-inline-flex align-items-center">
-    <div class="px-3 d-inline-flex align-items-center text-white fw-bold rounded-pill border"
-      style="background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3) !important; font-size: 0.85rem; height: 36px;">
-      Rol: {{ (authService.currentUser$ | async)?.rol || (dataService.activeRole$ | async) }}
+  <!-- Interactive Role Switcher Pill -->
+  <li class="pc-h-item d-none d-md-inline-flex align-items-center">
+    <div class="d-inline-flex align-items-center p-1 rounded-pill border"
+      style="background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3) !important;">
+      <span class="text-white-50 small me-1 px-2 d-none d-lg-inline">Vista:</span>
+      <div class="btn-group btn-group-sm" role="group">
+        <button type="button" class="btn btn-sm rounded-pill px-2 py-0 border-0 fw-bold"
+          [class.bg-white]="(dataService.activeRole$ | async) === 'Administrador'"
+          [class.text-primary]="(dataService.activeRole$ | async) === 'Administrador'"
+          [class.text-white]="(dataService.activeRole$ | async) !== 'Administrador'"
+          (click)="switchRole('Administrador')">
+          Admin
+        </button>
+        <button type="button" class="btn btn-sm rounded-pill px-2 py-0 border-0 fw-bold"
+          [class.bg-white]="(dataService.activeRole$ | async) === 'Soporte TI'"
+          [class.text-primary]="(dataService.activeRole$ | async) === 'Soporte TI'"
+          [class.text-white]="(dataService.activeRole$ | async) !== 'Soporte TI'"
+          (click)="switchRole('Soporte TI')">
+          Soporte TI
+        </button>
+        <button type="button" class="btn btn-sm rounded-pill px-2 py-0 border-0 fw-bold"
+          [class.bg-white]="(dataService.activeRole$ | async) === 'Asesor'"
+          [class.text-primary]="(dataService.activeRole$ | async) === 'Asesor'"
+          [class.text-white]="(dataService.activeRole$ | async) !== 'Asesor'"
+          (click)="switchRole('Asesor')">
+          Asesor
+        </button>
+        <button type="button" class="btn btn-sm rounded-pill px-2 py-0 border-0 fw-bold"
+          [class.bg-white]="(dataService.activeRole$ | async) === 'Cliente'"
+          [class.text-primary]="(dataService.activeRole$ | async) === 'Cliente'"
+          [class.text-white]="(dataService.activeRole$ | async) !== 'Cliente'"
+          (click)="switchRole('Cliente')">
+          Cliente
+        </button>
+      </div>
     </div>
   </li>
 
@@ -13,18 +43,18 @@
       style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); height: 36px;" ngbDropdownToggle>
       <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar rounded-circle border border-white" style="width:26px; height:26px;" />
       <span class="fw-bold text-white fs-6">
-        {{ (authService.currentUser$ | async)?.nombre_completo || ((dataService.activeRole$ | async) === 'Administrador' ? 'Admin FINNOVA' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez (Asesor)' : 'María López (Cliente)')) }}
+        {{ (authService.currentUser$ | async)?.nombre_completo || ((dataService.activeRole$ | async) === 'Administrador' ? 'Fiorella Gamarra (Admin / CAB)' : ((dataService.activeRole$ | async) === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez (Asesor)' : 'María López (Cliente)'))) }}
       </span>
     </a>
-    <div class="dropdown-user-profile dropdown-menu-end pc-h-dropdown shadow-lg border-0 rounded-3 mt-2 p-0 overflow-hidden" ngbDropdownMenu style="min-width: 250px;">
+    <div class="dropdown-user-profile dropdown-menu-end pc-h-dropdown shadow-lg border-0 rounded-3 mt-2 p-0 overflow-hidden" ngbDropdownMenu style="min-width: 260px;">
       <div class="dropdown-header p-3 bg-light border-bottom text-start">
         <div class="d-flex align-items-center gap-3">
           <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar rounded-circle shadow-sm" style="width:42px; height:42px;" />
           <div>
             <h6 class="mb-0 fw-bold text-dark fs-6">
-              {{ (authService.currentUser$ | async)?.nombre_completo || ((dataService.activeRole$ | async) === 'Administrador' ? 'Admin FINNOVA' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez' : 'María López')) }}
+              {{ (authService.currentUser$ | async)?.nombre_completo || ((dataService.activeRole$ | async) === 'Administrador' ? 'Fiorella Gamarra' : ((dataService.activeRole$ | async) === 'Soporte TI' ? 'Ing. Carlos Mendoza' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez' : 'María López'))) }}
             </h6>
-            <div class="small text-muted mb-1">{{ (authService.currentUser$ | async)?.correo_electronico }}</div>
+            <div class="small text-muted mb-1">{{ (authService.currentUser$ | async)?.correo_electronico || ((dataService.activeRole$ | async) === 'Soporte TI' ? 'soporte.ti@finnova.pe' : 'admin@finnova.pe') }}</div>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ (authService.currentUser$ | async)?.rol || (dataService.activeRole$ | async) }}</span>
           </div>
         </div>

@@ -58,7 +58,7 @@ const routes: Routes = [
       {
         path: 'services',
         canActivate: [authGuard],
-        data: { roles: ['Administrador', 'Asesor'] },
+        data: { roles: ['Administrador', 'Soporte TI', 'Asesor'] },
         loadComponent: () => import('./demo/pages/finnova/services-management/services-management').then((c) => c.ServicesManagement)
       },
       {
@@ -100,13 +100,13 @@ const routes: Routes = [
       {
         path: 'reports',
         canActivate: [authGuard],
-        data: { roles: ['Administrador'] },
+        data: { roles: ['Administrador', 'Soporte TI'] },
         loadComponent: () => import('./demo/pages/finnova/reports/reports').then((c) => c.Reports)
       },
       {
         path: 'support-changes',
         canActivate: [authGuard],
-        data: { roles: ['Administrador', 'Asesor', 'Cliente'] },
+        data: { roles: ['Administrador', 'Soporte TI', 'Asesor', 'Cliente'] },
         loadComponent: () => import('./demo/pages/finnova/support-changes/support-changes').then((c) => c.SupportChangesManagement)
       },
       {
