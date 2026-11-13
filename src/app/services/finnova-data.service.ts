@@ -220,10 +220,6 @@ export class FinnovaDataService {
   public activeRole$: Observable<UserRole> = this.activeRoleSubject.asObservable();
 
   get activeRole(): UserRole {
-    const user = this.authService.getUser();
-    if (user?.rol) {
-      return user.rol as UserRole;
-    }
     return this.activeRoleSubject.value;
   }
 

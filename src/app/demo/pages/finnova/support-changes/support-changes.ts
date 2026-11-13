@@ -31,8 +31,9 @@ export class SupportChangesManagement implements OnInit {
   public dataService = inject(FinnovaDataService);
   private confirmService = inject(ConfirmDialogService);
 
-  // Pestaña activa: Por defecto iniciamos en 'incidentes' (Semana 14)
-  activeTab: 'incidentes' | 'dimensiones' | 'bandeja' | 'pase-calendario' = 'incidentes';
+  // Pestaña activa
+  activeTab: 'incidentes' | 'bpmn-raci' | 'dimensiones' | 'bandeja' | 'pase-calendario' | 'pir-auditoria' = 'incidentes';
+  adminTab: 'dimensiones' | 'pase-calendario' | 'pir-auditoria' | 'bandeja' = 'dimensiones';
 
   // Filtros de la bandeja unificada
   filterDimension: string = 'TODAS';
@@ -108,6 +109,54 @@ export class SupportChangesManagement implements OnInit {
 
   ngOnInit() {
     this.dataService.loadSupportTickets();
+    this.dataService.activeRole$.subscribe(role => {
+      if (role === 'Soporte TI') {
+        this.activeTab = 'incidentes';
+      } else if (role === 'Administrador') {
+        if (this.activeTab === 'incidentes' || this.activeTab === 'bpmn-raci') {
+          this.activeTab = 'dimensiones';
+        }
+      }
+    });
+  }
+
+  get myReportedTickets(): SupportChangeTicket[] {
+    if (this.isCliente) {
+      const list = this.allTickets.filter(t => 
+        t.solicitante_rol === 'Cliente' || 
+        (t.solicitante_nombre && (t.solicitante_nombre.toLowerCase().includes('maría') || t.solicitante_nombre.toLowerCase().includes('cliente')))
+      );
+      return list.length > 0 ? list : [this.allTickets.find(t => t.id_ticket === 'INC-2026-004') || this.allTickets[0]];
+    }
+    if (this.isAsesor) {
+      const list = this.allTickets.filter(t => 
+        t.solicitante_rol === 'Asesor' || 
+        (t.solicitante_nombre && (t.solicitante_nombre.toLowerCase().includes('asesor') || t.solicitante_nombre.toLowerCase().includes('juan')))
+      );
+      return list.length > 0 ? list : [this.allTickets.find(t => t.id_ticket === 'INC-2026-003') || this.allTickets[1]];
+    }
+    return this.allTickets;
+  }
+
+  get myReportedCount(): number {
+    return this.myReportedTickets.length;
+  }
+
+  get myInProgressCount(): number {
+    return this.myReportedTickets.filter(t => t.estado === 'En Proceso' || t.estado === 'Abierto').length;
+  }
+
+  get myResolvedCount(): number {
+    return this.myReportedTickets.filter(t => t.estado === 'Completado').length;
+  }
+
+  get criticalIncidentsForPir(): SupportChangeTicket[] {
+    return this.allIncidents.filter(i => 
+      i.severidad_sla === 'P1 - Crítico' || 
+      i.severidad_sla === 'P2 - Alto' || 
+      !!i.rca_causa_raiz ||
+      i.tipo_cambio_itil === 'Emergencia (CHE)'
+    );
   }
 
   get allTickets(): SupportChangeTicket[] {
@@ -313,28 +362,75 @@ export class SupportChangesManagement implements OnInit {
 
   // --- FORMULARIO NUEVA SOLICITUD / INCIDENTE ---
   openNewTicketModal() {
-    this.newTitulo = '';
-    this.newDescripcion = '';
-    this.newTipoSolicitud = 'Incidente Técnico';
-    this.newImpacto = 'Global (Toda la Plataforma)';
-    this.newUrgencia = 'Crítica';
-    this.onMatrixChange();
-    this.newComponente = 'Backend Express (Render Cloud)';
-    this.newEntorno = 'Producción';
-    this.newCodigoError = 'ER_CON_COUNT_ERROR: Too many connections';
-    this.newPasosReproducir = '1. Enviar 50 solicitudes POST simultáneas a /api/solicitudes/validar-voucher.\n2. TiDB Cloud agota sockets TLS.\n3. Backend responde HTTP 500.';
-    this.newStackTrace = 'Error: Connection pool exhausted at Pool.getConnection (mysql2/lib/pool.js:52)\nat async validarVoucher (/src/controllers/solicitudController.js:142)';
-    this.newWorkaround = 'Incrementar pool en caliente a connectionLimit: 15 y reiniciar contenedor Render.';
-    this.newTieneWorkaround = true;
-    this.newSolicitanteNombre = this.activeRole === 'Administrador'
-      ? 'Fiorella Gamarra (Admin)'
-      : this.activeRole === 'Soporte TI'
-      ? 'Ing. Carlos Mendoza (Soporte TI)'
-      : this.activeRole === 'Asesor'
-      ? 'Juan Pérez (Asesor)'
-      : 'María López (Cliente)';
-    this.newVentanaDirecta = 'Ventana FSC Inmediata (Hotfix)';
-    this.newPlanRollbackDirecto = 'Instant Rollback en Render / Vercel ante anomalía en Smoke Test.';
+    if (this.isCliente) {
+      this.newTitulo = 'Falla al cargar comprobante de pago en validación de voucher';
+      this.newDescripcion = 'Al subir la imagen PNG de 2MB del voucher de pago en mi solicitud, la pantalla se queda congelada en "Procesando" y luego muestra error de conexión sin confirmar el registro.';
+      this.newTipoSolicitud = 'Incidente Técnico';
+      this.newImpacto = 'Individual (Usuario/Cliente)';
+      this.newUrgencia = 'Media';
+      this.onMatrixChange();
+      this.newComponente = 'Módulo de Solicitud de Crédito / Voucher (Frontend)';
+      this.newEntorno = 'Producción';
+      this.newCodigoError = 'HTTP 413 / Request Entity Too Large';
+      this.newPasosReproducir = '1. Ir a /dashboard/requests.\n2. Cargar voucher PNG.\n3. Presionar Enviar.';
+      this.newStackTrace = '';
+      this.newWorkaround = '';
+      this.newSolicitanteNombre = 'María López (Cliente)';
+      this.newVentanaDirecta = 'Atención estándar Mesa de Ayuda';
+      this.newPlanRollbackDirecto = 'N/A';
+    } else if (this.isAsesor) {
+      this.newTitulo = 'Lentitud y timeout al consultar historial de cliente en evaluación';
+      this.newDescripcion = 'La búsqueda por DNI en la bandeja de aprobación demora más de 10 segundos en responder durante horas punta (11:00 am - 1:00 pm).';
+      this.newTipoSolicitud = 'Incidente Técnico';
+      this.newImpacto = 'Departamental (Asesores/Cobranzas)';
+      this.newUrgencia = 'Alta';
+      this.onMatrixChange();
+      this.newComponente = 'Bandeja de Aprobación de Asesor';
+      this.newEntorno = 'Producción';
+      this.newCodigoError = 'GATEWAY_TIMEOUT_504';
+      this.newPasosReproducir = '1. Ingresar DNI en filtro de clientes.\n2. Esperar respuesta de TiDB Cloud.';
+      this.newStackTrace = '';
+      this.newWorkaround = '';
+      this.newSolicitanteNombre = 'Juan Pérez (Asesor)';
+      this.newVentanaDirecta = 'Atención prioritaria Asesoría';
+      this.newPlanRollbackDirecto = 'N/A';
+    } else if (this.isSoporteTI) {
+      this.newTitulo = 'Saturación en Connection Pool de TiDB Cloud en horas punta';
+      this.newDescripcion = 'El backend Express en Render agota el pool de conexiones TLS (connectionLimit: 5) al procesar validación concurrente de vouchers QR.';
+      this.newTipoSolicitud = 'Incidente Técnico';
+      this.newImpacto = 'Global (Toda la Plataforma)';
+      this.newUrgencia = 'Crítica';
+      this.onMatrixChange();
+      this.newComponente = 'Backend Express (Render Cloud)';
+      this.newEntorno = 'Producción';
+      this.newCodigoError = 'ER_CON_COUNT_ERROR: Too many connections';
+      this.newPasosReproducir = '1. Enviar 50 solicitudes POST simultáneas a /api/solicitudes/validar-voucher.\n2. TiDB Cloud agota sockets TLS.\n3. Backend responde HTTP 500.';
+      this.newStackTrace = 'Error: Connection pool exhausted at Pool.getConnection (mysql2/lib/pool.js:52)\nat async validarVoucher (/src/controllers/solicitudController.js:142)';
+      this.newWorkaround = 'Incrementar pool en caliente a connectionLimit: 15 y reiniciar contenedor Render.';
+      this.newTieneWorkaround = true;
+      this.newSolicitanteNombre = 'Ing. Carlos Mendoza (Soporte TI L2)';
+      this.newVentanaDirecta = 'Ventana FSC Inmediata (Hotfix)';
+      this.newPlanRollbackDirecto = 'Instant Rollback en Render / Vercel ante anomalía en Smoke Test.';
+    } else {
+      this.newTitulo = 'Pase de Emergencia: Aumento de Límites de Pool TiDB y Timeout';
+      this.newDescripcion = 'RFC de emergencia aprobado por CAB para estabilizar microservicio ante campaña masiva.';
+      this.newTipoSolicitud = 'Requerimiento de Cambio';
+      this.newImpacto = 'Global (Toda la Plataforma)';
+      this.newUrgencia = 'Alta';
+      this.onMatrixChange();
+      this.newAplicaDirecto = 'Si Aplica (RFC)';
+      this.newDimensionDirecta = 'Infraestructura';
+      this.newTipoItilDirecto = 'Emergencia (CHE)';
+      this.newComponente = 'Infraestructura TiDB & Render Cloud';
+      this.newEntorno = 'Producción';
+      this.newCodigoError = '';
+      this.newPasosReproducir = '';
+      this.newStackTrace = '';
+      this.newWorkaround = '';
+      this.newSolicitanteNombre = 'Fiorella Gamarra (Admin / CAB)';
+      this.newVentanaDirecta = 'Ventana de Emergencia CAB Inmediata';
+      this.newPlanRollbackDirecto = 'Instant Rollback en Render ante fallo de Smoke Test.';
+    }
     this.isNewTicketModalOpen = true;
   }
 

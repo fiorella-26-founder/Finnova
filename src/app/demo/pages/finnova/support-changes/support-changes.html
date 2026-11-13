@@ -1,33 +1,37 @@
-<!-- CABECERA Y KPIS EN TIEMPO REAL -->
-<div class="row g-3 mb-3">
-  <div class="col-12">
-    <div class="card border-0 shadow-sm bg-primary text-white">
-      <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <div>
-          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-            <span class="badge bg-light text-primary fw-bold">SEMANA 14: ITIL 4 INCIDENT MANAGEMENT &amp; SLA</span>
-            <span class="badge bg-white text-dark fw-bold border">
-              Rol Activo: {{ activeRole }} ({{ activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza - L2 DevOps' : (activeRole === 'Administrador' ? 'Fiorella Gamarra - CAB Lead' : (activeRole === 'Asesor' ? 'Juan Pérez' : 'María López')) }})
-            </span>
+<!-- ========================================================================= -->
+<!-- VISTA 1: ROL SOPORTE TI (OPERACIONES DE INCIDENTES, SLA & WORKAROUNDS)    -->
+<!-- ========================================================================= -->
+<ng-container *ngIf="isSoporteTI">
+  <!-- CABECERA SOPORTE TI -->
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+              <span class="badge bg-light text-primary fw-bold">MESA DE OPERACIONES TI • ITIL 4 INCIDENT MANAGEMENT &amp; SLA (SEMANA 14)</span>
+              <span class="badge bg-white text-dark fw-bold border">
+                Rol Activo: Soporte TI (Ing. Carlos Mendoza - L2 DevOps &amp; Incident Response)
+              </span>
+            </div>
+            <h4 class="text-white fw-bold mb-1">Centro de Operaciones de Incidentes TI, Triaje Matricial &amp; SLAs</h4>
+            <p class="mb-0 text-white-50 small">
+              Gestión operativa exclusiva de incidencias, triaje matricial P1–P4, monitoreo de SLA (MTTA/MTTR), soluciones temporales (Workarounds) y escalamiento a Control de Cambios (RFC).
+            </p>
           </div>
-          <h4 class="text-white fw-bold mb-1">Centro de Gestión de Incidentes, Soporte &amp; Control de Cambios</h4>
-          <p class="mb-0 text-white-50 small">
-            Flujo profesional de detección, clasificación matricial (Impacto &times; Urgencia), SLAs dinámicos, escalamiento L1&rarr;L2&rarr;L3 y trazabilidad de pases en producción.
-          </p>
-        </div>
-        <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-light text-primary fw-bold d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
-            <span>+ Registrar Incidente / Solicitud</span>
-          </button>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-light text-primary fw-bold d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
+              <span>+ Registrar Incidente Técnico L1/L2</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- 5 TARJETAS KPI EN VIVO -->
+    <!-- 5 KPIS EN TIEMPO REAL -->
   <div class="col-6 col-md-4 col-xl">
     <div class="card border border-danger-subtle shadow-sm h-100 mb-0">
       <div class="card-body p-3">
@@ -93,40 +97,161 @@
     </div>
   </div>
 </div>
-
-<!-- NAVEGACIÓN PRINCIPAL POR PESTAÑAS -->
-<div class="card border shadow-sm mb-3">
-  <div class="card-header bg-white border-bottom p-2">
-    <ul class="nav nav-pills gap-2 flex-wrap">
-      <li class="nav-item">
-        <button class="nav-link fw-bold" [class.active]="activeTab === 'incidentes'" (click)="activeTab = 'incidentes'">
-          1. Gestión Profesional de Incidentes &amp; SLA (Semana 14)
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link fw-semibold" [class.active]="activeTab === 'dimensiones'" (click)="activeTab = 'dimensiones'">
-          2. Control de Cambios por Dimensión Técnica (Semana 11)
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link fw-semibold" [class.active]="activeTab === 'bandeja'" (click)="activeTab = 'bandeja'">
-          3. Bandeja Unificada de Incidentes &amp; Solicitudes
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link fw-semibold" [class.active]="activeTab === 'pase-calendario'" (click)="activeTab = 'pase-calendario'">
-          4. Documentación de Pase &amp; Calendarización
-        </button>
-      </li>
-    </ul>
   </div>
 
-  <div class="card-body p-4">
-    <!-- ========================================================================= -->
-    <!-- PESTAÑA 1: GESTIÓN PROFESIONAL DE INCIDENTES & SLA (SEMANA 14)             -->
-    <!-- ========================================================================= -->
-    <div *ngIf="activeTab === 'incidentes'">
+  <!-- NAVEGACIÓN POR PESTAÑAS: SOPORTE TI -->
+  <div class="card border shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom p-2">
+      <ul class="nav nav-pills gap-2 flex-wrap">
+        <li class="nav-item">
+          <button class="nav-link fw-bold" [class.active]="activeTab === 'incidentes'" (click)="activeTab = 'incidentes'">
+            1. Tablero Operativo de Incidentes &amp; SLA en Vivo
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" [class.active]="activeTab === 'bpmn-raci'" (click)="activeTab = 'bpmn-raci'">
+            2. Flujo de Atención BPMN 2.0 &amp; Matriz RACI
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" [class.active]="activeTab === 'bandeja'" (click)="activeTab = 'bandeja'">
+            3. Bandeja Técnica Unificada
+          </button>
+        </li>
+      </ul>
+    </div>
 
+    <div class="card-body p-4">
+      <!-- PESTAÑA SOPORTE TI 1: TABLERO EN VIVO DE INCIDENTES -->
+      <div *ngIf="activeTab === 'incidentes'">
+      <!-- BLOQUE 1.4: TABLERO EN VIVO DE INCIDENTES CLASIFICADOS (P1 A P4) -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h5 class="fw-bold text-dark mb-0">Catálogo de Incidentes Registrados en Finnova (Ejecuciones Reales)</h5>
+          <span class="small text-muted">Incidentes con trazabilidad técnica, códigos de error HTTP/SQL y estado de SLA</span>
+        </div>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" [(ngModel)]="filterSeveridad" style="width: auto;">
+            <option value="TODAS">Todas las Severidades</option>
+            <option value="P1 - Crítico">P1 - Crítico (Outage Pasarela/BD)</option>
+            <option value="P2 - Alto">P2 - Alto (Cold Start Render)</option>
+            <option value="P3 - Medio">P3 - Medio (Payload Vouchers)</option>
+            <option value="P4 - Bajo">P4 - Bajo (Cosmético)</option>
+          </select>
+          <select class="form-select form-select-sm" [(ngModel)]="filterIncidenteEstado" style="width: auto;">
+            <option value="TODOS">Todos los Estados</option>
+            <option value="Abierto">Abierto</option>
+            <option value="En Proceso">En Proceso</option>
+            <option value="Completado">Completado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12" *ngFor="let inc of filteredIncidents">
+          <div class="card border shadow-sm mb-0" [ngClass]="{
+            'border-danger border-2': inc.severidad_sla === 'P1 - Crítico',
+            'border-warning border-2': inc.severidad_sla === 'P2 - Alto',
+            'border-info': inc.severidad_sla === 'P3 - Medio',
+            'border-secondary': inc.severidad_sla === 'P4 - Bajo'
+          }">
+            <div class="card-body p-3">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="badge fs-6" [ngClass]="{
+                    'bg-danger text-white': inc.severidad_sla === 'P1 - Crítico',
+                    'bg-warning text-dark': inc.severidad_sla === 'P2 - Alto',
+                    'bg-info text-dark': inc.severidad_sla === 'P3 - Medio',
+                    'bg-secondary': inc.severidad_sla === 'P4 - Bajo'
+                  }">{{ inc.severidad_sla }}</span>
+                  <span class="badge bg-dark fw-bold">{{ inc.codigo_jira }}</span>
+                  <span class="badge bg-light text-primary border">{{ inc.id_ticket }}</span>
+                  <span class="badge bg-light text-dark border">Entorno: {{ inc.entorno || 'Producción' }}</span>
+                  <span class="badge bg-danger-subtle text-danger border" *ngIf="inc.codigo_error">
+                    <code>{{ inc.codigo_error }}</code>
+                  </span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-success-subtle text-success border px-2 py-1">
+                    SLA: {{ inc.cumplimiento_sla || 'Dentro de SLA' }} (MTTA: {{ inc.mtta_sla_min }}m / MTTR: {{ inc.mttr_sla_horas }}h)
+                  </span>
+                  <span class="badge" [ngClass]="{
+                    'bg-warning text-dark': inc.estado === 'Abierto',
+                    'bg-info text-dark': inc.estado === 'En Proceso',
+                    'bg-success': inc.estado === 'Completado',
+                    'bg-danger': inc.estado === 'Rechazado'
+                  }">{{ inc.estado }}</span>
+                </div>
+              </div>
+
+              <h5 class="fw-bold text-dark mb-1">{{ inc.titulo }}</h5>
+              <p class="text-muted small mb-2">{{ inc.descripcion }}</p>
+
+              <div class="row g-2 small mb-2">
+                <div class="col-md-6">
+                  <div class="p-2 bg-light rounded border h-100">
+                    <strong>Componente:</strong> {{ inc.componente_afectado }}<br>
+                    <strong>Asignado a:</strong> <span class="badge bg-secondary-subtle text-dark border">{{ inc.asignado_a_rol || 'Ingeniero TI L2' }}</span><br>
+                    <strong>Atendido por:</strong> {{ inc.atendido_por || 'Ing. Carlos Mendoza (Soporte TI L2)' }}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="p-2 bg-light rounded border h-100">
+                    <strong class="text-danger">Solución Temporal (Workaround):</strong>
+                    <div class="text-dark mt-1">{{ inc.solucion_temporal_workaround || 'Pendiente de formulación por Soporte TI.' }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="inc.rca_causa_raiz" class="p-2 bg-success-subtle rounded border border-success-subtle small mb-2">
+                <strong class="text-success-emphasis">Análisis Causa Raíz (RCA / 5 Porqués):</strong>
+                <div class="text-dark mt-1" style="white-space: pre-line;">{{ inc.rca_causa_raiz }}</div>
+              </div>
+
+              <!-- BARRA DE ACCIONES SEGÚN ROL (RBAC DEMO) -->
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
+                <div class="small text-muted">
+                  <strong>Registrado por:</strong> {{ inc.solicitante_nombre }} ({{ inc.solicitante_rol }}) &bull; {{ inc.fecha_registro }}
+                </div>
+                <div class="d-flex gap-1 flex-wrap">
+                  <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(inc)">
+                    Ficha Técnica
+                  </button>
+
+                  <!-- Botón Atender L1/L2 para Soporte TI o Admin -->
+                  <button *ngIf="canApplyWorkaround" class="btn btn-sm btn-warning text-dark fw-bold" (click)="openWorkaroundModal(inc)">
+                    Aplicar Workaround L1/L2
+                  </button>
+
+                  <!-- Botón Escalar a RFC -->
+                  <button *ngIf="canQualifyCab && inc.aplica_cambio !== 'Si Aplica (RFC)'" class="btn btn-sm btn-outline-primary" (click)="escalateToRfc(inc)">
+                    Escalar a RFC
+                  </button>
+
+                  <!-- Botón Post-Mortem para Admin / CAB -->
+                  <button *ngIf="isAdmin" class="btn btn-sm btn-outline-success" (click)="openPirModal(inc)">
+                    Auditar Post-Mortem (PIR)
+                  </button>
+
+                  <!-- Botón Calificar / Editar CAB -->
+                  <button *ngIf="canQualifyCab" class="btn btn-sm btn-primary" (click)="openQualifyModal(inc)">
+                    Gestión CAB
+                  </button>
+
+                  <button *ngIf="canDelete" class="btn btn-sm btn-outline-danger" (click)="deleteTicket(inc)" title="Eliminar">
+                    &times;
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <!-- PESTAÑA SOPORTE TI 2: FLUJO BPMN 2.0 & MATRIZ RACI -->
+      <div *ngIf="activeTab === 'bpmn-raci'">
       <!-- BLOQUE 1.1: GOBERNANZA & MATRIZ RACI ("QUIÉN CONTROLA QUÉ COSA") -->
       <div class="alert alert-light border shadow-sm mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
@@ -395,263 +520,10 @@
         </div>
       </div>
 
-      <!-- BLOQUE 1.4: TABLERO EN VIVO DE INCIDENTES CLASIFICADOS (P1 A P4) -->
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div>
-          <h5 class="fw-bold text-dark mb-0">Catálogo de Incidentes Registrados en Finnova (Ejecuciones Reales)</h5>
-          <span class="small text-muted">Incidentes con trazabilidad técnica, códigos de error HTTP/SQL y estado de SLA</span>
-        </div>
-        <div class="d-flex gap-2">
-          <select class="form-select form-select-sm" [(ngModel)]="filterSeveridad" style="width: auto;">
-            <option value="TODAS">Todas las Severidades</option>
-            <option value="P1 - Crítico">P1 - Crítico (Outage Pasarela/BD)</option>
-            <option value="P2 - Alto">P2 - Alto (Cold Start Render)</option>
-            <option value="P3 - Medio">P3 - Medio (Payload Vouchers)</option>
-            <option value="P4 - Bajo">P4 - Bajo (Cosmético)</option>
-          </select>
-          <select class="form-select form-select-sm" [(ngModel)]="filterIncidenteEstado" style="width: auto;">
-            <option value="TODOS">Todos los Estados</option>
-            <option value="Abierto">Abierto</option>
-            <option value="En Proceso">En Proceso</option>
-            <option value="Completado">Completado</option>
-          </select>
-        </div>
       </div>
 
-      <div class="row g-3">
-        <div class="col-12" *ngFor="let inc of filteredIncidents">
-          <div class="card border shadow-sm mb-0" [ngClass]="{
-            'border-danger border-2': inc.severidad_sla === 'P1 - Crítico',
-            'border-warning border-2': inc.severidad_sla === 'P2 - Alto',
-            'border-info': inc.severidad_sla === 'P3 - Medio',
-            'border-secondary': inc.severidad_sla === 'P4 - Bajo'
-          }">
-            <div class="card-body p-3">
-              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <span class="badge fs-6" [ngClass]="{
-                    'bg-danger text-white': inc.severidad_sla === 'P1 - Crítico',
-                    'bg-warning text-dark': inc.severidad_sla === 'P2 - Alto',
-                    'bg-info text-dark': inc.severidad_sla === 'P3 - Medio',
-                    'bg-secondary': inc.severidad_sla === 'P4 - Bajo'
-                  }">{{ inc.severidad_sla }}</span>
-                  <span class="badge bg-dark fw-bold">{{ inc.codigo_jira }}</span>
-                  <span class="badge bg-light text-primary border">{{ inc.id_ticket }}</span>
-                  <span class="badge bg-light text-dark border">Entorno: {{ inc.entorno || 'Producción' }}</span>
-                  <span class="badge bg-danger-subtle text-danger border" *ngIf="inc.codigo_error">
-                    <code>{{ inc.codigo_error }}</code>
-                  </span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                  <span class="badge bg-success-subtle text-success border px-2 py-1">
-                    SLA: {{ inc.cumplimiento_sla || 'Dentro de SLA' }} (MTTA: {{ inc.mtta_sla_min }}m / MTTR: {{ inc.mttr_sla_horas }}h)
-                  </span>
-                  <span class="badge" [ngClass]="{
-                    'bg-warning text-dark': inc.estado === 'Abierto',
-                    'bg-info text-dark': inc.estado === 'En Proceso',
-                    'bg-success': inc.estado === 'Completado',
-                    'bg-danger': inc.estado === 'Rechazado'
-                  }">{{ inc.estado }}</span>
-                </div>
-              </div>
-
-              <h5 class="fw-bold text-dark mb-1">{{ inc.titulo }}</h5>
-              <p class="text-muted small mb-2">{{ inc.descripcion }}</p>
-
-              <div class="row g-2 small mb-2">
-                <div class="col-md-6">
-                  <div class="p-2 bg-light rounded border h-100">
-                    <strong>Componente:</strong> {{ inc.componente_afectado }}<br>
-                    <strong>Asignado a:</strong> <span class="badge bg-secondary-subtle text-dark border">{{ inc.asignado_a_rol || 'Ingeniero TI L2' }}</span><br>
-                    <strong>Atendido por:</strong> {{ inc.atendido_por || 'Ing. Carlos Mendoza (Soporte TI L2)' }}
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="p-2 bg-light rounded border h-100">
-                    <strong class="text-danger">Solución Temporal (Workaround):</strong>
-                    <div class="text-dark mt-1">{{ inc.solucion_temporal_workaround || 'Pendiente de formulación por Soporte TI.' }}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div *ngIf="inc.rca_causa_raiz" class="p-2 bg-success-subtle rounded border border-success-subtle small mb-2">
-                <strong class="text-success-emphasis">Análisis Causa Raíz (RCA / 5 Porqués):</strong>
-                <div class="text-dark mt-1" style="white-space: pre-line;">{{ inc.rca_causa_raiz }}</div>
-              </div>
-
-              <!-- BARRA DE ACCIONES SEGÚN ROL (RBAC DEMO) -->
-              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
-                <div class="small text-muted">
-                  <strong>Registrado por:</strong> {{ inc.solicitante_nombre }} ({{ inc.solicitante_rol }}) &bull; {{ inc.fecha_registro }}
-                </div>
-                <div class="d-flex gap-1 flex-wrap">
-                  <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(inc)">
-                    Ficha Técnica
-                  </button>
-
-                  <!-- Botón Atender L1/L2 para Soporte TI o Admin -->
-                  <button *ngIf="canApplyWorkaround" class="btn btn-sm btn-warning text-dark fw-bold" (click)="openWorkaroundModal(inc)">
-                    Aplicar Workaround L1/L2
-                  </button>
-
-                  <!-- Botón Escalar a RFC -->
-                  <button *ngIf="canQualifyCab && inc.aplica_cambio !== 'Si Aplica (RFC)'" class="btn btn-sm btn-outline-primary" (click)="escalateToRfc(inc)">
-                    Escalar a RFC
-                  </button>
-
-                  <!-- Botón Post-Mortem para Admin / CAB -->
-                  <button *ngIf="isAdmin" class="btn btn-sm btn-outline-success" (click)="openPirModal(inc)">
-                    Auditar Post-Mortem (PIR)
-                  </button>
-
-                  <!-- Botón Calificar / Editar CAB -->
-                  <button *ngIf="canQualifyCab" class="btn btn-sm btn-primary" (click)="openQualifyModal(inc)">
-                    Gestión CAB
-                  </button>
-
-                  <button *ngIf="canDelete" class="btn btn-sm btn-outline-danger" (click)="deleteTicket(inc)" title="Eliminar">
-                    &times;
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- PESTAÑA 2: CONTROL DE CAMBIOS POR LAS 4 DIMENSIONES (SEMANA 11)           -->
-    <!-- ========================================================================= -->
-    <div *ngIf="activeTab === 'dimensiones'">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div>
-          <h5 class="fw-bold text-dark mb-1">Consolidado de Cambios por Dimensión Técnica y Estado</h5>
-          <p class="text-muted small mb-0">
-            Resumen operativo de cambios en <strong>Infraestructura</strong>, <strong>Aplicaciones y BD</strong>, <strong>Documentación</strong> y <strong>Calendario</strong> según su estado actual (<strong>Abiertos</strong>, <strong>En Proceso</strong> y <strong>Completados</strong>).
-          </p>
-        </div>
-        <span class="badge bg-primary-subtle text-primary border px-3 py-2">
-          Sincronizado con tabla <code>tickets_soporte_cambios</code>
-        </span>
-      </div>
-
-      <!-- TABLA RESUMEN DE MÉTRICAS POR DIMENSIÓN Y ESTADO -->
-      <div class="table-responsive mb-4">
-        <table class="table table-bordered align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Dimensión Técnica</th>
-              <th>Componentes Abarcados en Finnova</th>
-              <th class="text-center">Abiertos</th>
-              <th class="text-center">En Proceso</th>
-              <th class="text-center">Completados</th>
-              <th class="text-center">Total Dimensión</th>
-              <th style="min-width: 170px;">Avance de Ejecución</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of metricsByDimension">
-              <td>
-                <span class="fw-bold text-dark">{{ row.dimension }}</span>
-              </td>
-              <td class="small text-muted">
-                <span *ngIf="row.dimension === 'Infraestructura'">Vercel CDN, Render Web Service, TiDB Cloud SSL/TLS, Rate Limit</span>
-                <span *ngIf="row.dimension === 'Aplicaciones y BD'">Angular 17 SPA, Express 5 REST API, Migraciones DDL e Índices SQL</span>
-                <span *ngIf="row.dimension === 'Documentación'">Runbook Pase a Producción (Front/Back), OpenAPI/Swagger, Diccionario BD</span>
-                <span *ngIf="row.dimension === 'Calendario'">Cron Job <code>keepAlive.js</code> (10m), Ventana Dom 01-03 AM, Code Freeze Fin de Mes</span>
-              </td>
-              <td class="text-center">
-                <span class="badge bg-warning text-dark px-3 py-1 fs-6">{{ row.abiertos }}</span>
-              </td>
-              <td class="text-center">
-                <span class="badge bg-info text-dark px-3 py-1 fs-6">{{ row.en_proceso }}</span>
-              </td>
-              <td class="text-center">
-                <span class="badge bg-success px-3 py-1 fs-6">{{ row.completados }}</span>
-              </td>
-              <td class="text-center">
-                <span class="fw-bold fs-6 text-primary">{{ row.total }}</span>
-              </td>
-              <td>
-                <div class="d-flex align-items-center gap-2">
-                  <div class="progress flex-grow-1" style="height: 8px;">
-                    <div class="progress-bar bg-success" role="progressbar" [style.width.%]="row.porcentaje_completado"></div>
-                  </div>
-                  <span class="small fw-bold text-muted">{{ row.porcentaje_completado }}%</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-          <tfoot class="table-light fw-bold">
-            <tr>
-              <td colspan="2" class="text-end">TOTAL GENERAL DE CAMBIOS (RFC EN LAS 4 DIMENSIONES):</td>
-              <td class="text-center text-warning-emphasis fs-6">{{ totalRfcAbiertos }}</td>
-              <td class="text-center text-info-emphasis fs-6">{{ totalRfcEnProceso }}</td>
-              <td class="text-center text-success fs-6">{{ totalRfcCompletados }}</td>
-              <td class="text-center text-primary fs-5">{{ totalRfcCount }}</td>
-              <td class="small text-muted">100% Trazado en Jira</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <!-- CUADRÍCULA DE TARJETAS POR LAS 4 DIMENSIONES TÉCNICAS -->
-      <div class="row g-3">
-        <div class="col-12 col-xl-6" *ngFor="let dim of ['Infraestructura', 'Aplicaciones y BD', 'Documentación', 'Calendario']">
-          <div class="card border h-100 shadow-sm">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2 px-3">
-              <div>
-                <span class="badge bg-primary me-2">DIMENSIÓN</span>
-                <strong class="text-dark">{{ dim }}</strong>
-              </div>
-              <span class="badge bg-white text-dark border">
-                {{ getTicketsByDimension($any(dim)).length }} incidencias / cambios
-              </span>
-            </div>
-            <div class="card-body p-3">
-              <div *ngFor="let item of getTicketsByDimension($any(dim))" class="border rounded p-3 mb-2 bg-white">
-                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                  <div>
-                    <span class="badge bg-dark me-1">{{ item.codigo_jira }}</span>
-                    <span class="badge bg-light text-secondary border me-1">{{ item.id_ticket }}</span>
-                    <span class="badge bg-secondary-subtle text-secondary border">{{ item.tipo_cambio_itil }}</span>
-                  </div>
-                  <span class="badge" [ngClass]="{
-                    'bg-warning text-dark': item.estado === 'Abierto',
-                    'bg-info text-dark': item.estado === 'En Proceso',
-                    'bg-success': item.estado === 'Completado',
-                    'bg-danger': item.estado === 'Rechazado'
-                  }">
-                    {{ item.estado }}
-                  </span>
-                </div>
-                <div class="fw-bold text-dark mt-1">{{ item.titulo }}</div>
-                <div class="small text-muted mt-1">{{ item.descripcion }}</div>
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2 pt-2 border-top">
-                  <div class="small text-muted">
-                    <strong>Ventana:</strong> {{ item.ventana_calendarizacion }}
-                  </div>
-                  <div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" (click)="openDetailModal(item)">
-                      Ver Acta
-                    </button>
-                    <button *ngIf="canQualifyCab" class="btn btn-sm btn-outline-primary py-0 px-2" (click)="openQualifyModal(item)">
-                      Editar / Estado
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- PESTAÑA 3: BANDEJA UNIFICADA DE INCIDENTES Y SOLICITUDES                  -->
-    <!-- ========================================================================= -->
-    <div *ngIf="activeTab === 'bandeja'">
+      <!-- PESTAÑA SOPORTE TI 3: BANDEJA TÉCNICA UNIFICADA -->
+      <div *ngIf="activeTab === 'bandeja'">
       <div class="row g-2 align-items-end mb-3">
         <div class="col-12 col-md-3">
           <label class="form-label small fw-bold mb-1">Tipo de Solicitud</label>
@@ -786,11 +658,262 @@
         </table>
       </div>
     </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
 
-    <!-- ========================================================================= -->
-    <!-- PESTAÑA 4: DOCUMENTACIÓN DE PASE Y CALENDARIZACIÓN                        -->
-    <!-- ========================================================================= -->
-    <div *ngIf="activeTab === 'pase-calendario'">
+<!-- ========================================================================= -->
+<!-- VISTA 2: ROL ADMINISTRADOR (CONTROL DE CAMBIOS CAB, PASE & POST-MORTEM)    -->
+<!-- ========================================================================= -->
+<ng-container *ngIf="isAdmin">
+  <!-- CABECERA ADMINISTRADOR -->
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%);">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+              <span class="badge bg-warning text-dark fw-bold">GOBERNANZA TI • COMITÉ CAB (CHANGE ADVISORY BOARD) &amp; POST-MORTEM</span>
+              <span class="badge bg-white text-dark fw-bold border">
+                Rol Activo: Administrador (Fiorella Gamarra - Tech Lead &amp; CAB Chair)
+              </span>
+            </div>
+            <h4 class="text-white fw-bold mb-1">Comité de Control de Cambios (CAB) &amp; Auditoría Post-Mortem</h4>
+            <p class="mb-0 text-white-50 small">
+              Aprobación y gobernanza de cambios técnicos en las 4 dimensiones de ITIL, autorización de pases a producción (Vercel &amp; Render) y auditoría de causa raíz (PIR / 5 Porqués) resueltos por Soporte TI.
+            </p>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-light fw-bold d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
+              <span>+ Reportar Incidencia a Soporte TI</span>
+            </button>
+            <button class="btn btn-warning text-dark fw-bold d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
+              <span>+ Nuevo Requerimiento de Cambio (RFC)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 KPIS DE GOBERNANZA CAB -->
+    <div class="col-6 col-md-3">
+      <div class="card border border-primary-subtle shadow-sm h-100 mb-0">
+        <div class="card-body p-3">
+          <div class="text-primary small fw-semibold text-uppercase">RFCs en Evaluación CAB</div>
+          <div class="d-flex align-items-baseline justify-content-between mt-1">
+            <h3 class="fw-bold text-primary mb-0">{{ totalRfcCount }}</h3>
+            <span class="badge bg-primary-subtle text-primary border">4 Dimensiones</span>
+          </div>
+          <div class="small text-muted mt-1">Tickets Jira <code>FCC-*</code> gestionados</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border border-warning-subtle shadow-sm h-100 mb-0">
+        <div class="card-body p-3">
+          <div class="text-warning-emphasis small fw-semibold text-uppercase">Cambios Abiertos / CI</div>
+          <div class="d-flex align-items-baseline justify-content-between mt-1">
+            <h3 class="fw-bold text-warning-emphasis mb-0">{{ totalRfcAbiertos + totalRfcEnProceso }}</h3>
+            <span class="badge bg-warning text-dark">{{ totalRfcAbiertos }} CAB / {{ totalRfcEnProceso }} Dev</span>
+          </div>
+          <div class="small text-muted mt-1">En revisión previa a despliegue</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border border-success-subtle shadow-sm h-100 mb-0">
+        <div class="card-body p-3">
+          <div class="text-success small fw-semibold text-uppercase">Pases a Producción</div>
+          <div class="d-flex align-items-baseline justify-content-between mt-1">
+            <h3 class="fw-bold text-success mb-0">{{ totalRfcCompletados }}</h3>
+            <span class="badge bg-success text-white">Vercel &amp; Render</span>
+          </div>
+          <div class="small text-muted mt-1">Pases verificados sin incidentes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border border-danger-subtle shadow-sm h-100 mb-0">
+        <div class="card-body p-3">
+          <div class="text-danger small fw-semibold text-uppercase">Incidentes en Auditoría PIR</div>
+          <div class="d-flex align-items-baseline justify-content-between mt-1">
+            <h3 class="fw-bold text-danger mb-0">{{ criticalIncidentsForPir.length }}</h3>
+            <span class="badge bg-danger text-white">P1 &amp; P2</span>
+          </div>
+          <div class="small text-muted mt-1">Análisis Causa Raíz (5 Porqués)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVEGACIÓN POR PESTAÑAS: ADMINISTRADOR -->
+  <div class="card border shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom p-2">
+      <ul class="nav nav-pills gap-2 flex-wrap">
+        <li class="nav-item">
+          <button class="nav-link fw-bold" [class.active]="adminTab === 'dimensiones'" (click)="adminTab = 'dimensiones'">
+            1. Control de Cambios por Dimensión Técnica (Semana 11)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" [class.active]="adminTab === 'pase-calendario'" (click)="adminTab = 'pase-calendario'">
+            2. Documentación de Pase &amp; Calendarización
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" [class.active]="adminTab === 'pir-auditoria'" (click)="adminTab = 'pir-auditoria'">
+            3. Auditoría Post-Mortem (PIR) de Incidentes Críticos
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" [class.active]="adminTab === 'bandeja'" (click)="adminTab = 'bandeja'">
+            4. Bandeja Global de Solicitudes (Auditoría CAB)
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card-body p-4">
+      <!-- PESTAÑA ADMIN 1: DIMENSIONES -->
+      <div *ngIf="adminTab === 'dimensiones'">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">Consolidado de Cambios por Dimensión Técnica y Estado</h5>
+          <p class="text-muted small mb-0">
+            Resumen operativo de cambios en <strong>Infraestructura</strong>, <strong>Aplicaciones y BD</strong>, <strong>Documentación</strong> y <strong>Calendario</strong> según su estado actual (<strong>Abiertos</strong>, <strong>En Proceso</strong> y <strong>Completados</strong>).
+          </p>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border px-3 py-2">
+          Sincronizado con tabla <code>tickets_soporte_cambios</code>
+        </span>
+      </div>
+
+      <!-- TABLA RESUMEN DE MÉTRICAS POR DIMENSIÓN Y ESTADO -->
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Dimensión Técnica</th>
+              <th>Componentes Abarcados en Finnova</th>
+              <th class="text-center">Abiertos</th>
+              <th class="text-center">En Proceso</th>
+              <th class="text-center">Completados</th>
+              <th class="text-center">Total Dimensión</th>
+              <th style="min-width: 170px;">Avance de Ejecución</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of metricsByDimension">
+              <td>
+                <span class="fw-bold text-dark">{{ row.dimension }}</span>
+              </td>
+              <td class="small text-muted">
+                <span *ngIf="row.dimension === 'Infraestructura'">Vercel CDN, Render Web Service, TiDB Cloud SSL/TLS, Rate Limit</span>
+                <span *ngIf="row.dimension === 'Aplicaciones y BD'">Angular 17 SPA, Express 5 REST API, Migraciones DDL e Índices SQL</span>
+                <span *ngIf="row.dimension === 'Documentación'">Runbook Pase a Producción (Front/Back), OpenAPI/Swagger, Diccionario BD</span>
+                <span *ngIf="row.dimension === 'Calendario'">Cron Job <code>keepAlive.js</code> (10m), Ventana Dom 01-03 AM, Code Freeze Fin de Mes</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-warning text-dark px-3 py-1 fs-6">{{ row.abiertos }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-info text-dark px-3 py-1 fs-6">{{ row.en_proceso }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-success px-3 py-1 fs-6">{{ row.completados }}</span>
+              </td>
+              <td class="text-center">
+                <span class="fw-bold fs-6 text-primary">{{ row.total }}</span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" [style.width.%]="row.porcentaje_completado"></div>
+                  </div>
+                  <span class="small fw-bold text-muted">{{ row.porcentaje_completado }}%</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot class="table-light fw-bold">
+            <tr>
+              <td colspan="2" class="text-end">TOTAL GENERAL DE CAMBIOS (RFC EN LAS 4 DIMENSIONES):</td>
+              <td class="text-center text-warning-emphasis fs-6">{{ totalRfcAbiertos }}</td>
+              <td class="text-center text-info-emphasis fs-6">{{ totalRfcEnProceso }}</td>
+              <td class="text-center text-success fs-6">{{ totalRfcCompletados }}</td>
+              <td class="text-center text-primary fs-5">{{ totalRfcCount }}</td>
+              <td class="small text-muted">100% Trazado en Jira</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- CUADRÍCULA DE TARJETAS POR LAS 4 DIMENSIONES TÉCNICAS -->
+      <div class="row g-3">
+        <div class="col-12 col-xl-6" *ngFor="let dim of ['Infraestructura', 'Aplicaciones y BD', 'Documentación', 'Calendario']">
+          <div class="card border h-100 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2 px-3">
+              <div>
+                <span class="badge bg-primary me-2">DIMENSIÓN</span>
+                <strong class="text-dark">{{ dim }}</strong>
+              </div>
+              <span class="badge bg-white text-dark border">
+                {{ getTicketsByDimension($any(dim)).length }} incidencias / cambios
+              </span>
+            </div>
+            <div class="card-body p-3">
+              <div *ngFor="let item of getTicketsByDimension($any(dim))" class="border rounded p-3 mb-2 bg-white">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                  <div>
+                    <span class="badge bg-dark me-1">{{ item.codigo_jira }}</span>
+                    <span class="badge bg-light text-secondary border me-1">{{ item.id_ticket }}</span>
+                    <span class="badge bg-secondary-subtle text-secondary border">{{ item.tipo_cambio_itil }}</span>
+                  </div>
+                  <span class="badge" [ngClass]="{
+                    'bg-warning text-dark': item.estado === 'Abierto',
+                    'bg-info text-dark': item.estado === 'En Proceso',
+                    'bg-success': item.estado === 'Completado',
+                    'bg-danger': item.estado === 'Rechazado'
+                  }">
+                    {{ item.estado }}
+                  </span>
+                </div>
+                <div class="fw-bold text-dark mt-1">{{ item.titulo }}</div>
+                <div class="small text-muted mt-1">{{ item.descripcion }}</div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2 pt-2 border-top">
+                  <div class="small text-muted">
+                    <strong>Ventana:</strong> {{ item.ventana_calendarizacion }}
+                  </div>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" (click)="openDetailModal(item)">
+                      Ver Acta
+                    </button>
+                    <button *ngIf="canQualifyCab" class="btn btn-sm btn-outline-primary py-0 px-2" (click)="openQualifyModal(item)">
+                      Editar / Estado
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <!-- PESTAÑA ADMIN 2: PASE Y CALENDARIZACIÓN -->
+      <div *ngIf="adminTab === 'pase-calendario'">
       <!-- EXPLICACIÓN TÉCNICA DE CAMBIO DE CALENDARIZACIÓN -->
       <div class="alert alert-info border-info mb-4">
         <h6 class="fw-bold text-dark mb-1">Esquema de Calendarización y Ventanas Operativas en Finnova</h6>
@@ -870,9 +993,445 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
+      </div>
 
+      <!-- PESTAÑA ADMIN 3: AUDITORÍA POST-MORTEM (PIR) -->
+      <div *ngIf="adminTab === 'pir-auditoria'">
+        <div class="alert alert-light border shadow-sm mb-3">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <span class="badge bg-danger me-2">POST-IMPLEMENTATION REVIEW (PIR)</span>
+              <strong class="text-dark fs-6">Auditoría de Causa Raíz (RCA) &amp; Prevención de Recurrencia</strong>
+            </div>
+            <span class="badge bg-dark">Aprobación exclusiva por Tech Lead / CAB</span>
+          </div>
+          <p class="small text-muted mb-0 mt-2">
+            Conforme a ITIL 4, tras la estabilización de un incidente P1 o P2 mediante <strong>Workaround</strong> por Soporte TI, el Administrador del Comité CAB debe auditar los <strong>5 Porqués</strong>, validar la acción correctiva definitiva y certificar el pase sin riesgo operacional.
+          </p>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle border bg-white mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th>Ticket / Jira</th>
+                <th>Incidente &amp; Componente</th>
+                <th>Severidad SLA</th>
+                <th>Workaround Aplicado por Soporte TI</th>
+                <th>Causa Raíz RCA (5 Porqués)</th>
+                <th>Estado Post-Mortem</th>
+                <th class="text-end">Acción de Auditoría</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let inc of criticalIncidentsForPir">
+                <td>
+                  <span class="badge bg-dark fw-bold mb-1">{{ inc.codigo_jira }}</span>
+                  <div class="small text-primary fw-semibold">{{ inc.id_ticket }}</div>
+                </td>
+                <td style="max-width: 280px;">
+                  <div class="fw-bold text-dark">{{ inc.titulo }}</div>
+                  <div class="small text-muted text-truncate">{{ inc.componente_afectado }}</div>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="{
+                    'bg-danger text-white': inc.severidad_sla === 'P1 - Crítico',
+                    'bg-warning text-dark': inc.severidad_sla === 'P2 - Alto',
+                    'bg-info text-dark': inc.severidad_sla === 'P3 - Medio',
+                    'bg-secondary': !inc.severidad_sla || inc.severidad_sla === 'P4 - Bajo'
+                  }">{{ inc.severidad_sla || 'P2 - Alto' }}</span>
+                </td>
+                <td style="max-width: 250px;">
+                  <div class="small text-success fw-semibold" *ngIf="inc.solucion_temporal_workaround">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                      <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+                    </svg>
+                    {{ inc.solucion_temporal_workaround }}
+                  </div>
+                  <div class="small text-muted" *ngIf="!inc.solucion_temporal_workaround">Pendiente en Soporte TI L2</div>
+                </td>
+                <td style="max-width: 260px;">
+                  <div class="small text-dark text-truncate" [title]="inc.rca_causa_raiz || 'Pendiente de formulación'">
+                    {{ inc.rca_causa_raiz || 'Falta documentar 5 Porqués' }}
+                  </div>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="inc.rca_causa_raiz ? 'bg-success' : 'bg-warning text-dark'">
+                    {{ inc.rca_causa_raiz ? 'PIR Documentado' : 'Pendiente CAB' }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <div class="d-flex gap-1 justify-content-end">
+                    <button class="btn btn-sm btn-outline-danger fw-semibold" (click)="openPirModal(inc)" title="Revisar / Aprobar Post-Mortem">
+                      RCA &amp; PIR
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" (click)="openDetailModal(inc)">
+                      Detalle
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PESTAÑA ADMIN 4: BANDEJA GLOBAL -->
+      <div *ngIf="adminTab === 'bandeja'">
+      <div class="row g-2 align-items-end mb-3">
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-bold mb-1">Tipo de Solicitud</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterTipoTicket">
+            <option value="TODOS">Todos los Tipos</option>
+            <option value="Incidente Técnico">Incidentes Técnicos (INC)</option>
+            <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda (SRQ)</option>
+            <option value="Acceso / Credenciales">Acceso / Credenciales</option>
+            <option value="Requerimiento de Cambio">Requerimiento de Cambio (RFC)</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small fw-bold mb-1">Dimensión Técnica</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterDimension">
+            <option value="TODAS">Todas las Dimensiones</option>
+            <option value="Infraestructura">1. Infraestructura</option>
+            <option value="Aplicaciones y BD">2. Aplicaciones y BD</option>
+            <option value="Documentación">3. Documentación</option>
+            <option value="Calendario">4. Calendario</option>
+            <option value="Por Clasificar">Por Clasificar</option>
+            <option value="N/A - Mesa de Ayuda">N/A - Atención Directa</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Estado</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterEstado">
+            <option value="TODOS">Todos los Estados</option>
+            <option value="Abierto">Abierto</option>
+            <option value="En Proceso">En Proceso</option>
+            <option value="Completado">Completado</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label small fw-bold mb-1">Buscar por Jira, Código, Título o Error</label>
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm" placeholder="Ej. INC-2026-001, FCC-101, ER_CON_COUNT_ERROR..." />
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle border" style="min-width: 1050px;">
+          <thead class="table-light">
+            <tr>
+              <th>Ticket / Jira</th>
+              <th>Solicitud / Incidencia Técnica</th>
+              <th>Severidad &amp; SLA</th>
+              <th>¿Aplica Cambio?</th>
+              <th>Dimensión Técnica</th>
+              <th>Estado</th>
+              <th class="text-end" style="min-width: 210px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of filteredTickets">
+              <td>
+                <div class="d-flex align-items-center gap-1 mb-1">
+                  <span class="badge bg-dark fw-bold">{{ t.codigo_jira }}</span>
+                  <span class="badge bg-light text-primary border">{{ t.id_ticket }}</span>
+                </div>
+                <div class="small text-muted">{{ t.solicitante_nombre }}</div>
+                <span class="badge bg-secondary-subtle text-secondary border small">{{ t.tipo_solicitud }}</span>
+              </td>
+              <td style="max-width: 320px;">
+                <div class="fw-bold text-dark">{{ t.titulo }}</div>
+                <div class="small text-muted text-truncate" [title]="t.descripcion">{{ t.descripcion }}</div>
+                <div class="small text-primary mt-1">
+                  <strong>Componente:</strong> {{ t.componente_afectado }}
+                </div>
+                <div *ngIf="t.codigo_error" class="small text-danger">
+                  <code>{{ t.codigo_error }}</code>
+                </div>
+              </td>
+              <td>
+                <span *ngIf="t.severidad_sla" class="badge" [ngClass]="{
+                  'bg-danger text-white': t.severidad_sla === 'P1 - Crítico',
+                  'bg-warning text-dark': t.severidad_sla === 'P2 - Alto',
+                  'bg-info text-dark': t.severidad_sla === 'P3 - Medio',
+                  'bg-secondary': t.severidad_sla === 'P4 - Bajo'
+                }">{{ t.severidad_sla }}</span>
+                <span *ngIf="!t.severidad_sla" class="badge bg-light text-muted border">{{ t.prioridad }}</span>
+                <div class="small text-muted mt-1" *ngIf="t.mtta_sla_min">
+                  MTTA: {{ t.mtta_sla_min }}m &bull; MTTR: {{ t.mttr_sla_horas }}h
+                </div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-primary': t.aplica_cambio === 'Si Aplica (RFC)',
+                  'bg-secondary': t.aplica_cambio === 'No Aplica (Soporte Directo)',
+                  'bg-warning text-dark': t.aplica_cambio === 'Pendiente Evaluación'
+                }">
+                  {{ t.aplica_cambio }}
+                </span>
+              </td>
+              <td>
+                <span class="badge border px-2 py-1" [ngClass]="{
+                  'bg-danger-subtle text-danger border-danger-subtle': t.dimension_tecnica === 'Infraestructura',
+                  'bg-primary-subtle text-primary border-primary-subtle': t.dimension_tecnica === 'Aplicaciones y BD',
+                  'bg-success-subtle text-success border-success-subtle': t.dimension_tecnica === 'Documentación',
+                  'bg-info-subtle text-info-emphasis border-info-subtle': t.dimension_tecnica === 'Calendario',
+                  'bg-light text-muted': t.dimension_tecnica === 'Por Clasificar' || t.dimension_tecnica === 'N/A - Mesa de Ayuda'
+                }">
+                  {{ t.dimension_tecnica }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-warning text-dark': t.estado === 'Abierto',
+                  'bg-info text-dark': t.estado === 'En Proceso',
+                  'bg-success': t.estado === 'Completado',
+                  'bg-danger': t.estado === 'Rechazado'
+                }">
+                  {{ t.estado }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="d-inline-flex gap-1 flex-wrap">
+                  <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(t)">
+                    Ficha
+                  </button>
+                  <button *ngIf="canApplyWorkaround" class="btn btn-sm btn-outline-warning text-dark" (click)="openWorkaroundModal(t)">
+                    Workaround
+                  </button>
+                  <button *ngIf="canQualifyCab" class="btn btn-sm btn-primary" (click)="openQualifyModal(t)">
+                    Calificar CAB
+                  </button>
+                  <button *ngIf="canDelete" class="btn btn-sm btn-outline-danger" (click)="deleteTicket(t)" title="Eliminar">
+                    &times;
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- ========================================================================= -->
+<!-- VISTA 3: ROL ASESOR / CLIENTE (MESA DE AYUDA Y PORTAL DE INCIDENTES)      -->
+<!-- ========================================================================= -->
+<ng-container *ngIf="isAsesor || isCliente">
+  <!-- CABECERA USUARIO -->
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+              <span class="badge bg-light text-primary fw-bold">MESA DE AYUDA FINNOVA • CANAL DE ATENCIÓN Y SOPORTE A USUARIOS</span>
+              <span class="badge bg-white text-dark fw-bold border">
+                Rol Activo: {{ isAsesor ? 'Juan Pérez (Asesor Comercial)' : 'María López (Cliente Finnova)' }}
+              </span>
+            </div>
+            <h4 class="text-white fw-bold mb-1">Centro de Soporte, Reporte de Problemas &amp; Mesa de Ayuda</h4>
+            <p class="mb-0 text-white-50 small">
+              ¿Experimenta alguna dificultad con sus solicitudes, pagos o acceso al sistema? Reporte su caso a nuestro equipo de Soporte TI. Su incidencia será atendida con prioridad garantizada bajo acuerdos de nivel de servicio (SLA).
+            </p>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-light text-primary fw-bold btn-lg d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
+              <span>+ Reportar Incidencia / Solicitar Ayuda</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 KPIS DE USUARIO -->
+    <div class="col-6 col-md-3">
+      <div class="card border border-primary-subtle shadow-sm h-100 mb-0">
+        <div class="card-body p-3">
+          <div class="text-primary small fw-semibold text-uppercase">Mis Casos Reportados</div>
+          <div class="d-flex align-items-baseline justify-content-between mt-1">
+            <h3 class="fw-bold text-primary mb-0">{{ myReportedCount }}</h3>
+            <span class="badge bg-primary-subtle text-primary border">Tickets</span>
+          </div>
+          <div class="small text-muted mt-1">Total de solicitudes enviadas</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border border-warning-subtle shadow-sm h-100 mb-0">
+        <div class="card-body p-3">
+          <div class="text-warning-emphasis small fw-semibold text-uppercase">En Atención por Soporte TI</div>
+          <div class="d-flex align-items-baseline justify-content-between mt-1">
+            <h3 class="fw-bold text-warning-emphasis mb-0">{{ myInProgressCount }}</h3>
+            <span class="badge bg-warning text-dark">Asignados</span>
+          </div>
+          <div class="small text-muted mt-1">En diagnóstico por Ing. Carlos Mendoza</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border border-success-subtle shadow-sm h-100 mb-0">
+        <div class="card-body p-3">
+          <div class="text-success small fw-semibold text-uppercase">Casos Resueltos</div>
+          <div class="d-flex align-items-baseline justify-content-between mt-1">
+            <h3 class="fw-bold text-success mb-0">{{ myResolvedCount }}</h3>
+            <span class="badge bg-success text-white">Completados</span>
+          </div>
+          <div class="small text-muted mt-1">Solución aplicada y validada</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border border-info-subtle shadow-sm h-100 mb-0">
+        <div class="card-body p-3">
+          <div class="text-info-emphasis small fw-semibold text-uppercase">Garantía de SLA</div>
+          <div class="d-flex align-items-baseline justify-content-between mt-1">
+            <h3 class="fw-bold text-info-emphasis mb-0">100%</h3>
+            <span class="badge bg-info text-dark">Cumplido</span>
+          </div>
+          <div class="small text-muted mt-1">Tiempo de respuesta &le; 15 min</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE SEGUIMIENTO DE MIS SOLICITUDES -->
+  <div class="card border shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h5 class="fw-bold text-dark mb-0">Mis Solicitudes e Incidentes Reportados</h5>
+        <span class="small text-muted">Historial de tickets registrados por su usuario y estado de atención en tiempo real</span>
+      </div>
+      <button class="btn btn-primary fw-semibold btn-sm d-flex align-items-center gap-1" (click)="openNewTicketModal()">
+        <span>+ Nuevo Reporte</span>
+      </button>
+    </div>
+    <div class="card-body p-3">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle border bg-white mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Código Ticket</th>
+              <th>Asunto / Problema Reportado</th>
+              <th>Módulo Afectado</th>
+              <th>Prioridad</th>
+              <th>Estado de Atención</th>
+              <th>Especialista Asignado</th>
+              <th>Respuesta / Solución de Soporte TI</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of myReportedTickets">
+              <td>
+                <span class="badge bg-dark fw-bold mb-1">{{ t.id_ticket }}</span>
+                <div class="small text-muted" *ngIf="t.codigo_jira">{{ t.codigo_jira }}</div>
+              </td>
+              <td style="max-width: 280px;">
+                <div class="fw-bold text-dark">{{ t.titulo }}</div>
+                <div class="small text-muted text-truncate" [title]="t.descripcion">{{ t.descripcion }}</div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ t.componente_afectado }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-danger text-white': t.prioridad === 'Crítica',
+                  'bg-warning text-dark': t.prioridad === 'Alta',
+                  'bg-info text-dark': t.prioridad === 'Media',
+                  'bg-secondary': t.prioridad === 'Baja'
+                }">{{ t.prioridad }}</span>
+              </td>
+              <td>
+                <span class="badge px-2 py-1" [ngClass]="{
+                  'bg-success': t.estado === 'Completado',
+                  'bg-warning text-dark': t.estado === 'En Proceso',
+                  'bg-primary': t.estado === 'Abierto',
+                  'bg-secondary': t.estado === 'Rechazado'
+                }">{{ t.estado === 'Completado' ? 'Resuelto' : (t.estado === 'En Proceso' ? 'En Atención' : 'Recibido') }}</span>
+              </td>
+              <td>
+                <div class="small fw-semibold text-dark">{{ t.atendido_por || 'Ing. Carlos Mendoza (Soporte TI L2)' }}</div>
+                <span class="badge bg-light text-muted border small">Mesa de Operaciones</span>
+              </td>
+              <td style="max-width: 280px;">
+                <div class="p-2 rounded bg-light border small text-dark" *ngIf="t.solucion_temporal_workaround || t.resolucion_tecnica">
+                  <strong class="text-success d-block mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                      <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+                    </svg>
+                    Solución de Soporte:
+                  </strong>
+                  {{ t.solucion_temporal_workaround || t.resolucion_tecnica }}
+                </div>
+                <div class="small text-muted fst-italic" *ngIf="!t.solucion_temporal_workaround && !t.resolucion_tecnica">
+                  Ticket recibido. El especialista está analizando el caso bajo SLA.
+                </div>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary" (click)="openDetailModal(t)">
+                  Ver Detalle
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TARJETA INFORMATIVA: COMPROMISO SLA -->
+  <div class="card border border-info-subtle shadow-sm mb-4 bg-info-subtle bg-opacity-10">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge bg-info text-dark fw-bold">ACUERDO DE NIVEL DE SERVICIO (SLA)</span>
+        <strong class="text-dark">Compromiso de Tiempos de Atención para Usuarios</strong>
+      </div>
+      <p class="small text-muted mb-3">
+        Todos los reportes ingresados por este canal son clasificados automáticamente según el impacto operativo. Soporte TI cuenta con límites de tiempo contractuales para responder y brindar solución:
+      </p>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 bg-white rounded border border-danger-subtle">
+            <span class="badge bg-danger text-white mb-1">Caso Bloqueante (P1)</span>
+            <div class="fw-bold text-dark small">No puede operar la plataforma</div>
+            <div class="small text-muted mt-1">Primera Respuesta: <strong>&le; 15 min</strong></div>
+            <div class="small text-muted">Solución Temporal: <strong>&le; 2 horas</strong></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-white rounded border border-warning-subtle">
+            <span class="badge bg-warning text-dark mb-1">Caso con Retraso (P2)</span>
+            <div class="fw-bold text-dark small">Lentitud o error intermitente</div>
+            <div class="small text-muted mt-1">Primera Respuesta: <strong>&le; 30 min</strong></div>
+            <div class="small text-muted">Solución Temporal: <strong>&le; 6 horas</strong></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 bg-white rounded border border-info-subtle">
+            <span class="badge bg-info text-dark mb-1">Consulta o Soporte (P3/P4)</span>
+            <div class="fw-bold text-dark small">Dudas de uso o solicitud menor</div>
+            <div class="small text-muted mt-1">Primera Respuesta: <strong>&le; 1 hora</strong></div>
+            <div class="small text-muted">Solución Temporal: <strong>&le; 24 horas</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- ========================================================================= -->
+<!-- MODALES COMPARTIDOS (NUEVO TICKET, WORKAROUND, PIR, CALIFICACIÓN, DETALLE)-->
+<!-- ========================================================================= -->
 <!-- ========================================================================= -->
 <!-- MODAL 1: FORMULARIO EXTENDIDO DE SOPORTE E INCIDENTES TÉCNICOS (SEMANA 14) -->
 <!-- ========================================================================= -->
@@ -888,7 +1447,64 @@
       </div>
       <div class="modal-body p-4">
         <form (ngSubmit)="saveNewTicket()">
-          <div class="row g-3">
+
+          <!-- VARIANTE 1: FORMULARIO AMIGABLE PARA USUARIOS (ASESOR / CLIENTE) -->
+          <div *ngIf="isCliente || isAsesor" class="mb-3">
+            <div class="alert alert-info border-info mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary">Atención Garantizada SLA</span>
+                <strong class="text-dark">Reporte directo al Ing. Carlos Mendoza (Soporte TI L2)</strong>
+              </div>
+              <div class="small text-muted mt-1">
+                Su caso será registrado en la cola de atención inmediata. Se garantiza una primera respuesta en &le; 15 min para casos bloqueantes.
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-bold">Asunto / Problema que experimenta <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="newTitulo" name="userTitulo"
+                  placeholder="Ej. Falla al cargar comprobante de pago en validación de voucher" required />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Módulo o Pantalla donde ocurre</label>
+                <select class="form-select" [(ngModel)]="newComponente" name="userComponente">
+                  <option value="Módulo de Solicitud de Crédito / Voucher (Frontend)">Módulo de Solicitud de Crédito / Voucher</option>
+                  <option value="Bandeja de Aprobación de Asesor">Bandeja de Aprobación de Asesor</option>
+                  <option value="Módulo de Citas y Calendario">Módulo de Citas y Calendario</option>
+                  <option value="Autenticación / Inicio de Sesión">Autenticación / Inicio de Sesión</option>
+                  <option value="Validación de Cobranzas">Validación de Cobranzas</option>
+                  <option value="Otro Módulo">Otro Módulo</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Nivel de Afectación (Urgencia)</label>
+                <select class="form-select" [(ngModel)]="newUrgencia" name="userUrgencia" (change)="onMatrixChange()">
+                  <option value="Crítica">Urgente (No puedo continuar trabajando / Bloqueante)</option>
+                  <option value="Alta">Alta (Puedo trabajar pero con mucha lentitud o errores)</option>
+                  <option value="Media">Media (Afectación menor o retraso moderado)</option>
+                  <option value="Baja">Baja (Consulta general o duda operativa)</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-bold">Descripción detallada de lo sucedido <span class="text-danger">*</span></label>
+                <textarea class="form-control" rows="3" [(ngModel)]="newDescripcion" name="userDescripcion"
+                  placeholder="Explique qué estaba intentando hacer y qué mensaje o comportamiento erróneo observó..." required></textarea>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-bold">Pasos que realizó antes de que ocurriera el error</label>
+                <textarea class="form-control" rows="2" [(ngModel)]="newPasosReproducir" name="userPasos"
+                  placeholder="1. Ingresé a la pantalla... 2. Presioné el botón... 3. El sistema mostró..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- VARIANTE 2: FORMULARIO TÉCNICO COMPLETO (SOPORTE TI & ADMIN) -->
+          <div *ngIf="isSoporteTI || isAdmin" class="row g-3">
 
             <!-- TIPO DE SOLICITUD Y TITULO -->
             <div class="col-md-4">
@@ -1054,11 +1670,14 @@
               </div>
             </div>
 
+            </div>
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
-            <button type="submit" class="btn btn-primary fw-bold px-4">Guardar Ticket en Bandeja</button>
+            <button type="submit" class="btn btn-primary fw-bold px-4">
+              {{ (isCliente || isAsesor) ? 'Enviar Incidencia a Soporte TI' : 'Guardar Ticket en Bandeja' }}
+            </button>
           </div>
         </form>
       </div>
@@ -1340,3 +1959,4 @@
     </div>
   </div>
 </div>
+

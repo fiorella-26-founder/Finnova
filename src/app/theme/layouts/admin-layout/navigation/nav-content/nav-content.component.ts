@@ -113,7 +113,7 @@ const SoporteTINavigationItems: NavigationItem[] = [
     children: [
       {
         id: 'support-changes',
-        title: 'Mesa de Ayuda, Incidentes & Cambios',
+        title: 'Gestión de Incidentes & SLA',
         type: 'item',
         classes: 'nav-item',
         url: '/dashboard/support-changes',

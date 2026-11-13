@@ -43,7 +43,7 @@
       style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); height: 36px;" ngbDropdownToggle>
       <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar rounded-circle border border-white" style="width:26px; height:26px;" />
       <span class="fw-bold text-white fs-6">
-        {{ (authService.currentUser$ | async)?.nombre_completo || ((dataService.activeRole$ | async) === 'Administrador' ? 'Fiorella Gamarra (Admin / CAB)' : ((dataService.activeRole$ | async) === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez (Asesor)' : 'María López (Cliente)'))) }}
+        {{ (dataService.activeRole$ | async) === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez (Asesor)' : ((dataService.activeRole$ | async) === 'Cliente' ? 'María López (Cliente)' : ((authService.currentUser$ | async)?.nombre_completo || 'Fiorella Gamarra (Admin / CAB)'))) }}
       </span>
     </a>
     <div class="dropdown-user-profile dropdown-menu-end pc-h-dropdown shadow-lg border-0 rounded-3 mt-2 p-0 overflow-hidden" ngbDropdownMenu style="min-width: 260px;">
@@ -52,10 +52,10 @@
           <img src="assets/images/user/avatar-2.jpg" alt="user-image" class="user-avatar rounded-circle shadow-sm" style="width:42px; height:42px;" />
           <div>
             <h6 class="mb-0 fw-bold text-dark fs-6">
-              {{ (authService.currentUser$ | async)?.nombre_completo || ((dataService.activeRole$ | async) === 'Administrador' ? 'Fiorella Gamarra' : ((dataService.activeRole$ | async) === 'Soporte TI' ? 'Ing. Carlos Mendoza' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez' : 'María López'))) }}
+              {{ (dataService.activeRole$ | async) === 'Soporte TI' ? 'Ing. Carlos Mendoza' : ((dataService.activeRole$ | async) === 'Asesor' ? 'Juan Pérez' : ((dataService.activeRole$ | async) === 'Cliente' ? 'María López' : 'Fiorella Gamarra')) }}
             </h6>
-            <div class="small text-muted mb-1">{{ (authService.currentUser$ | async)?.correo_electronico || ((dataService.activeRole$ | async) === 'Soporte TI' ? 'soporte.ti@finnova.pe' : 'admin@finnova.pe') }}</div>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ (authService.currentUser$ | async)?.rol || (dataService.activeRole$ | async) }}</span>
+            <div class="small text-muted mb-1">{{ (dataService.activeRole$ | async) === 'Soporte TI' ? 'soporte.ti@finnova.pe' : ((dataService.activeRole$ | async) === 'Asesor' ? 'asesor.juan@finnova.pe' : ((dataService.activeRole$ | async) === 'Cliente' ? 'cliente.maria@gmail.com' : 'admin@finnova.pe')) }}</div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ dataService.activeRole$ | async }}</span>
           </div>
         </div>
       </div>
