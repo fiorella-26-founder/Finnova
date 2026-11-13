@@ -1,7 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CardComponent } from 'src/app/theme/shared/components/card/card.component';
 import {
   FinnovaDataService,
   SupportChangeTicket,
@@ -23,7 +22,7 @@ import { ConfirmDialogService } from 'src/app/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-support-changes',
-  imports: [CommonModule, FormsModule, CardComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './support-changes.html',
   styleUrl: './support-changes.scss'
 })
