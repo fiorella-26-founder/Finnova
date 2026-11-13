@@ -9,7 +9,7 @@
         <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
           <div>
             <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-              <span class="badge bg-light text-primary fw-bold">MESA DE OPERACIONES TI • ITIL 4 INCIDENT MANAGEMENT &amp; SLA (SEMANA 14)</span>
+              <span class="badge bg-light text-primary fw-bold">MESA DE OPERACIONES TI • ITIL 4 INCIDENT MANAGEMENT &amp; SLA</span>
               <span class="badge bg-white text-dark fw-bold border">
                 Rol Activo: Soporte TI (Ing. Carlos Mendoza - L2 DevOps &amp; Incident Response)
               </span>
@@ -35,7 +35,7 @@
   <div class="col-6 col-md-4 col-xl">
     <div class="card border border-danger-subtle shadow-sm h-100 mb-0">
       <div class="card-body p-3">
-        <div class="text-danger small fw-semibold text-uppercase">Incidentes Activos (S14)</div>
+        <div class="text-danger small fw-semibold text-uppercase">Incidentes Activos</div>
         <div class="d-flex align-items-baseline justify-content-between mt-1">
           <h3 class="fw-bold text-danger mb-0">{{ totalIncidentsCount }}</h3>
           <span class="badge bg-danger text-white">{{ p1Count }} Críticos (P1)</span>
@@ -61,7 +61,7 @@
   <div class="col-6 col-md-4 col-xl">
     <div class="card border border-primary-subtle shadow-sm h-100 mb-0">
       <div class="card-body p-3">
-        <div class="text-primary small fw-semibold text-uppercase">Escalados a RFC (S11)</div>
+        <div class="text-primary small fw-semibold text-uppercase">Escalados a RFC</div>
         <div class="d-flex align-items-baseline justify-content-between mt-1">
           <h3 class="fw-bold text-primary mb-0">{{ totalRfcCount }}</h3>
           <span class="badge bg-primary-subtle text-primary border">4 Dimensiones</span>
@@ -760,7 +760,7 @@
       <ul class="nav nav-pills gap-2 flex-wrap">
         <li class="nav-item">
           <button class="nav-link fw-bold" [class.active]="adminTab === 'dimensiones'" (click)="adminTab = 'dimensiones'">
-            1. Control de Cambios por Dimensión Técnica (Semana 11)
+            1. Control de Cambios por Dimensión Técnica
           </button>
         </li>
         <li class="nav-item">
@@ -1427,7 +1427,7 @@
 <!-- MODALES COMPARTIDOS (NUEVO TICKET, WORKAROUND, PIR, CALIFICACIÓN, DETALLE)-->
 <!-- ========================================================================= -->
 <!-- ========================================================================= -->
-<!-- MODAL 1: FORMULARIO EXTENDIDO DE SOPORTE E INCIDENTES TÉCNICOS (SEMANA 14) -->
+<!-- MODAL 1: FORMULARIO EXTENDIDO DE SOPORTE E INCIDENTES TÉCNICOS -->
 <!-- ========================================================================= -->
 <div *ngIf="isNewTicketModalOpen" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
   <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -1772,7 +1772,7 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 4: CALIFICACIÓN CAB Y ASIGNACIÓN DE DIMENSIÓN TÉCNICA (SEMANA 11)   -->
+<!-- MODAL 4: CALIFICACIÓN CAB Y ASIGNACIÓN DE DIMENSIÓN TÉCNICA -->
 <!-- ========================================================================= -->
 <div *ngIf="isQualifyModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
   <div class="modal-dialog modal-lg modal-dialog-centered">
