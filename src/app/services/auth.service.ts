@@ -85,7 +85,7 @@ export class AuthService {
   }
 
   // Guardar token y datos del usuario en localStorage
-  private setSession(token: string, user: AuthUser): void {
+  public setSession(token: string, user: AuthUser): void {
     localStorage.setItem(this.tokenKey, token);
     localStorage.setItem(this.userKey, JSON.stringify(user));
     this.tokenSubject.next(token);

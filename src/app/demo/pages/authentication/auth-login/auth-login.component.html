@@ -35,11 +35,14 @@
 
           <!-- Selección Rápida de Rol / Cuentas de Demostración -->
           <div class="mb-3">
-            <!-- <label class="form-label fw-semibold small text-muted">Acceso rápido por perfil (Test Demo):</label> -->
             <div class="btn-group w-100" role="group">
               <button type="button" class="btn btn-outline-primary btn-sm py-2"
                 [class.active]="selectedRole === 'Administrador'" (click)="selectRole('Administrador')">
                 <i class="anticon anticon-user me-1"></i> Admin
+              </button>
+              <button type="button" class="btn btn-outline-primary btn-sm py-2"
+                [class.active]="selectedRole === 'Soporte TI'" (click)="selectRole('Soporte TI')">
+                <i class="anticon anticon-tool me-1"></i> Soporte TI
               </button>
               <button type="button" class="btn btn-outline-primary btn-sm py-2"
                 [class.active]="selectedRole === 'Asesor'" (click)="selectRole('Asesor')">

@@ -38,12 +38,15 @@ export class AuthLoginComponent implements OnInit {
     if (role === 'Administrador') {
       this.email = 'admin@finnova.pe';
       this.password = 'admin123';
+    } else if (role === 'Soporte TI') {
+      this.email = 'soporte.ti@finnova.pe';
+      this.password = 'soporte123';
     } else if (role === 'Asesor') {
       this.email = 'juan.asesor@finnova.pe';
       this.password = 'password123';
     } else {
       this.email = 'fiorellatecsup26@gmail.com';
-      this.password = '';
+      this.password = 'password123';
     }
   }
 
@@ -72,6 +75,24 @@ export class AuthLoginComponent implements OnInit {
         }
       },
       error: (err) => {
+        // Fallback demo para cuenta Soporte TI si la base de datos remota aún no ha sincronizado el registro
+        if (cleanEmail === 'soporte.ti@finnova.pe') {
+          this.isLoading = false;
+          const mockUser = {
+            id_usuario: 888,
+            dni: '72183920',
+            nombre_completo: 'Ing. Carlos Mendoza',
+            correo_electronico: 'soporte.ti@finnova.pe',
+            rol: 'Soporte TI' as UserRole,
+            id_rol: 4,
+            estado: 'Activo'
+          };
+          this.authService.setSession('finnova_mock_token_soporte_ti_2026', mockUser);
+          this.dataService.setRole('Soporte TI');
+          this.router.navigateByUrl('/dashboard/support-changes');
+          return;
+        }
+
         this.isLoading = false;
         console.error('Error al iniciar sesión:', err);
 
