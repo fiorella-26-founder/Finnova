@@ -66,6 +66,8 @@ export class SupportChangesManagement implements OnInit {
   isWorkaroundModalOpen = false;
   isPirModalOpen = false;
   selectedTicket: SupportChangeTicket | null = null;
+  sourceKbTicket: SupportChangeTicket | null = null;
+  targetIncidentIdForKb = '';
 
   // Formulario Extendido de Nueva Solicitud / Incidente Técnico
   newTitulo = '';
@@ -430,20 +432,47 @@ export class SupportChangesManagement implements OnInit {
     }, 2000);
   }
 
-  reuseKbSolution(kb: SupportChangeTicket) {
-    this.dataService.incrementKbReuse(kb.id_ticket);
-    // Abrir modal de nuevo incidente o aplicar sobre incidente abierto más reciente con workaround precargado
-    const openInc = this.allIncidents.find(i => i.estado !== 'Completado');
-    if (openInc && this.canApplyWorkaround) {
-      this.openWorkaroundModal(openInc);
-      this.workaroundDiagnostico = `[Reutilizado desde ${kb.kb_id || kb.id_ticket}] ${kb.diagnostico_tecnico || kb.rca_causa_raiz || ''}`;
-      this.workaroundSolucionTemporal = kb.solucion_temporal_workaround || kb.resolucion_tecnica;
-      this.workaroundAccionesAplicadas = (kb.acciones_aplicadas || []).join('\n');
-      this.workaroundComandos = kb.comandos_ejecutados || '';
-      this.workaroundValidacionPost = kb.validacion_post_cierre || '';
-    } else {
-      this.openDetailModal(kb);
+  get openTicketsForKbApply(): SupportChangeTicket[] {
+    return this.allTickets.filter(t => t.estado === 'Abierto' || t.estado === 'En Proceso');
+  }
+
+  onTargetIncidentForKbChange() {
+    const target = this.allTickets.find(t => t.id_ticket === this.targetIncidentIdForKb);
+    if (target) {
+      this.selectedTicket = target;
     }
+  }
+
+  reuseKbSolution(kb: SupportChangeTicket) {
+    const openList = this.openTicketsForKbApply;
+    if (openList.length === 0) {
+      this.confirmService.alert({
+        title: 'Sin incidentes vigentes',
+        message: 'Actualmente todos los tickets están cerrados. Registra un incidente nuevo (o simula uno desde Monitoreo NOC) para aplicar esta solución KEDB.',
+        itemName: `${kb.kb_id || kb.id_ticket} - ${kb.titulo}`,
+        type: 'info',
+        confirmText: 'Entendido'
+      });
+      return;
+    }
+
+    // Priorizar el incidente abierto más reciente (ideal si acaba de crearse desde NOC)
+    const preferred =
+      openList.find(t => t.estado === 'Abierto' && (t.id_ticket.startsWith('INC-') || t.tipo_solicitud === 'Incidente Técnico')) ||
+      openList[0];
+
+    this.sourceKbTicket = kb;
+    this.targetIncidentIdForKb = preferred.id_ticket;
+    this.openWorkaroundModal(preferred);
+    this.workaroundDiagnostico = `[Aplicado desde ${kb.kb_id || kb.id_ticket}] ${kb.diagnostico_tecnico || kb.rca_causa_raiz || ''}`;
+    this.workaroundSolucionTemporal = kb.solucion_temporal_workaround || kb.resolucion_tecnica;
+    this.workaroundAccionesAplicadas = (kb.acciones_aplicadas || []).join('\n');
+    this.workaroundComandos = kb.comandos_ejecutados || '';
+    this.workaroundArchivos = kb.archivos_modificados || preferred.componente_afectado;
+    this.workaroundValidacionPost = kb.validacion_post_cierre || '';
+    this.workaroundLecciones = kb.lecciones_aprendidas || '';
+    this.workaroundEtiquetasKb = (kb.etiquetas_kb || []).join(', ');
+    this.workaroundNuevoEstado = 'Completado';
   }
 
   get metricsByDimension(): DimensionMetricsRow[] {
@@ -696,14 +725,18 @@ export class SupportChangesManagement implements OnInit {
 
   saveWorkaround() {
     if (!this.selectedTicket) return;
+    if (this.sourceKbTicket) {
+      this.dataService.incrementKbReuse(this.sourceKbTicket.id_ticket);
+    }
     const isClosing = this.workaroundNuevoEstado === 'Completado';
     const acciones = this.parseLines(this.workaroundAccionesAplicadas);
     const tags = this.parseTags(this.workaroundEtiquetasKb);
+    const kbSourceTag = this.sourceKbTicket?.kb_id ? ` [Base: ${this.sourceKbTicket.kb_id}]` : '';
 
     this.dataService.qualifySupportTicket(this.selectedTicket.id_ticket, {
       solucion_temporal_workaround: this.workaroundSolucionTemporal,
       diagnostico_tecnico: this.workaroundDiagnostico,
-      resolucion_tecnica: `[${isClosing ? 'Cierre Técnico & KEDB' : 'Workaround'} por ${this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : 'Admin'}]: ${this.workaroundDiagnostico}`,
+      resolucion_tecnica: `[${isClosing ? 'Cierre Técnico & KEDB' : 'Workaround'}${kbSourceTag} por ${this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : 'Admin'}]: ${this.workaroundDiagnostico}`,
       estado: this.workaroundNuevoEstado,
       atendido_por: this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : this.selectedTicket.atendido_por,
       cumplimiento_sla: 'Dentro de SLA',
@@ -716,7 +749,11 @@ export class SupportChangesManagement implements OnInit {
       etiquetas_kb: tags.length ? tags : undefined,
       publicado_kb: isClosing ? this.workaroundPublicarKb : this.selectedTicket.publicado_kb
     }, () => {
+      const cameFromKb = !!this.sourceKbTicket;
       this.closeAllModals();
+      if (cameFromKb && this.isSoporteTI) {
+        this.activeTab = 'incidentes';
+      }
     });
   }
 
@@ -862,5 +899,7 @@ export class SupportChangesManagement implements OnInit {
     this.isWorkaroundModalOpen = false;
     this.isPirModalOpen = false;
     this.selectedTicket = null;
+    this.sourceKbTicket = null;
+    this.targetIncidentIdForKb = '';
   }
 }

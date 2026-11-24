@@ -1371,7 +1371,10 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
                   <div class="small text-muted"><strong>Validación:</strong> {{ kb.validacion_post_cierre || 'Verificado en producción' }}</div>
-                  <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(kb)">Ver Ficha KEDB</button>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(kb)">Ver Ficha KEDB</button>
+                    <button class="btn btn-sm btn-success fw-bold" (click)="reuseKbSolution(kb)">Aplicar a un incidente</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2052,15 +2055,31 @@
 <div *ngIf="isWorkaroundModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55); overflow-y: auto;">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
-      <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title fw-bold mb-0">
-          Atención de Incidente: Diagnóstico, Workaround &amp; Registro KEDB
+      <div class="modal-header" [ngClass]="sourceKbTicket ? 'bg-success text-white' : 'bg-warning text-dark'">
+        <h5 class="modal-title fw-bold mb-0" [class.text-white]="sourceKbTicket">
+          {{ sourceKbTicket ? 'Aplicar Solución KEDB (' + (sourceKbTicket.kb_id || sourceKbTicket.id_ticket) + ') a Incidente Vigente' : 'Atención de Incidente: Diagnóstico, Workaround & Registro KEDB' }}
         </h5>
-        <button type="button" class="btn-close" (click)="closeAllModals()"></button>
+        <button type="button" class="btn-close" [class.btn-close-white]="sourceKbTicket" (click)="closeAllModals()"></button>
       </div>
       <div class="modal-body p-4">
+        <!-- SELECTOR DE INCIDENTE VIGENTE CUANDO VIENE DESDE LA BD DE CONOCIMIENTO -->
+        <div *ngIf="sourceKbTicket" class="alert alert-success border-success mb-3 small">
+          <div class="fw-bold mb-2">
+            Solución origen: <span class="badge bg-success">{{ sourceKbTicket.kb_id || sourceKbTicket.id_ticket }}</span> &mdash; {{ sourceKbTicket.titulo }}
+          </div>
+          <label class="form-label fw-bold text-dark mb-1">1. Elige el incidente vigente donde deseas aplicar esta solución:</label>
+          <select class="form-select form-select-sm" [(ngModel)]="targetIncidentIdForKb" name="targetIncidentForKb" (change)="onTargetIncidentForKbChange()">
+            <option *ngFor="let openT of openTicketsForKbApply" [value]="openT.id_ticket">
+              [{{ openT.estado }}] {{ openT.id_ticket }} ({{ openT.codigo_jira }}) &mdash; {{ openT.titulo }}
+            </option>
+          </select>
+          <div class="text-muted mt-1">
+            Los pasos, comandos y validación de <code>{{ sourceKbTicket.kb_id }}</code> ya fueron precargados abajo. Revisa y pulsa el botón verde para aplicarlo al incidente elegido.
+          </div>
+        </div>
+
         <div class="alert alert-secondary py-2 mb-3 small">
-          <strong>Incidente:</strong> {{ selectedTicket.id_ticket }} ({{ selectedTicket.codigo_jira }}) &mdash; {{ selectedTicket.titulo }}<br>
+          <strong>Incidente Destino:</strong> {{ selectedTicket.id_ticket }} ({{ selectedTicket.codigo_jira }}) &mdash; {{ selectedTicket.titulo }}<br>
           <strong>Severidad:</strong> {{ selectedTicket.severidad_sla || selectedTicket.prioridad }} &bull; <strong>Componente:</strong> {{ selectedTicket.componente_afectado }}
         </div>
 
@@ -2132,8 +2151,8 @@
 
           <div class="d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
-            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">
-              {{ workaroundNuevoEstado === 'Completado' ? 'Cerrar Incidente y Guardar en KEDB' : 'Guardar Workaround & Validar SLA' }}
+            <button type="submit" class="btn fw-bold px-4" [ngClass]="sourceKbTicket ? 'btn-success' : 'btn-warning text-dark'">
+              {{ sourceKbTicket ? 'Aplicar Solución KEDB a ' + selectedTicket.id_ticket : (workaroundNuevoEstado === 'Completado' ? 'Cerrar Incidente y Guardar en KEDB' : 'Guardar Workaround & Validar SLA') }}
             </button>
           </div>
         </form>
