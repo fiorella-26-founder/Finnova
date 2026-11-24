@@ -1,12 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import {
   FinnovaDataService,
   IncidentSeverity,
   SupportChangeTicket
 } from './finnova-data.service';
+import { SKIP_TELEMETRY_PROBE } from './telemetry.interceptor';
 
 export type EventClassification = 'INFO' | 'WARNING' | 'EXCEPTION';
 export type EventSource =
@@ -728,10 +730,10 @@ export class EventMonitoringService {
     if (this.probeRunning) return [];
     this.probeRunning = true;
     const results: MonitoringEvent[] = [];
-    const probeHeaders = new HttpHeaders({ 'X-Finnova-Probe': '1' });
+    const probeContext = new HttpContext().set(SKIP_TELEMETRY_PROBE, true);
 
     try {
-      // Sonda 1: Backend Express Render + TiDB Cloud (endpoint público real)
+      // Sonda 1: Backend Express Render + TiDB Cloud (sin cabeceras custom -> cero CORS preflight)
       const apiUrl = `${this.baseUrl}/servicios/publicos`;
       const t0 = performance.now();
       let apiStatus = 200;
@@ -742,14 +744,16 @@ export class EventMonitoringService {
 
       try {
         const res = await firstValueFrom(
-          this.http.get<any[]>(apiUrl, { headers: probeHeaders, observe: 'response' })
+          this.http
+            .get<any[]>(apiUrl, { context: probeContext, observe: 'response' })
+            .pipe(timeout(12000))
         );
         apiLatency = Math.round(performance.now() - t0);
         apiStatus = res.status;
         itemCount = Array.isArray(res.body) ? res.body.length : 0;
       } catch (err: any) {
         apiLatency = Math.round(performance.now() - t0);
-        apiStatus = err?.status || 0;
+        apiStatus = err?.status || (err?.name === 'TimeoutError' ? 504 : 0);
         apiOk = false;
         apiErrMsg = err?.message || 'Error de conectividad o timeout hacia Render Cloud';
       }

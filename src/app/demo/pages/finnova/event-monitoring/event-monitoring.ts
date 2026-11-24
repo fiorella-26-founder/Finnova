@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -25,6 +25,9 @@ import { FinnovaDataService } from 'src/app/services/finnova-data.service';
 export class EventMonitoringComponent implements OnInit, OnDestroy {
   public monitor = inject(EventMonitoringService);
   public dataService = inject(FinnovaDataService);
+  private cdr = inject(ChangeDetectorRef);
+
+  isProbing = false;
 
   activeTab: 'live' | 'policies' | 'playbooks' | 'tooling' = 'live';
   activeConfigTab: 'cli' | 'promql' | 'github' | 'interceptor' = 'cli';
@@ -242,14 +245,22 @@ export const telemetryInterceptor: HttpInterceptorFn = (req, next) => {
 
   // --- SONDAS EN VIVO Y AUTO-POLLING ---
   async triggerLiveProbe() {
+    if (this.isProbing) return;
+    this.isProbing = true;
+    this.cdr.detectChanges();
     this.appendTerminal(`[PROBE] Ejecutando sonda HTTP real contra backend-finnova.onrender.com/api/servicios/publicos...`);
-    const emitted = await this.monitor.runLiveProbes();
-    this.lastProbeAt = new Date().toTimeString().slice(0, 8);
-    if (emitted.length > 0) {
-      this.selectedEvent = emitted[0];
-      this.appendTerminal(
-        `[RESULT] ${emitted[0].id} | ${emitted[0].classification} | HTTP ${emitted[0].httpStatus} | ${emitted[0].latencyMs}ms | ${emitted[0].disposition}`
-      );
+    try {
+      const emitted = await this.monitor.runLiveProbes();
+      this.lastProbeAt = new Date().toTimeString().slice(0, 8);
+      if (emitted.length > 0) {
+        this.selectedEvent = emitted[0];
+        this.appendTerminal(
+          `[RESULT] ${emitted[0].id} | ${emitted[0].classification} | HTTP ${emitted[0].httpStatus} | ${emitted[0].latencyMs}ms | ${emitted[0].disposition}`
+        );
+      }
+    } finally {
+      this.isProbing = false;
+      this.cdr.detectChanges();
     }
   }
 

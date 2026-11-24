@@ -1,16 +1,21 @@
 import { ErrorHandler, Injectable, Injector, inject } from '@angular/core';
-import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { EventMonitoringService } from './event-monitoring.service';
 
 /**
- * Interceptor de telemetría real (Semana 15):
+ * Token client-side (no envía cabeceras HTTP ni dispara CORS preflight)
+ * para evitar doble registro de las sondas sintéticas lanzadas desde el NOC.
+ */
+export const SKIP_TELEMETRY_PROBE = new HttpContextToken<boolean>(() => false);
+
+/**
+ * Interceptor de telemetría real:
  * Mide latencia real con performance.now() y clasifica cada respuesta HTTP
  * (INFO / WARNING / EXCEPTION) en el Motor de Eventos de Finnova.
  */
 export const telemetryInterceptor: HttpInterceptorFn = (req, next) => {
-  // Evitar doble registro de sondas sintéticas lanzadas por el propio monitor
-  if (req.headers.has('X-Finnova-Probe')) {
+  if (req.context.get(SKIP_TELEMETRY_PROBE)) {
     return next(req);
   }
 
