@@ -343,11 +343,11 @@ export const telemetryInterceptor: HttpInterceptorFn = (req, next) => {
         { name: 'Backend Render + TiDB (ms)', data: apiData },
         { name: 'Frontend SPA Vercel (ms)', data: spaData }
       ],
-      colors: ['#0d6efd', '#198754'],
+      colors: ['#2563eb', '#16a34a'],
       stroke: { curve: 'smooth', width: 2 },
       fill: {
         type: 'gradient',
-        gradient: { opacityFrom: 0.35, opacityTo: 0.05 }
+        gradient: { opacityFrom: 0.25, opacityTo: 0.03 }
       },
       dataLabels: { enabled: false },
       xaxis: { categories: labels, labels: { style: { fontSize: '11px' } } },
@@ -359,19 +359,19 @@ export const telemetryInterceptor: HttpInterceptorFn = (req, next) => {
         yaxis: [
           {
             y: warnLine,
-            borderColor: '#ffc107',
+            borderColor: '#f59e0b',
             strokeDashArray: 4,
-            label: { text: `WARN ${warnLine}ms`, style: { color: '#000', background: '#ffc107' } }
+            label: { text: `WARN ${warnLine}ms`, style: { color: '#92400e', background: '#fef3c7' } }
           },
           {
             y: critLine,
-            borderColor: '#dc3545',
+            borderColor: '#ef4444',
             strokeDashArray: 4,
-            label: { text: `CRIT ${critLine}ms`, style: { color: '#fff', background: '#dc3545' } }
+            label: { text: `CRIT ${critLine}ms`, style: { color: '#991b1b', background: '#fee2e2' } }
           }
         ]
       },
-      grid: { borderColor: '#e9ecef', strokeDashArray: 3 },
+      grid: { borderColor: '#f1f5f9', strokeDashArray: 3 },
       legend: { position: 'top' }
     };
   }
@@ -380,8 +380,8 @@ export const telemetryInterceptor: HttpInterceptorFn = (req, next) => {
     this.classificationChartOptions = {
       chart: { type: 'donut', height: 245 },
       series: [this.infoCount, this.warningCount, this.exceptionCount],
-      labels: ['INFO (Normal)', 'WARNING (Preventivo)', 'EXCEPTION (Incidente)'],
-      colors: ['#0dcaf0', '#ffc107', '#dc3545'],
+      labels: ['INFO', 'WARNING', 'EXCEPTION'],
+      colors: ['#0ea5e9', '#f59e0b', '#ef4444'],
       legend: { position: 'bottom' },
       dataLabels: { enabled: true }
     };

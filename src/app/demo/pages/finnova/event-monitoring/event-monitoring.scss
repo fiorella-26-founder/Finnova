@@ -1,17 +1,131 @@
-.noc-header {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0c4a6e 100%);
+.noc-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
+  border: 1px solid #dbeafe !important;
+  border-radius: 12px;
 }
 
-.bpmn-node {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.drill-bar {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
 
+.btn-drill-p1 {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  font-weight: 600;
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background: #fee2e2;
+    color: #991b1b;
   }
 }
 
-pre {
+.btn-drill-p2 {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  font-weight: 600;
+  &:hover {
+    background: #fef3c7;
+    color: #92400e;
+  }
+}
+
+.btn-drill-p3 {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  font-weight: 600;
+  &:hover {
+    background: #e0f2fe;
+    color: #075985;
+  }
+}
+
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  transition: box-shadow 0.15s ease;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  }
+}
+
+.kpi-value {
+  font-size: 1.55rem;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.bpmn-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+
+  &.bpmn-done {
+    border-left: 4px solid #16a34a;
+    background: #f8fdf9;
+  }
+
+  &.bpmn-active {
+    border: 1.5px solid #2563eb;
+    border-left: 4px solid #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  }
+
+  &.bpmn-skipped {
+    border-left: 4px solid #cbd5e1;
+    background: #f8fafc;
+    opacity: 0.72;
+  }
+}
+
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.code-surface {
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   font-size: 0.78rem;
-  line-height: 1.45;
+  line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.status-pill-info {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.status-pill-warn {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.status-pill-exc {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.status-pill-ok {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 }
