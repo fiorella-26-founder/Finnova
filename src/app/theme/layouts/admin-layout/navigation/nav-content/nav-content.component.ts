@@ -120,6 +120,14 @@ const SoporteTINavigationItems: NavigationItem[] = [
         icon: 'profile'
       },
       {
+        id: 'event-monitoring',
+        title: 'Monitoreo & Eventos (NOC)',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/event-monitoring',
+        icon: 'dashboard'
+      },
+      {
         id: 'reports',
         title: 'Reportes y Rendimiento',
         type: 'item',

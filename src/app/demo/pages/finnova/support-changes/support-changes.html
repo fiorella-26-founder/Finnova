@@ -20,6 +20,9 @@
             </p>
           </div>
           <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-outline-light fw-bold d-flex align-items-center gap-2 shadow-sm" routerLink="/dashboard/event-monitoring">
+              <span>Monitoreo &amp; Eventos (NOC)</span>
+            </a>
             <button class="btn btn-light text-primary fw-bold d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
@@ -104,17 +107,22 @@
       <ul class="nav nav-pills gap-2 flex-wrap">
         <li class="nav-item">
           <button class="nav-link fw-bold" [class.active]="activeTab === 'incidentes'" (click)="activeTab = 'incidentes'">
-            1. Tablero Operativo de Incidentes &amp; SLA en Vivo
+            1. Tablero de Incidentes &amp; SLA ({{ allIncidents.length }})
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" [class.active]="activeTab === 'kedb'" (click)="activeTab = 'kedb'">
+            2. BD de Conocimiento KEDB ({{ allKnowledgeEntries.length }})
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link fw-semibold" [class.active]="activeTab === 'bpmn-raci'" (click)="activeTab = 'bpmn-raci'">
-            2. Flujo de Atención BPMN 2.0 &amp; Matriz RACI
+            3. Flujo BPMN 2.0 &amp; Matriz RACI
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link fw-semibold" [class.active]="activeTab === 'bandeja'" (click)="activeTab = 'bandeja'">
-            3. Bandeja Técnica Unificada
+            4. Bandeja Técnica Unificada ({{ allTickets.length }})
           </button>
         </li>
       </ul>
@@ -123,27 +131,58 @@
     <div class="card-body p-4">
       <!-- PESTAÑA SOPORTE TI 1: TABLERO EN VIVO DE INCIDENTES -->
       <div *ngIf="activeTab === 'incidentes'">
-      <!-- BLOQUE 1.4: TABLERO EN VIVO DE INCIDENTES CLASIFICADOS (P1 A P4) -->
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div>
-          <h5 class="fw-bold text-dark mb-0">Catálogo de Incidentes Registrados en Finnova (Ejecuciones Reales)</h5>
-          <span class="small text-muted">Incidentes con trazabilidad técnica, códigos de error HTTP/SQL y estado de SLA</span>
+          <h5 class="fw-bold text-dark mb-0">Catálogo de Incidentes Registrados en Finnova</h5>
+          <span class="small text-muted">
+            Mostrando <strong>{{ filteredIncidents.length }}</strong> de <strong>{{ allIncidents.length }}</strong> incidentes &bull; Trazabilidad técnica, SLA y vínculo KEDB
+          </span>
         </div>
-        <div class="d-flex gap-2">
-          <select class="form-select form-select-sm" [(ngModel)]="filterSeveridad" style="width: auto;">
+        <button *ngIf="hasActiveIncidentFilters" class="btn btn-sm btn-outline-secondary" (click)="resetIncidentFilters()">
+          Limpiar filtros
+        </button>
+      </div>
+
+      <!-- BARRA DE FILTROS COMPLETA DE INCIDENTES -->
+      <div class="row g-2 align-items-end mb-3 p-3 bg-light rounded border">
+        <div class="col-12 col-md-4">
+          <label class="form-label small fw-bold mb-1">Buscar por ID, Jira, Error, Componente o KEDB</label>
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="incidentSearchTerm"
+            placeholder="Ej. INC-2026-001, 429, TiDB, KEDB-FIN-001..." />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small fw-bold mb-1">Severidad SLA</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterSeveridad">
             <option value="TODAS">Todas las Severidades</option>
-            <option value="P1 - Crítico">P1 - Crítico (Outage Pasarela/BD)</option>
-            <option value="P2 - Alto">P2 - Alto (Cold Start Render)</option>
-            <option value="P3 - Medio">P3 - Medio (Payload Vouchers)</option>
-            <option value="P4 - Bajo">P4 - Bajo (Cosmético)</option>
+            <option value="P1 - Crítico">P1 - Crítico</option>
+            <option value="P2 - Alto">P2 - Alto</option>
+            <option value="P3 - Medio">P3 - Medio</option>
+            <option value="P4 - Bajo">P4 - Bajo</option>
           </select>
-          <select class="form-select form-select-sm" [(ngModel)]="filterIncidenteEstado" style="width: auto;">
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Estado</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterIncidenteEstado">
             <option value="TODOS">Todos los Estados</option>
             <option value="Abierto">Abierto</option>
             <option value="En Proceso">En Proceso</option>
-            <option value="Completado">Completado</option>
+            <option value="Completado">Completado (Cerrado)</option>
+            <option value="Rechazado">Rechazado</option>
           </select>
         </div>
+        <div class="col-12 col-md-3">
+          <div class="form-check form-switch mt-1">
+            <input class="form-check-input" type="checkbox" id="chkIncKb" [(ngModel)]="filterIncidenteSoloKb" />
+            <label class="form-check-label small fw-bold text-dark" for="chkIncKb">
+              Solo cerrados en BD Conocimiento
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="filteredIncidents.length === 0" class="alert alert-light border text-center py-4">
+        <div class="fw-bold text-dark mb-1">No se encontraron incidentes con los filtros aplicados.</div>
+        <button class="btn btn-sm btn-primary mt-2" (click)="resetIncidentFilters()">Restablecer filtros</button>
       </div>
 
       <div class="row g-3">
@@ -162,9 +201,11 @@
                     'bg-warning text-dark': inc.severidad_sla === 'P2 - Alto',
                     'bg-info text-dark': inc.severidad_sla === 'P3 - Medio',
                     'bg-secondary': inc.severidad_sla === 'P4 - Bajo'
-                  }">{{ inc.severidad_sla }}</span>
+                  }">{{ inc.severidad_sla || inc.prioridad }}</span>
                   <span class="badge bg-dark fw-bold">{{ inc.codigo_jira }}</span>
                   <span class="badge bg-light text-primary border">{{ inc.id_ticket }}</span>
+                  <span *ngIf="inc.kb_id" class="badge bg-success text-white">{{ inc.kb_id }}</span>
+                  <span *ngIf="inc.evento_origen_id" class="badge bg-primary-subtle text-primary border">Evento: {{ inc.evento_origen_id }}</span>
                   <span class="badge bg-light text-dark border">Entorno: {{ inc.entorno || 'Producción' }}</span>
                   <span class="badge bg-danger-subtle text-danger border" *ngIf="inc.codigo_error">
                     <code>{{ inc.codigo_error }}</code>
@@ -172,7 +213,7 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                   <span class="badge bg-success-subtle text-success border px-2 py-1">
-                    SLA: {{ inc.cumplimiento_sla || 'Dentro de SLA' }} (MTTA: {{ inc.mtta_sla_min }}m / MTTR: {{ inc.mttr_sla_horas }}h)
+                    SLA: {{ inc.cumplimiento_sla || 'Dentro de SLA' }} (MTTA: {{ inc.mtta_sla_min || 30 }}m / MTTR: {{ inc.mttr_sla_horas || 6 }}h)
                   </span>
                   <span class="badge" [ngClass]="{
                     'bg-warning text-dark': inc.estado === 'Abierto',
@@ -202,41 +243,51 @@
                 </div>
               </div>
 
-              <div *ngIf="inc.rca_causa_raiz" class="p-2 bg-success-subtle rounded border border-success-subtle small mb-2">
-                <strong class="text-success-emphasis">Análisis Causa Raíz (RCA / 5 Porqués):</strong>
+              <!-- DETALLE DE CIERRE / BD DE CONOCIMIENTO CUANDO ESTÁ COMPLETADO -->
+              <div *ngIf="inc.estado === 'Completado' && (inc.acciones_aplicadas?.length || inc.comandos_ejecutados || inc.validacion_post_cierre)" class="p-2 bg-success-subtle rounded border border-success-subtle small mb-2">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                  <strong class="text-success-emphasis">
+                    Registro KEDB de Cierre ({{ inc.kb_id || 'Documentado' }}) &mdash; Qué se aplicó y validó:
+                  </strong>
+                  <span *ngIf="inc.fecha_cierre" class="badge bg-white text-success border">Cerrado: {{ inc.fecha_cierre }}</span>
+                </div>
+                <ul *ngIf="inc.acciones_aplicadas?.length" class="mb-1 ps-3 text-dark">
+                  <li *ngFor="let act of inc.acciones_aplicadas">{{ act }}</li>
+                </ul>
+                <div *ngIf="inc.validacion_post_cierre" class="text-dark mt-1">
+                  <strong>Validación Post-Cierre:</strong> {{ inc.validacion_post_cierre }}
+                </div>
+                <div *ngIf="inc.etiquetas_kb?.length" class="d-flex gap-1 flex-wrap mt-1">
+                  <span *ngFor="let tag of inc.etiquetas_kb" class="badge bg-white text-dark border">#{{ tag }}</span>
+                </div>
+              </div>
+
+              <div *ngIf="inc.rca_causa_raiz && inc.estado !== 'Completado'" class="p-2 bg-light rounded border small mb-2">
+                <strong class="text-primary">Análisis Causa Raíz (RCA):</strong>
                 <div class="text-dark mt-1" style="white-space: pre-line;">{{ inc.rca_causa_raiz }}</div>
               </div>
 
-              <!-- BARRA DE ACCIONES SEGÚN ROL (RBAC DEMO) -->
+              <!-- BARRA DE ACCIONES SEGÚN ROL -->
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
                 <div class="small text-muted">
                   <strong>Registrado por:</strong> {{ inc.solicitante_nombre }} ({{ inc.solicitante_rol }}) &bull; {{ inc.fecha_registro }}
                 </div>
                 <div class="d-flex gap-1 flex-wrap">
                   <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(inc)">
-                    Ficha Técnica
+                    Ficha &amp; KEDB
                   </button>
-
-                  <!-- Botón Atender L1/L2 para Soporte TI o Admin -->
                   <button *ngIf="canApplyWorkaround" class="btn btn-sm btn-warning text-dark fw-bold" (click)="openWorkaroundModal(inc)">
-                    Aplicar Workaround L1/L2
+                    {{ inc.estado === 'Completado' ? 'Editar Cierre KEDB' : 'Workaround / Cerrar' }}
                   </button>
-
-                  <!-- Botón Escalar a RFC -->
                   <button *ngIf="canQualifyCab && inc.aplica_cambio !== 'Si Aplica (RFC)'" class="btn btn-sm btn-outline-primary" (click)="escalateToRfc(inc)">
                     Escalar a RFC
                   </button>
-
-                  <!-- Botón Post-Mortem para Admin / CAB -->
                   <button *ngIf="isAdmin" class="btn btn-sm btn-outline-success" (click)="openPirModal(inc)">
-                    Auditar Post-Mortem (PIR)
+                    Post-Mortem (PIR)
                   </button>
-
-                  <!-- Botón Calificar / Editar CAB -->
                   <button *ngIf="canQualifyCab" class="btn btn-sm btn-primary" (click)="openQualifyModal(inc)">
                     Gestión CAB
                   </button>
-
                   <button *ngIf="canDelete" class="btn btn-sm btn-outline-danger" (click)="deleteTicket(inc)" title="Eliminar">
                     &times;
                   </button>
@@ -247,6 +298,128 @@
         </div>
       </div>
     </div>
+
+      <!-- PESTAÑA SOPORTE TI 2: BASE DE CONOCIMIENTO DE INCIDENCIAS (KEDB) -->
+      <div *ngIf="activeTab === 'kedb'">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold text-dark mb-0">Base de Conocimiento de Incidencias Cerradas (KEDB)</h5>
+            <span class="small text-muted">
+              <strong>{{ filteredKnowledgeEntries.length }}</strong> soluciones técnicas reutilizables &bull; <strong>{{ totalKbReuses }}</strong> reutilizaciones acumuladas en soporte L1/L2
+            </span>
+          </div>
+          <button *ngIf="kbSearchTerm || kbFilterTag !== 'TODAS' || kbFilterDimension !== 'TODAS'" class="btn btn-sm btn-outline-secondary" (click)="resetKbFilters()">
+            Limpiar filtros KEDB
+          </button>
+        </div>
+
+        <div class="row g-2 align-items-end mb-3 p-3 bg-light rounded border">
+          <div class="col-12 col-md-5">
+            <label class="form-label small fw-bold mb-1">Buscar síntoma, código HTTP/SQL, comando o solución</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="kbSearchTerm"
+              placeholder="Ej. ER_CON_COUNT_ERROR, 429, trust proxy, 504, keepAlive, DESBLOQUEO..." />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold mb-1">Dimensión Técnica</label>
+            <select class="form-select form-select-sm" [(ngModel)]="kbFilterDimension">
+              <option value="TODAS">Todas las Dimensiones</option>
+              <option value="Infraestructura">Infraestructura</option>
+              <option value="Aplicaciones y BD">Aplicaciones y BD</option>
+              <option value="Documentación">Documentación</option>
+              <option value="Calendario">Calendario</option>
+              <option value="N/A - Mesa de Ayuda">N/A - Mesa de Ayuda</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label small fw-bold mb-1">Etiqueta Técnica</label>
+            <select class="form-select form-select-sm" [(ngModel)]="kbFilterTag">
+              <option value="TODAS">Todas las Etiquetas</option>
+              <option *ngFor="let tag of allKnowledgeTags" [value]="tag">#{{ tag }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div *ngIf="filteredKnowledgeEntries.length === 0" class="alert alert-light border text-center py-4">
+          <div class="fw-bold text-dark">Sin artículos KEDB que coincidan con la búsqueda.</div>
+          <button class="btn btn-sm btn-primary mt-2" (click)="resetKbFilters()">Ver toda la Base de Conocimiento</button>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12" *ngFor="let kb of filteredKnowledgeEntries">
+            <div class="card border border-success-subtle shadow-sm mb-0">
+              <div class="card-header bg-light d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 px-3">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="badge bg-success fw-bold">{{ kb.kb_id || 'KEDB' }}</span>
+                  <span class="badge bg-dark">{{ kb.id_ticket }}</span>
+                  <span class="badge bg-primary-subtle text-primary border">{{ kb.dimension_tecnica }}</span>
+                  <span *ngIf="kb.codigo_error" class="badge bg-danger-subtle text-danger border"><code>{{ kb.codigo_error }}</code></span>
+                </div>
+                <div class="d-flex align-items-center gap-2 small">
+                  <span class="badge bg-info-subtle text-dark border">Reutilizada: {{ kb.veces_reutilizada || 0 }}x</span>
+                  <span *ngIf="kb.tiempo_mttr_real_horas" class="badge bg-white text-success border">MTTR real: {{ kb.tiempo_mttr_real_horas }}h</span>
+                </div>
+              </div>
+              <div class="card-body p-3 small">
+                <h6 class="fw-bold text-dark mb-2">{{ kb.titulo }}</h6>
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <div class="p-2 bg-light rounded border h-100">
+                      <strong class="text-danger">Síntoma &amp; Diagnóstico Realizado:</strong>
+                      <div class="mt-1 text-dark">{{ kb.sintoma_detectado || kb.descripcion }}</div>
+                      <div *ngIf="kb.diagnostico_tecnico" class="mt-1 text-muted"><strong>Diagnóstico:</strong> {{ kb.diagnostico_tecnico }}</div>
+                      <div *ngIf="kb.rca_causa_raiz" class="mt-1 text-muted"><strong>Causa Raíz:</strong> {{ kb.rca_causa_raiz }}</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="p-2 bg-success-subtle rounded border border-success-subtle h-100">
+                      <strong class="text-success-emphasis">Qué se Aplicó (Pasos Ejecutados):</strong>
+                      <ul *ngIf="kb.acciones_aplicadas?.length" class="mb-1 ps-3 mt-1 text-dark">
+                        <li *ngFor="let step of kb.acciones_aplicadas">{{ step }}</li>
+                      </ul>
+                      <div *ngIf="!kb.acciones_aplicadas?.length" class="mt-1 text-dark">{{ kb.resolucion_tecnica }}</div>
+                      <div *ngIf="kb.archivos_modificados" class="mt-1"><strong>Archivos / Objetos:</strong> <code>{{ kb.archivos_modificados }}</code></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div *ngIf="kb.comandos_ejecutados" class="mb-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <strong class="text-dark">Comandos / Queries / Verificación Técnica:</strong>
+                    <button class="btn btn-sm btn-outline-dark py-0 px-2" (click)="copyKbCommands(kb)">
+                      {{ copiedKbId === kb.id_ticket ? 'Copiado' : 'Copiar comandos' }}
+                    </button>
+                  </div>
+                  <pre class="bg-dark text-light p-2 rounded mb-0 small" style="white-space: pre-wrap;">{{ kb.comandos_ejecutados }}</pre>
+                </div>
+
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6" *ngIf="kb.validacion_post_cierre">
+                    <div class="p-2 bg-light rounded border h-100">
+                      <strong class="text-primary">Validación Post-Cierre (Evidencia):</strong>
+                      <div class="text-dark mt-1">{{ kb.validacion_post_cierre }}</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6" *ngIf="kb.lecciones_aprendidas">
+                    <div class="p-2 bg-warning-subtle rounded border border-warning-subtle h-100">
+                      <strong class="text-dark">Prevención / Regla de Monitoreo Derivada:</strong>
+                      <div class="text-dark mt-1">{{ kb.lecciones_aprendidas }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
+                  <div class="d-flex gap-1 flex-wrap">
+                    <button *ngFor="let tag of kb.etiquetas_kb" class="btn btn-sm btn-light border py-0 px-2 small" (click)="kbFilterTag = tag">#{{ tag }}</button>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(kb)">Ver Ficha Completa</button>
+                    <button class="btn btn-sm btn-success fw-bold" (click)="reuseKbSolution(kb)">Aplicar esta solución a un incidente</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- PESTAÑA SOPORTE TI 2: FLUJO BPMN 2.0 & MATRIZ RACI -->
@@ -521,47 +694,81 @@
 
       </div>
 
-      <!-- PESTAÑA SOPORTE TI 3: BANDEJA TÉCNICA UNIFICADA -->
+      <!-- PESTAÑA SOPORTE TI 4: BANDEJA TÉCNICA UNIFICADA -->
       <div *ngIf="activeTab === 'bandeja'">
-      <div class="row g-2 align-items-end mb-3">
-        <div class="col-12 col-md-3">
-          <label class="form-label small fw-bold mb-1">Tipo de Solicitud</label>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <div class="small text-muted">
+          Mostrando <strong>{{ filteredTickets.length }}</strong> de <strong>{{ allTickets.length }}</strong> registros en bandeja
+        </div>
+        <button *ngIf="hasActiveBandejaFilters" class="btn btn-sm btn-outline-secondary" (click)="resetBandejaFilters()">
+          Limpiar filtros
+        </button>
+      </div>
+
+      <div class="row g-2 align-items-end mb-3 p-3 bg-light rounded border">
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Tipo</label>
           <select class="form-select form-select-sm" [(ngModel)]="filterTipoTicket">
             <option value="TODOS">Todos los Tipos</option>
-            <option value="Incidente Técnico">Incidentes Técnicos (INC)</option>
-            <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda (SRQ)</option>
+            <option value="Incidente Técnico">Incidente Técnico</option>
+            <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda</option>
             <option value="Acceso / Credenciales">Acceso / Credenciales</option>
-            <option value="Requerimiento de Cambio">Requerimiento de Cambio (RFC)</option>
+            <option value="Requerimiento de Cambio">Requerimiento de Cambio</option>
           </select>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
           <label class="form-label small fw-bold mb-1">Dimensión Técnica</label>
           <select class="form-select form-select-sm" [(ngModel)]="filterDimension">
-            <option value="TODAS">Todas las Dimensiones</option>
+            <option value="TODAS">Todas</option>
             <option value="Infraestructura">1. Infraestructura</option>
             <option value="Aplicaciones y BD">2. Aplicaciones y BD</option>
             <option value="Documentación">3. Documentación</option>
             <option value="Calendario">4. Calendario</option>
             <option value="Por Clasificar">Por Clasificar</option>
-            <option value="N/A - Mesa de Ayuda">N/A - Atención Directa</option>
+            <option value="N/A - Mesa de Ayuda">N/A - Mesa de Ayuda</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">¿Aplica Cambio?</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterAplica">
+            <option value="TODOS">Todos</option>
+            <option value="Si Aplica (RFC)">Sí Aplica (RFC)</option>
+            <option value="No Aplica (Soporte Directo)">No Aplica (Directo)</option>
+            <option value="Pendiente Evaluación">Pendiente Evaluación</option>
           </select>
         </div>
         <div class="col-6 col-md-2">
           <label class="form-label small fw-bold mb-1">Estado</label>
           <select class="form-select form-select-sm" [(ngModel)]="filterEstado">
-            <option value="TODOS">Todos los Estados</option>
+            <option value="TODOS">Todos</option>
             <option value="Abierto">Abierto</option>
             <option value="En Proceso">En Proceso</option>
             <option value="Completado">Completado</option>
+            <option value="Rechazado">Rechazado</option>
           </select>
         </div>
-        <div class="col-12 col-md-4">
-          <label class="form-label small fw-bold mb-1">Buscar por Jira, Código, Título o Error</label>
-          <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm" placeholder="Ej. INC-2026-001, FCC-101, ER_CON_COUNT_ERROR..." />
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Severidad</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterBandejaSeveridad">
+            <option value="TODAS">Todas</option>
+            <option value="P1 - Crítico">P1 - Crítico</option>
+            <option value="P2 - Alto">P2 - Alto</option>
+            <option value="P3 - Medio">P3 - Medio</option>
+            <option value="P4 - Bajo">P4 - Bajo</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Buscar</label>
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="bandejaSearchTerm" placeholder="ID, Jira, Error, KEDB..." />
         </div>
       </div>
 
-      <div class="table-responsive">
+      <div *ngIf="filteredTickets.length === 0" class="alert alert-light border text-center py-4">
+        <div class="fw-bold text-dark">No hay tickets que coincidan con los filtros seleccionados.</div>
+        <button class="btn btn-sm btn-primary mt-2" (click)="resetBandejaFilters()">Limpiar filtros</button>
+      </div>
+
+      <div class="table-responsive" *ngIf="filteredTickets.length > 0">
         <table class="table table-hover align-middle border" style="min-width: 1050px;">
           <thead class="table-light">
             <tr>
@@ -577,9 +784,10 @@
           <tbody>
             <tr *ngFor="let t of filteredTickets">
               <td>
-                <div class="d-flex align-items-center gap-1 mb-1">
+                <div class="d-flex align-items-center gap-1 mb-1 flex-wrap">
                   <span class="badge bg-dark fw-bold">{{ t.codigo_jira }}</span>
                   <span class="badge bg-light text-primary border">{{ t.id_ticket }}</span>
+                  <span *ngIf="t.kb_id" class="badge bg-success text-white">{{ t.kb_id }}</span>
                 </div>
                 <div class="small text-muted">{{ t.solicitante_nombre }}</div>
                 <span class="badge bg-secondary-subtle text-secondary border small">{{ t.tipo_solicitud }}</span>
@@ -642,7 +850,7 @@
                     Ficha
                   </button>
                   <button *ngIf="canApplyWorkaround" class="btn btn-sm btn-outline-warning text-dark" (click)="openWorkaroundModal(t)">
-                    Workaround
+                    {{ t.estado === 'Completado' ? 'KEDB' : 'Workaround' }}
                   </button>
                   <button *ngIf="canQualifyCab" class="btn btn-sm btn-primary" (click)="openQualifyModal(t)">
                     Calificar CAB
@@ -655,6 +863,7 @@
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   </div>
@@ -682,6 +891,9 @@
             </p>
           </div>
           <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-info text-dark fw-bold d-flex align-items-center gap-2 shadow-sm" routerLink="/dashboard/event-monitoring">
+              <span>Monitoreo &amp; Eventos (NOC)</span>
+            </a>
             <button class="btn btn-outline-light fw-bold d-flex align-items-center gap-2 shadow-sm" (click)="openNewTicketModal()">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
@@ -770,12 +982,17 @@
         </li>
         <li class="nav-item">
           <button class="nav-link fw-semibold" [class.active]="adminTab === 'pir-auditoria'" (click)="adminTab = 'pir-auditoria'">
-            3. Auditoría Post-Mortem (PIR) de Incidentes Críticos
+            3. Auditoría Post-Mortem (PIR)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" [class.active]="adminTab === 'kedb'" (click)="adminTab = 'kedb'">
+            4. BD de Conocimiento KEDB ({{ allKnowledgeEntries.length }})
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link fw-semibold" [class.active]="adminTab === 'bandeja'" (click)="adminTab = 'bandeja'">
-            4. Bandeja Global de Solicitudes (Auditoría CAB)
+            5. Bandeja Global ({{ allTickets.length }})
           </button>
         </li>
       </ul>
@@ -906,7 +1123,6 @@
           </div>
         </div>
       </div>
-    </div>
       </div>
 
       <!-- PESTAÑA ADMIN 2: PASE Y CALENDARIZACIÓN -->
@@ -1072,47 +1288,172 @@
         </div>
       </div>
 
-      <!-- PESTAÑA ADMIN 4: BANDEJA GLOBAL -->
+      <!-- PESTAÑA ADMIN 4: BASE DE CONOCIMIENTO DE INCIDENCIAS (KEDB) -->
+      <div *ngIf="adminTab === 'kedb'">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold text-dark mb-0">Base de Conocimiento de Incidencias Cerradas (KEDB)</h5>
+            <span class="small text-muted">
+              <strong>{{ filteredKnowledgeEntries.length }}</strong> soluciones técnicas auditadas &bull; <strong>{{ totalKbReuses }}</strong> reutilizaciones registradas
+            </span>
+          </div>
+          <button *ngIf="kbSearchTerm || kbFilterTag !== 'TODAS' || kbFilterDimension !== 'TODAS'" class="btn btn-sm btn-outline-secondary" (click)="resetKbFilters()">
+            Limpiar filtros KEDB
+          </button>
+        </div>
+
+        <div class="row g-2 align-items-end mb-3 p-3 bg-light rounded border">
+          <div class="col-12 col-md-5">
+            <label class="form-label small fw-bold mb-1">Buscar síntoma, error, comando o cambio aplicado</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="kbSearchTerm"
+              placeholder="Ej. ER_CON_COUNT_ERROR, 429, trust proxy, 504, keepAlive..." />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold mb-1">Dimensión Técnica</label>
+            <select class="form-select form-select-sm" [(ngModel)]="kbFilterDimension">
+              <option value="TODAS">Todas</option>
+              <option value="Infraestructura">Infraestructura</option>
+              <option value="Aplicaciones y BD">Aplicaciones y BD</option>
+              <option value="Documentación">Documentación</option>
+              <option value="Calendario">Calendario</option>
+              <option value="N/A - Mesa de Ayuda">N/A - Mesa de Ayuda</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label small fw-bold mb-1">Etiqueta KEDB</label>
+            <select class="form-select form-select-sm" [(ngModel)]="kbFilterTag">
+              <option value="TODAS">Todas las Etiquetas</option>
+              <option *ngFor="let tag of allKnowledgeTags" [value]="tag">#{{ tag }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12" *ngFor="let kb of filteredKnowledgeEntries">
+            <div class="card border border-success-subtle shadow-sm mb-0">
+              <div class="card-header bg-light d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 px-3">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="badge bg-success fw-bold">{{ kb.kb_id || 'KEDB' }}</span>
+                  <span class="badge bg-dark">{{ kb.id_ticket }}</span>
+                  <span class="badge bg-primary-subtle text-primary border">{{ kb.dimension_tecnica }}</span>
+                  <span *ngIf="kb.codigo_error" class="badge bg-danger-subtle text-danger border"><code>{{ kb.codigo_error }}</code></span>
+                </div>
+                <span class="badge bg-info-subtle text-dark border">Reutilizada: {{ kb.veces_reutilizada || 0 }}x</span>
+              </div>
+              <div class="card-body p-3 small">
+                <h6 class="fw-bold text-dark mb-2">{{ kb.titulo }}</h6>
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <div class="p-2 bg-light rounded border h-100">
+                      <strong class="text-danger">Síntoma &amp; Causa Raíz:</strong>
+                      <div class="mt-1 text-dark">{{ kb.sintoma_detectado || kb.descripcion }}</div>
+                      <div *ngIf="kb.rca_causa_raiz" class="mt-1 text-muted"><strong>RCA:</strong> {{ kb.rca_causa_raiz }}</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="p-2 bg-success-subtle rounded border border-success-subtle h-100">
+                      <strong class="text-success-emphasis">Qué se Aplicó en Producción:</strong>
+                      <ul *ngIf="kb.acciones_aplicadas?.length" class="mb-1 ps-3 mt-1 text-dark">
+                        <li *ngFor="let step of kb.acciones_aplicadas">{{ step }}</li>
+                      </ul>
+                      <div *ngIf="!kb.acciones_aplicadas?.length" class="mt-1 text-dark">{{ kb.resolucion_tecnica }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="kb.comandos_ejecutados" class="mb-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <strong>Comandos / Verificación Ejecutada:</strong>
+                    <button class="btn btn-sm btn-outline-dark py-0 px-2" (click)="copyKbCommands(kb)">
+                      {{ copiedKbId === kb.id_ticket ? 'Copiado' : 'Copiar' }}
+                    </button>
+                  </div>
+                  <pre class="bg-dark text-light p-2 rounded mb-0 small" style="white-space: pre-wrap;">{{ kb.comandos_ejecutados }}</pre>
+                </div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top">
+                  <div class="small text-muted"><strong>Validación:</strong> {{ kb.validacion_post_cierre || 'Verificado en producción' }}</div>
+                  <button class="btn btn-sm btn-outline-info" (click)="openDetailModal(kb)">Ver Ficha KEDB</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PESTAÑA ADMIN 5: BANDEJA GLOBAL -->
       <div *ngIf="adminTab === 'bandeja'">
-      <div class="row g-2 align-items-end mb-3">
-        <div class="col-12 col-md-3">
-          <label class="form-label small fw-bold mb-1">Tipo de Solicitud</label>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <div class="small text-muted">
+          Mostrando <strong>{{ filteredTickets.length }}</strong> de <strong>{{ allTickets.length }}</strong> tickets globales
+        </div>
+        <button *ngIf="hasActiveBandejaFilters" class="btn btn-sm btn-outline-secondary" (click)="resetBandejaFilters()">
+          Limpiar filtros
+        </button>
+      </div>
+
+      <div class="row g-2 align-items-end mb-3 p-3 bg-light rounded border">
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Tipo</label>
           <select class="form-select form-select-sm" [(ngModel)]="filterTipoTicket">
             <option value="TODOS">Todos los Tipos</option>
-            <option value="Incidente Técnico">Incidentes Técnicos (INC)</option>
-            <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda (SRQ)</option>
+            <option value="Incidente Técnico">Incidente Técnico</option>
+            <option value="Soporte / Mesa de Ayuda">Soporte / Mesa de Ayuda</option>
             <option value="Acceso / Credenciales">Acceso / Credenciales</option>
-            <option value="Requerimiento de Cambio">Requerimiento de Cambio (RFC)</option>
+            <option value="Requerimiento de Cambio">Requerimiento de Cambio</option>
           </select>
         </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label small fw-bold mb-1">Dimensión Técnica</label>
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Dimensión</label>
           <select class="form-select form-select-sm" [(ngModel)]="filterDimension">
-            <option value="TODAS">Todas las Dimensiones</option>
+            <option value="TODAS">Todas</option>
             <option value="Infraestructura">1. Infraestructura</option>
             <option value="Aplicaciones y BD">2. Aplicaciones y BD</option>
             <option value="Documentación">3. Documentación</option>
             <option value="Calendario">4. Calendario</option>
             <option value="Por Clasificar">Por Clasificar</option>
-            <option value="N/A - Mesa de Ayuda">N/A - Atención Directa</option>
+            <option value="N/A - Mesa de Ayuda">N/A - Mesa de Ayuda</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">¿Aplica Cambio?</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterAplica">
+            <option value="TODOS">Todos</option>
+            <option value="Si Aplica (RFC)">Sí Aplica (RFC)</option>
+            <option value="No Aplica (Soporte Directo)">No Aplica (Directo)</option>
+            <option value="Pendiente Evaluación">Pendiente Evaluación</option>
           </select>
         </div>
         <div class="col-6 col-md-2">
           <label class="form-label small fw-bold mb-1">Estado</label>
           <select class="form-select form-select-sm" [(ngModel)]="filterEstado">
-            <option value="TODOS">Todos los Estados</option>
+            <option value="TODOS">Todos</option>
             <option value="Abierto">Abierto</option>
             <option value="En Proceso">En Proceso</option>
             <option value="Completado">Completado</option>
+            <option value="Rechazado">Rechazado</option>
           </select>
         </div>
-        <div class="col-12 col-md-4">
-          <label class="form-label small fw-bold mb-1">Buscar por Jira, Código, Título o Error</label>
-          <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm" placeholder="Ej. INC-2026-001, FCC-101, ER_CON_COUNT_ERROR..." />
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Severidad</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterBandejaSeveridad">
+            <option value="TODAS">Todas</option>
+            <option value="P1 - Crítico">P1 - Crítico</option>
+            <option value="P2 - Alto">P2 - Alto</option>
+            <option value="P3 - Medio">P3 - Medio</option>
+            <option value="P4 - Bajo">P4 - Bajo</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label small fw-bold mb-1">Buscar</label>
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="bandejaSearchTerm" placeholder="ID, Jira, Error, KEDB..." />
         </div>
       </div>
 
-      <div class="table-responsive">
+      <div *ngIf="filteredTickets.length === 0" class="alert alert-light border text-center py-4">
+        <div class="fw-bold text-dark">No se encontraron tickets con los filtros aplicados.</div>
+        <button class="btn btn-sm btn-primary mt-2" (click)="resetBandejaFilters()">Restablecer filtros</button>
+      </div>
+
+      <div class="table-responsive" *ngIf="filteredTickets.length > 0">
         <table class="table table-hover align-middle border" style="min-width: 1050px;">
           <thead class="table-light">
             <tr>
@@ -1128,9 +1469,10 @@
           <tbody>
             <tr *ngFor="let t of filteredTickets">
               <td>
-                <div class="d-flex align-items-center gap-1 mb-1">
+                <div class="d-flex align-items-center gap-1 mb-1 flex-wrap">
                   <span class="badge bg-dark fw-bold">{{ t.codigo_jira }}</span>
                   <span class="badge bg-light text-primary border">{{ t.id_ticket }}</span>
+                  <span *ngIf="t.kb_id" class="badge bg-success text-white">{{ t.kb_id }}</span>
                 </div>
                 <div class="small text-muted">{{ t.solicitante_nombre }}</div>
                 <span class="badge bg-secondary-subtle text-secondary border small">{{ t.tipo_solicitud }}</span>
@@ -1193,7 +1535,7 @@
                     Ficha
                   </button>
                   <button *ngIf="canApplyWorkaround" class="btn btn-sm btn-outline-warning text-dark" (click)="openWorkaroundModal(t)">
-                    Workaround
+                    {{ t.estado === 'Completado' ? 'KEDB' : 'Workaround' }}
                   </button>
                   <button *ngIf="canQualifyCab" class="btn btn-sm btn-primary" (click)="openQualifyModal(t)">
                     Calificar CAB
@@ -1206,6 +1548,7 @@
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   </div>
@@ -1310,7 +1653,33 @@
       </button>
     </div>
     <div class="card-body p-3">
-      <div class="table-responsive">
+      <div class="row g-2 align-items-end mb-3 p-2 bg-light rounded border">
+        <div class="col-12 col-md-5">
+          <label class="form-label small fw-bold mb-1">Buscar en mis tickets</label>
+          <input type="text" class="form-control form-control-sm" [(ngModel)]="mySearchTerm" placeholder="Código, asunto, módulo o solución..." />
+        </div>
+        <div class="col-6 col-md-4">
+          <label class="form-label small fw-bold mb-1">Estado</label>
+          <select class="form-select form-select-sm" [(ngModel)]="myFilterEstado">
+            <option value="TODOS">Todos los Estados</option>
+            <option value="Abierto">Recibido (Abierto)</option>
+            <option value="En Proceso">En Atención (En Proceso)</option>
+            <option value="Completado">Resuelto (Completado)</option>
+            <option value="Rechazado">Rechazado</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3 d-flex justify-content-end align-items-center gap-2">
+          <span class="small text-muted">{{ myReportedTickets.length }}/{{ myReportedTicketsBase.length }}</span>
+          <button *ngIf="mySearchTerm || myFilterEstado !== 'TODOS'" class="btn btn-sm btn-outline-secondary" (click)="resetMyFilters()">Limpiar</button>
+        </div>
+      </div>
+
+      <div *ngIf="myReportedTickets.length === 0" class="alert alert-light border text-center py-3">
+        No se encontraron tickets con esos filtros.
+        <button class="btn btn-sm btn-link" (click)="resetMyFilters()">Restablecer</button>
+      </div>
+
+      <div class="table-responsive" *ngIf="myReportedTickets.length > 0">
         <table class="table table-hover align-middle border bg-white mb-0">
           <thead class="table-light">
             <tr>
@@ -1678,14 +2047,14 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 2: APLICAR WORKAROUND TÉCNICO (SOPORTE TI L1/L2)                     -->
+<!-- MODAL 2: APLICAR WORKAROUND TÉCNICO Y CIERRE KEDB (SOPORTE TI L1/L2)      -->
 <!-- ========================================================================= -->
-<div *ngIf="isWorkaroundModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+<div *ngIf="isWorkaroundModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55); overflow-y: auto;">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-warning text-dark">
         <h5 class="modal-title fw-bold mb-0">
-          Atención de Incidente: Registrar Diagnóstico &amp; Workaround L1/L2
+          Atención de Incidente: Diagnóstico, Workaround &amp; Registro KEDB
         </h5>
         <button type="button" class="btn-close" (click)="closeAllModals()"></button>
       </div>
@@ -1696,35 +2065,76 @@
         </div>
 
         <form (ngSubmit)="saveWorkaround()">
-          <div class="mb-3">
-            <label class="form-label fw-bold">Diagnóstico Técnico Especializado</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="workaroundDiagnostico" name="diagnostico"
-              placeholder="Explique el análisis técnico efectuado en logs, puertos o conexiones..." required></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold">Solución Temporal Aplicada (Workaround)</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="workaroundSolucionTemporal" name="solucionTemporal"
-              placeholder="Describa el procedimiento temporal ejecutado para restablecer la operatividad..." required></textarea>
-          </div>
-
-          <div class="row g-2 mb-3">
+          <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label fw-bold">Actualizar Estado del Ticket</label>
+              <label class="form-label fw-bold">Diagnóstico Técnico Especializado</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="workaroundDiagnostico" name="diagnostico"
+                placeholder="Qué se inspeccionó en logs, queries SQL, métricas o endpoints..." required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Solución Temporal Aplicada (Workaround)</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="workaroundSolucionTemporal" name="solucionTemporal"
+                placeholder="Procedimiento inmediato ejecutado para restablecer la operatividad..." required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Estado del Ticket</label>
               <select class="form-select" [(ngModel)]="workaroundNuevoEstado" name="nuevoEstado">
                 <option value="En Proceso">En Proceso (Workaround Activo / En observación)</option>
-                <option value="Completado">Completado (Servicio Restablecido)</option>
+                <option value="Completado">Completado (Cerrar y Documentar en BD de Conocimiento KEDB)</option>
               </select>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold">Especialista Responsable</label>
               <input type="text" class="form-control bg-light" [value]="activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : 'Fiorella Gamarra (Admin / CAB)'" readonly />
             </div>
+
+            <!-- SECCIÓN DE BASE DE CONOCIMIENTO (KEDB) AL CERRAR O DOCUMENTAR -->
+            <div class="col-12">
+              <div class="p-3 bg-success-subtle rounded border border-success-subtle">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                  <strong class="text-success-emphasis">Detalle Técnico de Cierre &mdash; Base de Conocimiento de Incidencias (KEDB)</strong>
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="chkWorkaroundKb" [(ngModel)]="workaroundPublicarKb" name="workaroundPublicarKb" />
+                    <label class="form-check-label small fw-bold text-dark" for="chkWorkaroundKb">Publicar como artículo reutilizable KEDB</label>
+                  </div>
+                </div>
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold mb-1">Qué se aplicó (pasos técnicos, 1 por línea)</label>
+                    <textarea class="form-control form-control-sm" rows="3" [(ngModel)]="workaroundAccionesAplicadas" name="workaroundAcciones"
+                      placeholder="1. Ajuste de variable/config...&#10;2. Parche en archivo...&#10;3. Reinicio y verificación..."></textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold mb-1">Comandos / Queries / Scripts Ejecutados</label>
+                    <textarea class="form-control form-control-sm font-monospace" rows="3" [(ngModel)]="workaroundComandos" name="workaroundComandos"
+                      placeholder="curl / sql / git / node commands ejecutados..."></textarea>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold mb-1">Archivos / Recursos Modificados</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="workaroundArchivos" name="workaroundArchivos" placeholder="Ej. server.js | db.js" />
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold mb-1">Validación Post-Cierre (Evidencia)</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="workaroundValidacionPost" name="workaroundValidacionPost" placeholder="Smoke test HTTP 200, latencia < 250ms..." />
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold mb-1">Etiquetas KEDB (separadas por coma)</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="workaroundEtiquetasKb" name="workaroundEtiquetasKb" placeholder="TiDB, HTTP-429, Render, SSL" />
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold mb-1">Lecciones Aprendidas / Regla de Monitoreo Derivada</label>
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="workaroundLecciones" name="workaroundLecciones" placeholder="Qué regla de monitoreo o acción preventiva evita que se repita..." />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
-            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">Guardar Workaround &amp; Validar SLA</button>
+            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">
+              {{ workaroundNuevoEstado === 'Completado' ? 'Cerrar Incidente y Guardar en KEDB' : 'Guardar Workaround & Validar SLA' }}
+            </button>
           </div>
         </form>
       </div>
@@ -1733,14 +2143,14 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 3: POST-MORTEM & ANÁLISIS DE CAUSA RAÍZ RCA (ADMIN / CAB)           -->
+<!-- MODAL 3: POST-MORTEM & ANÁLISIS DE CAUSA RAÍZ RCA + KEDB (ADMIN / CAB)    -->
 <!-- ========================================================================= -->
-<div *ngIf="isPirModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+<div *ngIf="isPirModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55); overflow-y: auto;">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-dark text-white">
         <h5 class="modal-title fw-bold text-white mb-0">
-          Revisión Post-Incidente (PIR) &amp; Causa Raíz (5 Porqués) &mdash; {{ selectedTicket.id_ticket }}
+          Revisión Post-Incidente (PIR), Causa Raíz &amp; Publicación KEDB &mdash; {{ selectedTicket.id_ticket }}
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
       </div>
@@ -1750,20 +2160,44 @@
         </div>
 
         <form (ngSubmit)="savePir()">
-          <div class="mb-3">
-            <label class="form-label fw-bold">Análisis de los 5 Porqués (Root Cause Analysis - RCA)</label>
-            <textarea class="form-control font-monospace small" rows="6" [(ngModel)]="pir5Whys" name="pir5Whys" required></textarea>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Análisis de los 5 Porqués (Root Cause Analysis - RCA)</label>
+              <textarea class="form-control font-monospace small" rows="5" [(ngModel)]="pir5Whys" name="pir5Whys" required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Qué se Aplicó en Definitivo (1 paso por línea)</label>
+              <textarea class="form-control small" rows="5" [(ngModel)]="pirAccionCorrectiva" name="pirAccionCorrectiva" required></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Comandos / Queries / Scripts de Resolución</label>
+              <textarea class="form-control font-monospace small" rows="3" [(ngModel)]="pirComandos" name="pirComandos"></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Archivos / Componentes Modificados</label>
+              <input type="text" class="form-control form-control-sm mb-2" [(ngModel)]="pirArchivos" name="pirArchivos" />
+              <label class="form-label small fw-bold">Validación Post-Cierre (Evidencia)</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="pirValidacionPost" name="pirValidacionPost" />
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small fw-bold">Lecciones Aprendidas &amp; Prevención de Recurrencia</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="pirLecciones" name="pirLecciones" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Etiquetas KEDB</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="pirEtiquetasKb" name="pirEtiquetasKb" />
+            </div>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label fw-bold">Acción Correctiva Definitiva &amp; Prevención Futura</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="pirAccionCorrectiva" name="pirAccionCorrectiva"
-              placeholder="Indique las medidas técnicas implementadas para asegurar que el fallo no vuelva a ocurrir..." required></textarea>
-          </div>
-
-          <div class="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
-            <button type="submit" class="btn btn-success fw-bold px-4">Aprobar Post-Mortem y Cerrar Incidente</button>
+          <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="chkPirKb" [(ngModel)]="pirPublicarKb" name="pirPublicarKb" />
+              <label class="form-check-label small fw-bold" for="chkPirKb">Indexar automáticamente en Base de Conocimiento (KEDB)</label>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-secondary" (click)="closeAllModals()">Cancelar</button>
+              <button type="submit" class="btn btn-success fw-bold px-4">Aprobar PIR, Cerrar y Publicar en KEDB</button>
+            </div>
           </div>
         </form>
       </div>
@@ -1877,28 +2311,31 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL 5: DETALLE DE FICHA TÉCNICA Y ACTA DE PASE A PRODUCCIÓN             -->
+<!-- MODAL 5: DETALLE DE FICHA TÉCNICA, ACTA DE PASE & DOSSIER KEDB            -->
 <!-- ========================================================================= -->
-<div *ngIf="isDetailModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+<div *ngIf="isDetailModalOpen && selectedTicket" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55); overflow-y: auto;">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title fw-bold text-white">
-          Ficha de Trazabilidad &amp; Acta de Pase &mdash; {{ selectedTicket.codigo_jira }} ({{ selectedTicket.id_ticket }})
+          Ficha Técnica, Acta de Pase &amp; KEDB &mdash; {{ selectedTicket.codigo_jira }} ({{ selectedTicket.id_ticket }})
         </h5>
         <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
       </div>
       <div class="modal-body p-4">
         <div class="d-flex flex-wrap gap-2 mb-3">
           <span class="badge bg-dark fs-6">{{ selectedTicket.codigo_jira }}</span>
+          <span *ngIf="selectedTicket.kb_id" class="badge bg-success fs-6">{{ selectedTicket.kb_id }}</span>
           <span class="badge bg-primary fs-6">{{ selectedTicket.dimension_tecnica }}</span>
           <span class="badge bg-secondary fs-6">{{ selectedTicket.tipo_cambio_itil }}</span>
           <span *ngIf="selectedTicket.severidad_sla" class="badge fs-6 bg-danger">{{ selectedTicket.severidad_sla }}</span>
           <span class="badge fs-6" [ngClass]="{
             'bg-warning text-dark': selectedTicket.estado === 'Abierto',
             'bg-info text-dark': selectedTicket.estado === 'En Proceso',
-            'bg-success': selectedTicket.estado === 'Completado'
+            'bg-success': selectedTicket.estado === 'Completado',
+            'bg-danger': selectedTicket.estado === 'Rechazado'
           }">Estado: {{ selectedTicket.estado }}</span>
+          <span *ngIf="selectedTicket.fecha_cierre" class="badge bg-light text-dark border fs-6">Cerrado: {{ selectedTicket.fecha_cierre }}</span>
         </div>
 
         <h5 class="fw-bold text-dark">{{ selectedTicket.titulo }}</h5>
@@ -1906,21 +2343,85 @@
 
         <div class="row g-3 mt-1">
           <div class="col-md-6">
-            <div class="p-3 bg-light rounded border h-100">
-              <div class="small text-muted fw-bold text-uppercase">Componente Afectado</div>
+            <div class="p-3 bg-light rounded border h-100 small">
+              <div class="text-muted fw-bold text-uppercase">Componente Afectado</div>
               <div class="fw-semibold text-dark mt-1">{{ selectedTicket.componente_afectado }}</div>
-              <div class="small text-muted fw-bold text-uppercase mt-3">Ventana de Calendarización (FSC)</div>
+              <div *ngIf="selectedTicket.codigo_error" class="mt-2">
+                <span class="text-muted fw-bold text-uppercase d-block">Código de Error</span>
+                <code class="text-danger">{{ selectedTicket.codigo_error }}</code>
+              </div>
+              <div class="text-muted fw-bold text-uppercase mt-2">Ventana de Calendarización (FSC)</div>
               <div class="fw-semibold text-dark mt-1">{{ selectedTicket.ventana_calendarizacion }}</div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="p-3 bg-light rounded border h-100">
-              <div class="small text-muted fw-bold text-uppercase">Documentación de Pase en Repositorio</div>
+            <div class="p-3 bg-light rounded border h-100 small">
+              <div class="text-muted fw-bold text-uppercase">Documentación de Pase en Repositorio</div>
               <div class="fw-semibold text-primary mt-1"><code>{{ selectedTicket.doc_pase_referencia }}</code></div>
-              <div class="small text-muted fw-bold text-uppercase mt-3">Solicitante / Responsable</div>
-              <div class="fw-semibold text-dark mt-1">{{ selectedTicket.solicitante_nombre }} ({{ selectedTicket.solicitante_rol }})</div>
+              <div class="text-muted fw-bold text-uppercase mt-2">Solicitante / Especialista / Aprobador</div>
+              <div class="fw-semibold text-dark mt-1">
+                {{ selectedTicket.solicitante_nombre }} ({{ selectedTicket.solicitante_rol }})
+                <span *ngIf="selectedTicket.atendido_por"> &bull; Atendió: {{ selectedTicket.atendido_por }}</span>
+                <span *ngIf="selectedTicket.aprobado_por"> &bull; CAB: {{ selectedTicket.aprobado_por }}</span>
+              </div>
+              <div *ngIf="selectedTicket.tiempo_mtta_real_min || selectedTicket.tiempo_mttr_real_horas" class="mt-2">
+                <span class="badge bg-success-subtle text-success border">
+                  SLA Real &rarr; MTTA: {{ selectedTicket.tiempo_mtta_real_min || '-' }}m | MTTR: {{ selectedTicket.tiempo_mttr_real_horas || '-' }}h
+                </span>
+              </div>
             </div>
           </div>
+
+          <!-- DOSSIER TÉCNICO DE BASE DE CONOCIMIENTO (KEDB) PARA INCIDENCIAS CERRADAS -->
+          <div class="col-12" *ngIf="selectedTicket.estado === 'Completado' || selectedTicket.acciones_aplicadas?.length || selectedTicket.comandos_ejecutados">
+            <div class="p-3 bg-success-subtle rounded border border-success-subtle small">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                <strong class="text-success-emphasis text-uppercase">
+                  Dossier KEDB ({{ selectedTicket.kb_id || 'Registro de Cierre' }}) &mdash; Qué se Hizo y Cómo Reutilizarlo
+                </strong>
+                <span *ngIf="selectedTicket.veces_reutilizada !== undefined" class="badge bg-white text-success border">
+                  Reutilizada {{ selectedTicket.veces_reutilizada }}x
+                </span>
+              </div>
+              <div *ngIf="selectedTicket.sintoma_detectado" class="mb-2">
+                <strong>Síntoma Detectado:</strong> {{ selectedTicket.sintoma_detectado }}
+              </div>
+              <div *ngIf="selectedTicket.diagnostico_tecnico" class="mb-2">
+                <strong>Diagnóstico Técnico Ejecutado:</strong> {{ selectedTicket.diagnostico_tecnico }}
+              </div>
+              <div *ngIf="selectedTicket.rca_causa_raiz" class="mb-2">
+                <strong>Causa Raíz (RCA):</strong> <span style="white-space: pre-line;">{{ selectedTicket.rca_causa_raiz }}</span>
+              </div>
+              <div *ngIf="selectedTicket.acciones_aplicadas?.length" class="mb-2">
+                <strong>Acciones Aplicadas Paso a Paso:</strong>
+                <ul class="mb-0 mt-1 ps-3">
+                  <li *ngFor="let step of selectedTicket.acciones_aplicadas">{{ step }}</li>
+                </ul>
+              </div>
+              <div *ngIf="selectedTicket.archivos_modificados" class="mb-2">
+                <strong>Archivos / Objetos Modificados:</strong> <code>{{ selectedTicket.archivos_modificados }}</code>
+              </div>
+              <div *ngIf="selectedTicket.comandos_ejecutados" class="mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <strong>Comandos / Scripts / SQL Aplicados:</strong>
+                  <button type="button" class="btn btn-sm btn-outline-dark py-0 px-2" (click)="copyKbCommands(selectedTicket!)">
+                    {{ copiedKbId === selectedTicket.id_ticket ? 'Copiado' : 'Copiar' }}
+                  </button>
+                </div>
+                <pre class="bg-dark text-light p-2 rounded mb-0" style="white-space: pre-wrap;">{{ selectedTicket.comandos_ejecutados }}</pre>
+              </div>
+              <div *ngIf="selectedTicket.validacion_post_cierre" class="mb-2">
+                <strong>Validación Post-Cierre (Evidencia):</strong> {{ selectedTicket.validacion_post_cierre }}
+              </div>
+              <div *ngIf="selectedTicket.lecciones_aprendidas" class="mb-1">
+                <strong>Prevención / Regla de Monitoreo:</strong> {{ selectedTicket.lecciones_aprendidas }}
+              </div>
+              <div *ngIf="selectedTicket.etiquetas_kb?.length" class="d-flex gap-1 flex-wrap mt-2">
+                <span *ngFor="let tag of selectedTicket.etiquetas_kb" class="badge bg-white text-dark border">#{{ tag }}</span>
+              </div>
+            </div>
+          </div>
+
           <div class="col-12" *ngIf="selectedTicket.solucion_temporal_workaround">
             <div class="p-3 bg-warning-subtle rounded border border-warning-subtle">
               <div class="small fw-bold text-uppercase text-dark">Solución Temporal (Workaround)</div>
@@ -1934,15 +2435,18 @@
             </div>
           </div>
           <div class="col-12">
-            <div class="p-3 bg-success-subtle rounded border border-success-subtle">
-              <div class="small fw-bold text-uppercase text-success-emphasis">Evidencia / Resolución Técnica</div>
+            <div class="p-3 bg-light rounded border">
+              <div class="small fw-bold text-uppercase text-dark">Resumen de Resolución Técnica</div>
               <div class="small text-dark mt-1">{{ selectedTicket.resolucion_tecnica }}</div>
             </div>
           </div>
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
-          <button *ngIf="canQualifyCab" type="button" class="btn btn-outline-primary" (click)="closeAllModals(); openQualifyModal(selectedTicket!)">
+          <button *ngIf="canApplyWorkaround" type="button" class="btn btn-outline-warning text-dark" (click)="openWorkaroundModal(selectedTicket!); isDetailModalOpen = false">
+            Editar Cierre / KEDB
+          </button>
+          <button *ngIf="canQualifyCab" type="button" class="btn btn-outline-primary" (click)="openQualifyModal(selectedTicket!); isDetailModalOpen = false">
             Editar Calificación CAB
           </button>
           <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Cerrar</button>

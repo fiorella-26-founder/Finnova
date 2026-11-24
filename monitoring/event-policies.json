@@ -1,0 +1,62 @@
+{
+  "service": "finnova-production",
+  "version": "1.0.0",
+  "slo": {
+    "availabilityTargetPct": 99.9,
+    "p95LatencyTargetMs": 1500
+  },
+  "thresholds": {
+    "latencyWarnMs": 1500,
+    "latencyCritMs": 4000,
+    "timeoutMs": 12000,
+    "consecutiveWarnToIncident": 2,
+    "dedupWindowSec": 60,
+    "max429PerMin": 5,
+    "dbPoolWarnPct": 70,
+    "dbPoolCritPct": 90
+  },
+  "targets": [
+    {
+      "id": "finnova-backend-api",
+      "name": "Backend Express Render + TiDB Cloud",
+      "criticality": "CORE",
+      "url": "https://backend-finnova.onrender.com/api/servicios/publicos",
+      "method": "GET",
+      "expectedStatus": [200]
+    },
+    {
+      "id": "finnova-frontend-spa",
+      "name": "Frontend Angular Vercel Edge",
+      "criticality": "BUSINESS",
+      "url": "https://finnova-nine.vercel.app",
+      "method": "GET",
+      "expectedStatus": [200]
+    }
+  ],
+  "kedbCatalog": [
+    {
+      "kbId": "KEDB-FIN-001",
+      "matchTokens": ["ER_CON_COUNT_ERROR", "500", "pool", "tidb"],
+      "playbookId": "PB-001",
+      "action": "Elevar DB_CONNECTION_LIMIT=15 en Render, habilitar keepAlive TLS en db.js y purgar sockets Sleep en TiDB."
+    },
+    {
+      "kbId": "KEDB-FIN-002",
+      "matchTokens": ["429", "rate_limit", "proxy"],
+      "playbookId": "PB-002",
+      "action": "Verificar app.set('trust proxy', 1) en server.js y reiniciar memoria del middleware authLimiter."
+    },
+    {
+      "kbId": "KEDB-FIN-003",
+      "matchTokens": ["504", "timeout", "cold_start", "latency", "abort"],
+      "playbookId": "PB-003",
+      "action": "Disparar sonda Keep-Alive inmediata y validar cron */15 en .github/workflows/synthetic-monitor.yml."
+    },
+    {
+      "kbId": "KEDB-FIN-004",
+      "matchTokens": ["413", "payload", "voucher"],
+      "playbookId": "PB-004",
+      "action": "Validar límite express.json y compresión client-side de comprobantes Yape."
+    }
+  ]
+}

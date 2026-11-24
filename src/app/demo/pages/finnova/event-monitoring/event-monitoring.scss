@@ -1,0 +1,17 @@
+.noc-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0c4a6e 100%);
+}
+
+.bpmn-node {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+pre {
+  font-size: 0.78rem;
+  line-height: 1.45;
+}

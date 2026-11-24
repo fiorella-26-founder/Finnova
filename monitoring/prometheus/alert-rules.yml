@@ -1,0 +1,55 @@
+# Prometheus Alerting Rules (PromQL) — Finnova Event Management (ITIL 4)
+groups:
+  - name: finnova_event_classification_rules
+    rules:
+      # WARNING (P2): Degradación de latencia por Cold Start o congestión TiDB
+      - alert: FinnovaApiLatencyWarning
+        expr: probe_duration_seconds{job="finnova_backend_api"} > 1.5
+        for: 1m
+        labels:
+          classification: WARNING
+          priority: P2
+          playbook: PB-003
+          kedb: KEDB-FIN-003
+        annotations:
+          summary: "Latencia elevada en Finnova API ({{ $value | printf \"%.2f\" }}s > 1.5s)"
+          action: "Ejecutar Keep-Alive automático; escalar a INC P2 si persiste 2 ciclos."
+
+      # EXCEPTION (P1): Caída de servicio o HTTP 5xx (Outage / Pool TiDB)
+      - alert: FinnovaBackendOutageException
+        expr: probe_success{job="finnova_backend_api"} == 0 or probe_http_status_code{job="finnova_backend_api"} >= 500
+        for: 30s
+        labels:
+          classification: EXCEPTION
+          priority: P1
+          playbook: PB-001
+          kedb: KEDB-FIN-001
+        annotations:
+          summary: "Indisponibilidad crítica en Backend Finnova (HTTP {{ $value }})"
+          action: "Crear Incidente P1 automático, consultar KEDB-FIN-001 y notificar L2 DevOps + eCAB (MTTA <= 15m)."
+
+      # EXCEPTION (P1): Bloqueo masivo HTTP 429 en autenticación (Proxy Render)
+      - alert: FinnovaRateLimitStorm429
+        expr: probe_http_status_code{job="finnova_backend_api"} == 429
+        for: 30s
+        labels:
+          classification: EXCEPTION
+          priority: P1
+          playbook: PB-002
+          kedb: KEDB-FIN-002
+        annotations:
+          summary: "Bloqueo HTTP 429 detectado en API Finnova"
+          action: "Validar app.set('trust proxy', 1) en server.js según KEDB-FIN-002."
+
+      # EXCEPTION (P2): Caída de Frontend SPA Vercel Edge
+      - alert: FinnovaFrontendUnavailable
+        expr: probe_success{job="finnova_frontend_spa"} == 0
+        for: 1m
+        labels:
+          classification: EXCEPTION
+          priority: P2
+          playbook: PB-005
+          kedb: KEDB-FIN-006
+        annotations:
+          summary: "Frontend Finnova (Vercel) no responde HTTP 200"
+          action: "Validar último despliegue Vercel y ejecutar Instant Rollback si aplica."

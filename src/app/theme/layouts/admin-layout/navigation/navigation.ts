@@ -122,6 +122,14 @@ export const NavigationItems: NavigationItem[] = [
         icon: 'profile'
       },
       {
+        id: 'event-monitoring',
+        title: 'Monitoreo & Eventos (NOC)',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/event-monitoring',
+        icon: 'dashboard'
+      },
+      {
         id: 'test-view',
         title: 'Vista Test (Demo PR)',
         type: 'item',

@@ -110,6 +110,12 @@ const routes: Routes = [
         loadComponent: () => import('./demo/pages/finnova/support-changes/support-changes').then((c) => c.SupportChangesManagement)
       },
       {
+        path: 'event-monitoring',
+        canActivate: [authGuard],
+        data: { roles: ['Administrador', 'Soporte TI'] },
+        loadComponent: () => import('./demo/pages/finnova/event-monitoring/event-monitoring').then((c) => c.EventMonitoringComponent)
+      },
+      {
         path: 'test-view',
         canActivate: [authGuard],
         data: { roles: ['Administrador', 'Asesor', 'Cliente'] },

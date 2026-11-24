@@ -198,6 +198,23 @@ export interface SupportChangeTicket {
   atendido_por?: string;
   aprobado_por?: string;
   rca_causa_raiz?: string;
+
+  // FEEDBACK S14 -> BASE DE CONOCIMIENTO DE INCIDENCIAS (KEDB / KB)
+  kb_id?: string;
+  sintoma_detectado?: string;
+  diagnostico_tecnico?: string;
+  acciones_aplicadas?: string[];
+  comandos_ejecutados?: string;
+  archivos_modificados?: string;
+  validacion_post_cierre?: string;
+  lecciones_aprendidas?: string;
+  tiempo_mtta_real_min?: number;
+  tiempo_mttr_real_horas?: number;
+  etiquetas_kb?: string[];
+  publicado_kb?: boolean;
+  veces_reutilizada?: number;
+  fecha_cierre?: string;
+  evento_origen_id?: string;
 }
 
 export interface DimensionMetricsRow {
@@ -1404,13 +1421,13 @@ export class FinnovaDataService {
   }
 
   // =========================================================================
-  // 8. MESA DE AYUDA Y CONTROL DE CAMBIOS POR DIMENSIÓN (SEMANA 10 & 11)
+  // 8. MESA DE AYUDA, INCIDENTES, CONTROL DE CAMBIOS Y KEDB
   // =========================================================================
-  private readonly STORAGE_KEY_SUPPORT = 'finnova_support_changes_v4';
+  private readonly STORAGE_KEY_SUPPORT = 'finnova_support_changes_v5';
 
   private readonly DEFAULT_SUPPORT_TICKETS: SupportChangeTicket[] = [
     // =========================================================================
-    // INCIDENTES CRÍTICOS Y OPERATIVOS FINNOVA (SEMANA 14 - ITIL 4 & SLA)
+    // INCIDENTES CRÍTICOS Y OPERATIVOS FINNOVA (ITIL 4, SLA & KEDB)
     // =========================================================================
     {
       id_ticket: 'INC-2026-001',
@@ -1435,7 +1452,7 @@ export class FinnovaDataService {
       asignado_a_rol: 'Ingeniero TI L2',
       atendido_por: 'Ing. Carlos Mendoza (Soporte TI L2)',
       aprobado_por: 'Fiorella Gamarra (Admin / CAB)',
-      rca_causa_raiz: 'Pool de conexiones en Render no liberaba sockets cerrados por keep-alive bajo ráfagas concurrentes.',
+      rca_causa_raiz: 'Pool de conexiones en Render (connectionLimit: 5) no reutilizaba sockets TLS ni cerraba conexiones inactivas bajo ráfagas concurrentes de validación Yape.',
       aplica_cambio: 'Si Aplica (RFC)',
       dimension_tecnica: 'Infraestructura',
       tipo_cambio_itil: 'Normal (CHN)',
@@ -1444,8 +1461,27 @@ export class FinnovaDataService {
       ventana_calendarizacion: 'Pase ejecutado en Ventana FSC Dom 01:00 AM',
       doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-02',
       plan_rollback: 'Restaurar pool previo connectionLimit: 5 y reiniciar contenedor Render.',
-      resolucion_tecnica: 'Workaround estabilizó servicio en 25 min (MTTA: 8m, MTTR: 1.2h). Escala a RFC FCC-102.',
-      fecha_registro: '2026-11-08'
+      resolucion_tecnica: 'Workaround estabilizó servicio en 25 min (MTTA: 8m, MTTR: 1.2h). Pase definitivo FCC-102 con keepAlive TLS y pool optimizado.',
+      fecha_registro: '2026-11-08',
+      fecha_cierre: '2026-11-08',
+      kb_id: 'KEDB-FIN-001',
+      sintoma_detectado: 'HTTP 500 masivos en POST /api/solicitudes/validar-voucher + excepción mysql2 ER_CON_COUNT_ERROR en logs de Render.',
+      diagnostico_tecnico: 'Se inspeccionó SHOW FULL PROCESSLIST en TiDB Cloud detectando 100% de sockets en estado Sleep > 60s y cola de espera saturada en mysql2.',
+      acciones_aplicadas: [
+        '1. Se elevó DB_CONNECTION_LIMIT de 5 a 15 en Environment Variables de Render Cloud.',
+        '2. Se habilitó enableKeepAlive: true, keepAliveInitialDelay: 10000 e idleTimeout: 60000 en src/config/db.js.',
+        '3. Se aplicó pool.releaseConnection() explícito dentro de bloque finally en solicitudController.js.',
+        '4. Se ejecutó purga de sesiones huérfanas en TiDB Cloud y redeploy sin downtime.'
+      ],
+      comandos_ejecutados: 'mysql -h gateway01.us-east-1.prod.aws.tidbcloud.com -P 4000 --ssl-mode=VERIFY_IDENTITY -e "SHOW PROCESSLIST; SELECT COUNT(*) FROM information_schema.PROCESSLIST;"\ncurl -s -w "\\nHTTP %{http_code} - %{time_total}s\\n" https://backend-finnova.onrender.com/api/health',
+      archivos_modificados: 'backend-finnova/src/config/db.js | backend-finnova/src/controllers/solicitudController.js',
+      validacion_post_cierre: 'Prueba de carga k6 con 60 VUs durante 3 min: 0% errores 5xx, latencia P95 = 240ms, uso máximo del pool = 9/15 sockets.',
+      lecciones_aprendidas: 'Crear regla de monitoreo WARNING cuando conexiones activas > 70% del pool o latencia BD > 1500ms para prevenir saturación antes de llegar a P1.',
+      tiempo_mtta_real_min: 8,
+      tiempo_mttr_real_horas: 1.2,
+      etiquetas_kb: ['TiDB', 'SSL', 'ER_CON_COUNT_ERROR', 'Pool', 'HTTP-500', 'Yape'],
+      publicado_kb: true,
+      veces_reutilizada: 3
     },
     {
       id_ticket: 'INC-2026-002',
@@ -1470,7 +1506,7 @@ export class FinnovaDataService {
       asignado_a_rol: 'Ingeniero TI L2',
       atendido_por: 'Ing. Carlos Mendoza (Soporte TI L2)',
       aprobado_por: 'Fiorella Gamarra (Admin / CAB)',
-      rca_causa_raiz: 'Falta de directiva app.set("trust proxy", 1) en Express provocaba que req.ip leyera la IP del reverse proxy.',
+      rca_causa_raiz: 'Falta de directiva app.set("trust proxy", 1) en Express provocaba que req.ip leyera la IP interna del reverse proxy de Render (10.128.0.4) en lugar de X-Forwarded-For.',
       aplica_cambio: 'Si Aplica (RFC)',
       dimension_tecnica: 'Infraestructura',
       tipo_cambio_itil: 'Emergencia (CHE)',
@@ -1480,7 +1516,26 @@ export class FinnovaDataService {
       doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-01',
       plan_rollback: 'Rollback to previous deploy en consola Render (RTO < 3 min).',
       resolucion_tecnica: 'Resuelto con Pase de Emergencia FCC-101. MTTA: 10m, MTTR: 45m.',
-      fecha_registro: '2026-11-09'
+      fecha_registro: '2026-11-09',
+      fecha_cierre: '2026-11-09',
+      kb_id: 'KEDB-FIN-002',
+      sintoma_detectado: 'Múltiples asesores y clientes reciben HTTP 429 Too Many Requests en /api/auth/login aunque no hayan fallado su contraseña.',
+      diagnostico_tecnico: 'Al revisar logs de Express, todas las peticiones mostraban req.ip = 10.128.0.4 (IP privada de Render Edge Proxy) agotando el bucket global de express-rate-limit.',
+      acciones_aplicadas: [
+        '1. Workaround inmediato: reinicio de instancia Render para limpiar contadores en RAM del rateLimiter.',
+        '2. Hotfix eCAB (FCC-101): se agregó app.set("trust proxy", 1) antes de los middlewares en server.js.',
+        '3. Se configuró keyGenerator usando req.ip resuelto desde X-Forwarded-For y standardHeaders: true.',
+        '4. Se excluyó GET /api/health del limitador para evitar falsos bloqueos de sondas de monitoreo.'
+      ],
+      comandos_ejecutados: 'git checkout -b hotfix/FCC-101-trust-proxy\n# server.js -> app.set("trust proxy", 1);\nfor i in {1..10}; do curl -s -o /dev/null -w "Req $i: %{http_code}\\n" https://backend-finnova.onrender.com/api/servicios/publicos; done',
+      archivos_modificados: 'backend-finnova/server.js | backend-finnova/src/middlewares/rateLimitMiddleware.js',
+      validacion_post_cierre: '15 logins concurrentes desde 3 IPs distintas retornaron HTTP 200; solo una IP con >20 intentos fallidos recibió 429 sin afectar al resto.',
+      lecciones_aprendidas: 'Implementar alerta automática cuando la tasa de HTTP 429 supere 5 respuestas/minuto en /api/auth/login para diferenciar ataque de fuerza bruta vs fallo de proxy.',
+      tiempo_mtta_real_min: 10,
+      tiempo_mttr_real_horas: 0.75,
+      etiquetas_kb: ['HTTP-429', 'Render', 'trust-proxy', 'RateLimit', 'Express', 'Auth'],
+      publicado_kb: true,
+      veces_reutilizada: 4
     },
     {
       id_ticket: 'INC-2026-003',
@@ -1505,7 +1560,7 @@ export class FinnovaDataService {
       asignado_a_rol: 'Ingeniero TI L2',
       atendido_por: 'Ing. Carlos Mendoza (Soporte TI L2)',
       aprobado_por: 'Fiorella Gamarra (Admin / CAB)',
-      rca_causa_raiz: 'Comportamiento por diseño de contenedores serverless gratuitos en Render Cloud ante inactividad.',
+      rca_causa_raiz: 'Suspensión automática por inactividad (spin-down a los 15 min) en contenedores Render Free Tier sin sonda sintética periódica.',
       aplica_cambio: 'Si Aplica (RFC)',
       dimension_tecnica: 'Calendario',
       tipo_cambio_itil: 'Estándar (CHS)',
@@ -1514,8 +1569,27 @@ export class FinnovaDataService {
       ventana_calendarizacion: 'Pase Estándar FCC-110 (Lunes a Sábado 08:00 - 22:00 h)',
       doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-03',
       plan_rollback: 'Detener proceso cron keepAlive.js en caso de saturar cuota mensual.',
-      resolucion_tecnica: 'Se implementó Cron Job keepAlive.js ping cada 10 min. Cold start erradicado (latencia actual: 180ms). MTTA: 18m, MTTR: 3.5h.',
-      fecha_registro: '2026-11-10'
+      resolucion_tecnica: 'Se implementó Cron Job keepAlive.js y monitoreo sintético cada 10-15 min. Cold start erradicado (latencia actual: 180ms). MTTA: 18m, MTTR: 3.5h.',
+      fecha_registro: '2026-11-10',
+      fecha_cierre: '2026-11-10',
+      kb_id: 'KEDB-FIN-003',
+      sintoma_detectado: 'Primera petición GET /api/servicios/publicos tarda > 45,000 ms o aborta con HTTP 504 Gateway Timeout.',
+      diagnostico_tecnico: 'Render Dashboard mostró evento "Instance spun down due to inactivity" exactamente 15 min después del último request HTTP.',
+      acciones_aplicadas: [
+        '1. Workaround L2: disparo inmediato de curl GET /api/health para reactivar el contenedor.',
+        '2. Implementación de sonda sintética automatizada (keepAlive.js + GitHub Actions synthetic-monitor.yml cada 15 min).',
+        '3. Adición de timeout controlado y reintento exponencial en carga de catálogo público Angular.',
+        '4. Configuración de umbral WARNING > 1500ms y EXCEPTION > 4000ms en monitor de eventos.'
+      ],
+      comandos_ejecutados: 'node scripts/event-monitor.mjs --once\ncurl -s -o /dev/null -w "Status: %{http_code} | TTFB: %{time_starttransfer}s | Total: %{time_total}s\\n" https://backend-finnova.onrender.com/api/servicios/publicos',
+      archivos_modificados: 'scripts/event-monitor.mjs | .github/workflows/synthetic-monitor.yml | backend-finnova/scripts/keepAlive.js',
+      validacion_post_cierre: '24 horas continuas de sondeo sin spin-down: latencia media bajó de 52,000ms a 210ms, disponibilidad medida 99.94%.',
+      lecciones_aprendidas: 'Mantener monitoreo sintético externo independiente de Render (GitHub Actions / UptimeRobot) para garantizar calentamiento continuo y detección proactiva.',
+      tiempo_mtta_real_min: 18,
+      tiempo_mttr_real_horas: 3.5,
+      etiquetas_kb: ['HTTP-504', 'ColdStart', 'Render', 'KeepAlive', 'Timeout', 'Latencia'],
+      publicado_kb: true,
+      veces_reutilizada: 5
     },
     {
       id_ticket: 'INC-2026-004',
@@ -1550,7 +1624,8 @@ export class FinnovaDataService {
       doc_pase_referencia: 'proyecto-finnova/docs/PASE_A_PRODUCCION.md',
       plan_rollback: 'Revertir a input standard y alertar límite de 2MB.',
       resolucion_tecnica: 'En desarrollo en rama feature/voucher-compressor. MTTA: 35m, En curso dentro de SLA (14h / 24h).',
-      fecha_registro: '2026-11-11'
+      fecha_registro: '2026-11-11',
+      etiquetas_kb: ['HTTP-413', 'Base64', 'Voucher', 'Yape', 'Angular']
     },
     {
       id_ticket: 'INC-2026-005',
@@ -1585,7 +1660,8 @@ export class FinnovaDataService {
       doc_pase_referencia: 'docs/PASE_A_PRODUCCION.md',
       plan_rollback: 'N/A - Cambio cosmético.',
       resolucion_tecnica: 'Catalogado en backlog cosmético. MTTA: 1.5h, SLA de 72h holgadamente cumplido.',
-      fecha_registro: '2026-11-12'
+      fecha_registro: '2026-11-12',
+      etiquetas_kb: ['UI', 'CSS', 'Responsive', 'Citas']
     },
     // DIMENSIÓN 1: INFRAESTRUCTURA (3 Cambios: 1 Completado, 1 En Proceso, 1 Abierto)
     {
@@ -1597,6 +1673,14 @@ export class FinnovaDataService {
       solicitante_nombre: 'Fiorella Gamarra',
       solicitante_rol: 'Administrador',
       prioridad: 'Crítica',
+      severidad_sla: 'P1 - Crítico',
+      urgencia: 'Crítica',
+      impacto: 'Global (Toda la Plataforma)',
+      codigo_error: 'HTTP 429 Too Many Requests',
+      entorno: 'Producción',
+      mtta_sla_min: 15,
+      mttr_sla_horas: 2,
+      cumplimiento_sla: 'Dentro de SLA',
       aplica_cambio: 'Si Aplica (RFC)',
       dimension_tecnica: 'Infraestructura',
       tipo_cambio_itil: 'Emergencia (CHE)',
@@ -1606,7 +1690,25 @@ export class FinnovaDataService {
       doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-01',
       plan_rollback: 'Revertir configuración de express-rate-limit y ejecutar Rollback to previous deploy en consola Render (RTO < 3 min).',
       resolucion_tecnica: 'Desplegado exitosamente en producción. Cero errores HTTP 429 en pruebas de concurrencia.',
-      fecha_registro: '2026-10-18'
+      fecha_registro: '2026-10-18',
+      fecha_cierre: '2026-10-18',
+      kb_id: 'KEDB-FIN-004',
+      sintoma_detectado: 'Rechazo 429 generalizado tras despliegue inicial detrás del proxy inverso de Render.',
+      diagnostico_tecnico: 'Express sin trust proxy asignaba la IP del balanceador Render a todos los clientes.',
+      acciones_aplicadas: [
+        '1. Inserción de app.set("trust proxy", 1) en backend-finnova/server.js.',
+        '2. Recalibración de ventana authLimiter a 15 min / 25 peticiones por IP real.',
+        '3. Validación de cabecera X-RateLimit-Remaining en respuesta HTTP.'
+      ],
+      comandos_ejecutados: 'curl -I https://backend-finnova.onrender.com/api/health',
+      archivos_modificados: 'backend-finnova/server.js',
+      validacion_post_cierre: 'Smoke test multi-IP aprobado con 0 falsos positivos 429.',
+      lecciones_aprendidas: 'Incluir verificación de trust proxy en el checklist de todo microservicio Express detrás de PaaS/CDN.',
+      tiempo_mtta_real_min: 9,
+      tiempo_mttr_real_horas: 0.6,
+      etiquetas_kb: ['Render', 'Express', 'trust-proxy', 'HTTP-429', 'CHE'],
+      publicado_kb: true,
+      veces_reutilizada: 2
     },
     {
       id_ticket: 'RFC-2026-002',
@@ -1668,7 +1770,25 @@ export class FinnovaDataService {
       doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-02',
       plan_rollback: 'Ejecutar script inverso ALTER TABLE clientes DROP COLUMN id_asesor_preferente y git revert del commit.',
       resolucion_tecnica: 'Migración aplicada sin pérdida de datos y validada en producción.',
-      fecha_registro: '2026-10-25'
+      fecha_registro: '2026-10-25',
+      fecha_cierre: '2026-10-25',
+      kb_id: 'KEDB-FIN-005',
+      sintoma_detectado: 'Clientes con pago Yape validado no recibían cuenta automática ni asignación de asesor preferente.',
+      diagnostico_tecnico: 'La tabla clientes carecía de FK id_asesor_preferente y el controlador no disparaba aprovisionamiento post-validación.',
+      acciones_aplicadas: [
+        '1. Ejecución idempotente de ALTER TABLE clientes ADD COLUMN id_asesor_preferente INT NULL.',
+        '2. Actualización transaccional en solicitudController.js para crear usuario rol=Cliente y despachar correo Nodemailer.',
+        '3. Actualización del mapper ApiService.mapBackendClientToFrontend() en Angular.'
+      ],
+      comandos_ejecutados: 'ALTER TABLE clientes ADD COLUMN id_asesor_preferente INT NULL;\nSELECT id_cliente, nombre_completo, id_asesor_preferente FROM clientes LIMIT 5;',
+      archivos_modificados: 'backend-finnova/src/controllers/solicitudController.js | src/app/services/api.service.ts',
+      validacion_post_cierre: 'Validación end-to-end de pago Yape creó usuario Cliente y asignó asesor en < 1.1s sin errores SQL.',
+      lecciones_aprendidas: 'Toda migración DDL en TiDB debe diseñarse idempotente (IF NOT EXISTS) con script de reversión validado en staging.',
+      tiempo_mtta_real_min: 15,
+      tiempo_mttr_real_horas: 1.5,
+      etiquetas_kb: ['TiDB', 'DDL', 'Migración', 'Nodemailer', 'Clientes'],
+      publicado_kb: true,
+      veces_reutilizada: 1
     },
     {
       id_ticket: 'RFC-2026-005',
@@ -1730,7 +1850,24 @@ export class FinnovaDataService {
       doc_pase_referencia: 'proyecto-finnova/docs/PASE_A_PRODUCCION.md',
       plan_rollback: 'Revertir commit de documentación vía git revert en rama main.',
       resolucion_tecnica: 'Documentación publicada y vinculada a las actas PASE-FE y PASE-BE.',
-      fecha_registro: '2026-11-06'
+      fecha_registro: '2026-11-06',
+      fecha_cierre: '2026-11-06',
+      kb_id: 'KEDB-FIN-006',
+      sintoma_detectado: 'Ausencia de procedimiento estandarizado de pase a producción y rollback entre Vercel y Render.',
+      diagnostico_tecnico: 'Los despliegues dependían de pasos manuales no versionados en Git.',
+      acciones_aplicadas: [
+        '1. Creación de docs/PASE_A_PRODUCCION.md con pre-checks, comandos build AOT y smoke tests.',
+        '2. Integración del pipeline CI en .github/workflows/ci.yml con Node 24 y 4GB Heap.'
+      ],
+      comandos_ejecutados: 'npm run build-prod && git push origin main',
+      archivos_modificados: 'docs/PASE_A_PRODUCCION.md | .github/workflows/ci.yml',
+      validacion_post_cierre: 'Pipeline GitHub Actions completó build verde y deploy automático en Vercel.',
+      lecciones_aprendidas: 'Mantener el Runbook versionado junto al código garantiza RTO < 3 min ante cualquier rollback.',
+      tiempo_mtta_real_min: 10,
+      tiempo_mttr_real_horas: 1.0,
+      etiquetas_kb: ['CI/CD', 'Runbook', 'Rollback', 'Vercel', 'Render'],
+      publicado_kb: true,
+      veces_reutilizada: 2
     },
     {
       id_ticket: 'RFC-2026-008',
@@ -1792,7 +1929,24 @@ export class FinnovaDataService {
       doc_pase_referencia: 'backend-finnova/docs/PASE_A_PRODUCCION.md#PASE-BE-2026-03',
       plan_rollback: 'Detener proceso programado keepAlive.js o ajustar INTERVAL_MS.',
       resolucion_tecnica: 'Activo y verificado. Tiempo de respuesta inicial reducido de 50s a 180ms.',
-      fecha_registro: '2026-10-30'
+      fecha_registro: '2026-10-30',
+      fecha_cierre: '2026-10-30',
+      kb_id: 'KEDB-FIN-007',
+      sintoma_detectado: 'Latencia > 50s tras inactividad de 15 min en el servicio backend de Render.',
+      diagnostico_tecnico: 'Ausencia de tráfico periódico en horarios valle disparaba suspensión de contenedor.',
+      acciones_aplicadas: [
+        '1. Programación de ping automático cada 10 min en scripts/keepAlive.js.',
+        '2. Refuerzo externo vía GitHub Actions cron (*/15 * * * *) en synthetic-monitor.yml.'
+      ],
+      comandos_ejecutados: 'node scripts/event-monitor.mjs --once',
+      archivos_modificados: 'backend-finnova/scripts/keepAlive.js | .github/workflows/synthetic-monitor.yml',
+      validacion_post_cierre: 'Latencia promedio estabilizada en 180ms-250ms durante toda la jornada operativa.',
+      lecciones_aprendidas: 'Combinar keep-alive con telemetría de latencia permite detectar degradación antes de un outage.',
+      tiempo_mtta_real_min: 12,
+      tiempo_mttr_real_horas: 1.0,
+      etiquetas_kb: ['Cron', 'KeepAlive', 'Render', 'GitHub-Actions', 'Latencia'],
+      publicado_kb: true,
+      veces_reutilizada: 3
     },
     {
       id_ticket: 'RFC-2026-011',
@@ -1835,7 +1989,7 @@ export class FinnovaDataService {
       fecha_registro: '2026-11-05'
     },
 
-    // SOLICITUDES OPERATIVAS DE MESA DE AYUDA (SEMANA 10)
+    // SOLICITUDES OPERATIVAS DE MESA DE AYUDA
     {
       id_ticket: 'SRQ-2026-013',
       codigo_jira: 'SRQ-ACC-014',
@@ -1854,7 +2008,25 @@ export class FinnovaDataService {
       doc_pase_referencia: 'PROC-SOL-02 (Gestión de Solicitudes)',
       plan_rollback: 'N/A - Operación estándar de Mesa de Ayuda.',
       resolucion_tecnica: 'Verificado en logs_auditoria_seguridad. Se limpió intentos_fallidos = 0 y bloqueado_hasta = NULL.',
-      fecha_registro: '2026-11-04'
+      fecha_registro: '2026-11-04',
+      fecha_cierre: '2026-11-04',
+      kb_id: 'KEDB-FIN-008',
+      sintoma_detectado: 'HTTP 423 Locked en /api/auth/login: "Cuenta bloqueada temporalmente por intentos fallidos".',
+      diagnostico_tecnico: 'Se consultó logs_auditoria_seguridad descartando fuerza bruta externa (misma IP corporativa del asesor).',
+      acciones_aplicadas: [
+        '1. Verificación de identidad del asesor y auditoría de IP origen en logs_auditoria_seguridad.',
+        '2. Ejecución de procedimiento PROC-SOL-02 limpiando intentos_fallidos = 0 y bloqueado_hasta = NULL.',
+        '3. Confirmación de login exitoso y rotación preventiva de contraseña.'
+      ],
+      comandos_ejecutados: 'SELECT id_usuario, correo_electronico, intentos_fallidos, bloqueado_hasta FROM usuarios WHERE correo_electronico = "asesor@finnova.pe";\nUPDATE usuarios SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id_usuario = 2;',
+      archivos_modificados: 'N/A (Operación estándar L1 sobre tabla usuarios)',
+      validacion_post_cierre: 'Asesor inició sesión correctamente y JWT emitido con HTTP 200.',
+      lecciones_aprendidas: 'Cuando se detecten >= 5 bloqueos en < 5 min desde IPs distintas, escalar como evento de seguridad WARNING/EXCEPTION (posible credential stuffing).',
+      tiempo_mtta_real_min: 6,
+      tiempo_mttr_real_horas: 0.2,
+      etiquetas_kb: ['Auth', 'Desbloqueo', 'HTTP-423', 'PROC-SOL-02', 'L1'],
+      publicado_kb: true,
+      veces_reutilizada: 6
     },
     {
       id_ticket: 'SRQ-2026-014',
@@ -1878,13 +2050,85 @@ export class FinnovaDataService {
     }
   ];
 
+  private inferSeverityFromPriority(prioridad?: string): { severidad: IncidentSeverity; mtta: number; mttr: number } {
+    const p = (prioridad || '').toLowerCase();
+    if (p.includes('crít') || p.includes('crit')) return { severidad: 'P1 - Crítico', mtta: 15, mttr: 2 };
+    if (p.includes('alta')) return { severidad: 'P2 - Alto', mtta: 30, mttr: 6 };
+    if (p.includes('baja')) return { severidad: 'P4 - Bajo', mtta: 480, mttr: 72 };
+    return { severidad: 'P3 - Medio', mtta: 120, mttr: 24 };
+  }
+
+  private enrichTicketRecord(raw: Partial<SupportChangeTicket>, fallback?: SupportChangeTicket): SupportChangeTicket {
+    const base = fallback ? { ...fallback } : ({} as Partial<SupportChangeTicket>);
+    const merged: SupportChangeTicket = {
+      ...base,
+      ...raw,
+      id_ticket: raw.id_ticket || base.id_ticket || `INC-2026-${Math.floor(200 + Math.random() * 700)}`,
+      codigo_jira: raw.codigo_jira || base.codigo_jira || 'SIN-JIRA',
+      titulo: raw.titulo || base.titulo || 'Ticket sin título',
+      descripcion: raw.descripcion || base.descripcion || '',
+      tipo_solicitud: raw.tipo_solicitud || base.tipo_solicitud || 'Soporte / Mesa de Ayuda',
+      solicitante_nombre: raw.solicitante_nombre || base.solicitante_nombre || 'Usuario Finnova',
+      solicitante_rol: raw.solicitante_rol || base.solicitante_rol || 'Cliente',
+      prioridad: (raw.prioridad || base.prioridad || 'Media') as SupportChangeTicket['prioridad'],
+      aplica_cambio: (raw.aplica_cambio || base.aplica_cambio || 'Pendiente Evaluación') as ChangeApplicationFlag,
+      dimension_tecnica: (raw.dimension_tecnica || base.dimension_tecnica || 'Por Clasificar') as TechnicalDimension,
+      tipo_cambio_itil: (raw.tipo_cambio_itil || base.tipo_cambio_itil || 'No Aplica') as ItilChangeType,
+      estado: (raw.estado || base.estado || 'Abierto') as ChangeStatus,
+      componente_afectado: raw.componente_afectado || base.componente_afectado || 'Plataforma Finnova',
+      ventana_calendarizacion: raw.ventana_calendarizacion || base.ventana_calendarizacion || 'Por definir',
+      doc_pase_referencia: raw.doc_pase_referencia || base.doc_pase_referencia || 'docs/PASE_A_PRODUCCION.md',
+      plan_rollback: raw.plan_rollback || base.plan_rollback || 'Revertir despliegue en Render/Vercel.',
+      resolucion_tecnica: raw.resolucion_tecnica || base.resolucion_tecnica || 'En evaluación.',
+      fecha_registro: raw.fecha_registro
+        ? String(raw.fecha_registro).split('T')[0]
+        : (base.fecha_registro || new Date().toISOString().split('T')[0])
+    };
+
+    const isInc =
+      merged.tipo_solicitud === 'Incidente Técnico' ||
+      merged.id_ticket.startsWith('INC-') ||
+      !!merged.severidad_sla;
+
+    if (isInc && !merged.severidad_sla) {
+      const inferred = this.inferSeverityFromPriority(merged.prioridad);
+      merged.severidad_sla = inferred.severidad;
+      merged.mtta_sla_min = merged.mtta_sla_min ?? inferred.mtta;
+      merged.mttr_sla_horas = merged.mttr_sla_horas ?? inferred.mttr;
+      merged.cumplimiento_sla = merged.cumplimiento_sla || 'Dentro de SLA';
+    }
+
+    if (merged.estado === 'Completado' && merged.publicado_kb === undefined && (merged.acciones_aplicadas?.length || merged.rca_causa_raiz || merged.resolucion_tecnica)) {
+      merged.publicado_kb = true;
+    }
+
+    return merged;
+  }
+
   private getInitialSupportTickets(): SupportChangeTicket[] {
     try {
       const saved = localStorage.getItem(this.STORAGE_KEY_SUPPORT);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.map((t: SupportChangeTicket) => {
+            const def = this.DEFAULT_SUPPORT_TICKETS.find(d => d.id_ticket === t.id_ticket || d.codigo_jira === t.codigo_jira);
+            return this.enrichTicketRecord(t, def);
+          });
+        }
+      }
+      // Migración suave desde v4 si el usuario creó tickets propios antes
+      const legacy = localStorage.getItem('finnova_support_changes_v4');
+      if (legacy) {
+        const parsedLegacy = JSON.parse(legacy);
+        if (Array.isArray(parsedLegacy)) {
+          const defaultIds = new Set(this.DEFAULT_SUPPORT_TICKETS.map(d => d.id_ticket));
+          const customLegacy = parsedLegacy
+            .filter((t: SupportChangeTicket) => t.id_ticket && !defaultIds.has(t.id_ticket))
+            .map((t: SupportChangeTicket) => this.enrichTicketRecord(t));
+          const merged = [...customLegacy, ...this.DEFAULT_SUPPORT_TICKETS];
+          this.saveSupportTicketsToStorage(merged);
+          return merged;
         }
       }
     } catch {
@@ -1908,33 +2152,45 @@ export class FinnovaDataService {
     this.apiService.getSupportChangeTickets().subscribe({
       next: (rows) => {
         if (Array.isArray(rows) && rows.length > 0) {
-          const mapped: SupportChangeTicket[] = rows.map(r => ({
-            id_ticket: r.id_ticket,
-            codigo_jira: r.codigo_jira || 'SIN-JIRA',
-            titulo: r.titulo,
-            descripcion: r.descripcion,
-            tipo_solicitud: r.tipo_solicitud || 'Soporte / Mesa de Ayuda',
-            solicitante_nombre: r.solicitante_nombre || 'Usuario Finnova',
-            solicitante_rol: r.solicitante_rol || 'Cliente',
-            prioridad: r.prioridad || 'Media',
-            aplica_cambio: r.aplica_cambio || 'Pendiente Evaluación',
-            dimension_tecnica: r.dimension_tecnica || 'Por Clasificar',
-            tipo_cambio_itil: r.tipo_cambio_itil || 'No Aplica',
-            estado: r.estado || 'Abierto',
-            componente_afectado: r.componente_afectado || 'Plataforma Finnova',
-            ventana_calendarizacion: r.ventana_calendarizacion || 'Por definir',
-            doc_pase_referencia: r.doc_pase_referencia || 'docs/PASE_A_PRODUCCION.md',
-            plan_rollback: r.plan_rollback || 'Revertir despliegue en Render/Vercel.',
-            resolucion_tecnica: r.resolucion_tecnica || 'En evaluación.',
-            fecha_registro: r.fecha_registro ? String(r.fecha_registro).split('T')[0] : new Date().toISOString().split('T')[0]
-          }));
-          this.supportTicketsSubject.next(mapped);
-          this.saveSupportTicketsToStorage(mapped);
+          const currentLocal = this.supportTicketsSubject.value;
+          const byId = new Map<string, SupportChangeTicket>();
+
+          // 1. Semilla enriquecida (garantiza que los metadatos de severidad y KEDB nunca se pierdan)
+          for (const def of this.DEFAULT_SUPPORT_TICKETS) {
+            byId.set(def.id_ticket, { ...def });
+          }
+
+          // 2. Preservar cambios/tickets locales enriquecidos (KEDB, incidentes generados por monitoreo)
+          for (const loc of currentLocal) {
+            const existing = byId.get(loc.id_ticket);
+            byId.set(loc.id_ticket, this.enrichTicketRecord(loc, existing));
+          }
+
+          // 3. Fusionar filas del backend SIN destruir campos de Semana 14/KEDB que el API aún no devuelve
+          for (const r of rows) {
+            const id = r.id_ticket;
+            if (!id) continue;
+            const existing =
+              byId.get(id) ||
+              this.DEFAULT_SUPPORT_TICKETS.find(d => d.id_ticket === id || (r.codigo_jira && d.codigo_jira === r.codigo_jira));
+
+            // Quitar claves undefined/null del backend para no sobrescribir metadatos KEDB/SLA existentes
+            const cleanRemote: Partial<SupportChangeTicket> = {};
+            for (const [k, v] of Object.entries(r)) {
+              if (v !== undefined && v !== null && v !== '') {
+                (cleanRemote as any)[k] = v;
+              }
+            }
+            byId.set(id, this.enrichTicketRecord(cleanRemote, existing));
+          }
+
+          const merged = Array.from(byId.values());
+          this.supportTicketsSubject.next(merged);
+          this.saveSupportTicketsToStorage(merged);
         }
         if (callback) callback();
       },
       error: () => {
-        // Fallback inmediato a la semilla persistida en localStorage si el servidor aún está despertando
         const local = this.getInitialSupportTickets();
         this.supportTicketsSubject.next(local);
         if (callback) callback();
@@ -1946,7 +2202,45 @@ export class FinnovaDataService {
     return this.supportTicketsSubject.value;
   }
 
-  addSupportTicket(ticketData: Partial<SupportChangeTicket>, callback?: (err?: any) => void) {
+  getKnowledgeBaseEntries(): SupportChangeTicket[] {
+    return this.supportTicketsSubject.value.filter(
+      t => t.estado === 'Completado' && (t.publicado_kb !== false)
+    );
+  }
+
+  findKnowledgeMatch(errorOrSymptom: string): SupportChangeTicket | undefined {
+    const q = (errorOrSymptom || '').toLowerCase();
+    if (!q) return undefined;
+    return this.getKnowledgeBaseEntries().find(kb => {
+      const haystack = [
+        kb.kb_id,
+        kb.codigo_error,
+        kb.titulo,
+        kb.sintoma_detectado,
+        kb.componente_afectado,
+        ...(kb.etiquetas_kb || [])
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return q.split(/[\s,:/_-]+/).filter(w => w.length >= 3).some(token => haystack.includes(token));
+    });
+  }
+
+  incrementKbReuse(id_ticket: string) {
+    const current = [...this.supportTicketsSubject.value];
+    const idx = current.findIndex(t => t.id_ticket === id_ticket);
+    if (idx !== -1) {
+      current[idx] = {
+        ...current[idx],
+        veces_reutilizada: (current[idx].veces_reutilizada || 0) + 1
+      };
+      this.supportTicketsSubject.next(current);
+      this.saveSupportTicketsToStorage(current);
+    }
+  }
+
+  addSupportTicket(ticketData: Partial<SupportChangeTicket>, callback?: (err?: any) => void): SupportChangeTicket {
     const user = this.authService.getUser();
     const isInc = ticketData.tipo_solicitud === 'Incidente Técnico';
     const isRfc = ticketData.aplica_cambio === 'Si Aplica (RFC)';
@@ -1972,7 +2266,7 @@ export class FinnovaDataService {
       resolucion_tecnica: ticketData.resolucion_tecnica || 'Registrado en bandeja de incidentes para atención técnica.',
       fecha_registro: new Date().toISOString().split('T')[0],
 
-      // Campos Técnicos Semana 14
+      // Campos Técnicos Incidentes & SLA
       severidad_sla: ticketData.severidad_sla || (isInc ? 'P2 - Alto' : undefined),
       urgencia: ticketData.urgencia || (isInc ? 'Alta' : undefined),
       impacto: ticketData.impacto || (isInc ? 'Global (Toda la Plataforma)' : undefined),
@@ -1987,34 +2281,58 @@ export class FinnovaDataService {
       asignado_a_rol: ticketData.asignado_a_rol || (isInc ? 'Ingeniero TI L2' : 'Mesa de Ayuda L1'),
       atendido_por: ticketData.atendido_por || (this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : 'Mesa de Ayuda Finnova'),
       aprobado_por: ticketData.aprobado_por || (this.activeRole === 'Administrador' ? 'Fiorella Gamarra (Admin / CAB)' : 'Pendiente de Aprobación CAB'),
-      rca_causa_raiz: ticketData.rca_causa_raiz || ''
+      rca_causa_raiz: ticketData.rca_causa_raiz || '',
+
+      // KEDB & Trazabilidad de Evento
+      kb_id: ticketData.kb_id,
+      sintoma_detectado: ticketData.sintoma_detectado,
+      diagnostico_tecnico: ticketData.diagnostico_tecnico,
+      acciones_aplicadas: ticketData.acciones_aplicadas,
+      comandos_ejecutados: ticketData.comandos_ejecutados,
+      archivos_modificados: ticketData.archivos_modificados,
+      validacion_post_cierre: ticketData.validacion_post_cierre,
+      lecciones_aprendidas: ticketData.lecciones_aprendidas,
+      etiquetas_kb: ticketData.etiquetas_kb,
+      publicado_kb: ticketData.publicado_kb,
+      veces_reutilizada: ticketData.veces_reutilizada || 0,
+      evento_origen_id: ticketData.evento_origen_id
     };
+
+    // Actualización optimista inmediata para visibilidad en vivo en bandejas y NOC
+    const optimistic = [newTicket, ...this.supportTicketsSubject.value];
+    this.supportTicketsSubject.next(optimistic);
+    this.saveSupportTicketsToStorage(optimistic);
 
     this.apiService.createSupportChangeTicket(newTicket).subscribe({
       next: () => {
         this.loadSupportTickets(callback);
       },
       error: () => {
-        const updated = [newTicket, ...this.supportTicketsSubject.value];
-        this.supportTicketsSubject.next(updated);
-        this.saveSupportTicketsToStorage(updated);
         if (callback) callback();
       }
     });
+
+    return newTicket;
   }
 
   qualifySupportTicket(id_ticket: string, changes: Partial<SupportChangeTicket>, callback?: (err?: any) => void) {
-    // Actualizar primero de forma optimista para reflejar en tiempo real en los KPIs y tablas
     const current = [...this.supportTicketsSubject.value];
     const idx = current.findIndex(t => t.id_ticket === id_ticket);
     if (idx !== -1) {
-      current[idx] = { ...current[idx], ...changes };
-      if (changes.aplica_cambio === 'Si Aplica (RFC)' && current[idx].id_ticket.startsWith('SRQ-')) {
-        // Conservar trazabilidad y asegurar código Jira RFC
-        if (!current[idx].codigo_jira.startsWith('FCC-')) {
-          current[idx].codigo_jira = `FCC-${Math.floor(115 + Math.random() * 80)}`;
+      const updatedTicket: SupportChangeTicket = { ...current[idx], ...changes };
+      if (changes.aplica_cambio === 'Si Aplica (RFC)' && updatedTicket.id_ticket.startsWith('SRQ-')) {
+        if (!updatedTicket.codigo_jira.startsWith('FCC-')) {
+          updatedTicket.codigo_jira = `FCC-${Math.floor(115 + Math.random() * 80)}`;
         }
       }
+      if (updatedTicket.estado === 'Completado') {
+        updatedTicket.fecha_cierre = updatedTicket.fecha_cierre || new Date().toISOString().split('T')[0];
+        if (!updatedTicket.kb_id && updatedTicket.publicado_kb !== false) {
+          const kbCount = current.filter(t => t.kb_id).length + 1;
+          updatedTicket.kb_id = `KEDB-FIN-${String(kbCount).padStart(3, '0')}`;
+        }
+      }
+      current[idx] = updatedTicket;
       this.supportTicketsSubject.next(current);
       this.saveSupportTicketsToStorage(current);
     }

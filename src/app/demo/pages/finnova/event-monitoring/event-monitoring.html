@@ -1,0 +1,584 @@
+<!-- ========================================================================= -->
+<!-- CONSOLA NOC: MONITOREO Y GESTIÓN DE EVENTOS EN TIEMPO REAL (ITIL 4 / SRE) -->
+<!-- ========================================================================= -->
+<div class="row g-3 mb-3">
+  <!-- CABECERA OPERATIVA NOC -->
+  <div class="col-12">
+    <div class="card border-0 shadow-sm text-white noc-header">
+      <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="badge bg-info text-dark fw-bold">NOC / SRE FINNOVA • EVENT MANAGEMENT &amp; SYNTHETIC MONITORING</span>
+            <span class="badge" [ngClass]="autoPolling ? 'bg-success' : 'bg-secondary'">
+              {{ autoPolling ? 'AUTO-SONDA ACTIVA (' + policyForm.pollIntervalSec + 's)' : 'MODO MANUAL' }}
+            </span>
+            <span class="badge bg-dark border border-secondary">Última sonda: {{ lastProbeAt }}</span>
+          </div>
+          <h4 class="text-white fw-bold mb-1">Centro de Monitoreo de Eventos, Correlación y Respuesta Automática</h4>
+          <p class="mb-0 text-white-50 small">
+            Telemetría HTTP en vivo (Interceptor Angular + Sondas Render/TiDB), clasificación <code>INFO / WARNING / EXCEPTION</code>, pipeline BPMN ejecutable y auto-creación de incidentes con match KEDB.
+          </p>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-info text-dark fw-bold shadow-sm" (click)="triggerLiveProbe()" [disabled]="monitor.isProbeRunning">
+            {{ monitor.isProbeRunning ? 'Sondeando Producción...' : 'Ejecutar Sonda Real Ahora' }}
+          </button>
+          <button class="btn fw-bold shadow-sm" [ngClass]="autoPolling ? 'btn-danger' : 'btn-outline-light'" (click)="toggleAutoPolling()">
+            {{ autoPolling ? 'Detener Auto-Sonda' : 'Activar Auto-Sonda' }}
+          </button>
+          <a class="btn btn-warning text-dark fw-bold shadow-sm" routerLink="/dashboard/support-changes">
+            Ir a Bandeja Incidentes &amp; KEDB
+          </a>
+        </div>
+      </div>
+
+      <!-- BARRA DE INYECCIÓN DE FALLAS EN VIVO (CHAOS DRILL) -->
+      <div class="card-footer bg-black bg-opacity-25 border-top border-secondary border-opacity-25 px-4 py-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <span class="small text-white-50 fw-bold text-uppercase">Simulacro Técnico en Vivo (Inyectar Evento &rarr; BPMN &rarr; Auto-INC):</span>
+        <div class="d-flex gap-1 flex-wrap">
+          <button class="btn btn-sm btn-danger fw-semibold" (click)="runDrill('tidb-pool')">
+            + P1: Pool TiDB (ER_CON_COUNT)
+          </button>
+          <button class="btn btn-sm btn-danger fw-semibold" (click)="runDrill('rate-limit-429')">
+            + P1: Tormenta HTTP 429
+          </button>
+          <button class="btn btn-sm btn-warning text-dark fw-semibold" (click)="runDrill('cold-start')">
+            + P2: Cold Start Render 504
+          </button>
+          <button class="btn btn-sm btn-info text-dark fw-semibold" (click)="runDrill('payload-413')">
+            + P3: Voucher 413 (WARN)
+          </button>
+          <button class="btn btn-sm btn-outline-light" (click)="runDrill('spa-exception')">
+            + P2: Excepción SPA
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 KPIS TÉCNICOS EN TIEMPO REAL -->
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card border border-success-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-success small fw-semibold text-uppercase">Disponibilidad (SLO)</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-success mb-0">{{ liveAvailabilityPct }}%</h3>
+          <span class="badge bg-success text-white">Meta 99.9%</span>
+        </div>
+        <div class="small text-muted mt-1">Render + TiDB + Vercel</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card border border-primary-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-primary small fw-semibold text-uppercase">Latencia API Real</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold mb-0" [ngClass]="latestApiLatency >= policyForm.latencyCritMs ? 'text-danger' : (latestApiLatency >= policyForm.latencyWarnMs ? 'text-warning' : 'text-primary')">
+            {{ latestApiLatency }} ms
+          </h3>
+          <span class="badge bg-primary-subtle text-primary border">WARN &gt; {{ policyForm.latencyWarnMs }}ms</span>
+        </div>
+        <div class="small text-muted mt-1"><code>/api/servicios/publicos</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card border border-info-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-info-emphasis small fw-semibold text-uppercase">Eventos INFO</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-info-emphasis mb-0">{{ infoCount }}</h3>
+          <span class="badge bg-info text-dark">Operación Normal</span>
+        </div>
+        <div class="small text-muted mt-1">Solo log / telemetría</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-6 col-xl">
+    <div class="card border border-warning-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-warning-emphasis small fw-semibold text-uppercase">Eventos WARNING</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-warning-emphasis mb-0">{{ warningCount }}</h3>
+          <span class="badge bg-warning text-dark">Preventivo</span>
+        </div>
+        <div class="small text-muted mt-1">Escala tras {{ policyForm.consecutiveWarnToIncident }}x consecutivos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6 col-xl">
+    <div class="card border border-danger-subtle shadow-sm h-100 mb-0">
+      <div class="card-body p-3">
+        <div class="text-danger small fw-semibold text-uppercase">EXCEPTION / Auto-INC</div>
+        <div class="d-flex align-items-baseline justify-content-between mt-1">
+          <h3 class="fw-bold text-danger mb-0">{{ exceptionCount }}</h3>
+          <span class="badge bg-danger text-white">{{ autoIncidentsCount }} INC creados</span>
+        </div>
+        <div class="small text-muted mt-1">Vinculados a Bandeja &amp; KEDB</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENEDOR PRINCIPAL DE PESTAÑAS TÉCNICAS -->
+<div class="card border shadow-sm mb-4">
+  <div class="card-header bg-white border-bottom p-2">
+    <ul class="nav nav-pills gap-2 flex-wrap">
+      <li class="nav-item">
+        <button class="nav-link fw-bold" [class.active]="activeTab === 'live'" (click)="activeTab = 'live'">
+          1. Telemetría en Vivo, Flujo BPMN &amp; Stream de Eventos
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" [class.active]="activeTab === 'policies'" (click)="activeTab = 'policies'">
+          2. Matriz de Priorización &amp; Políticas en Vivo
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" [class.active]="activeTab === 'playbooks'" (click)="activeTab = 'playbooks'">
+          3. Plan de Respuesta (Playbooks Ejecutables)
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" [class.active]="activeTab === 'tooling'" (click)="activeTab = 'tooling'">
+          4. Herramientas (CLI / PromQL / CI) &amp; Recomendaciones
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body p-4">
+    <!-- =================================================================== -->
+    <!-- TAB 1: TELEMETRÍA REAL, BPMN EJECUTABLE & STREAM DE EVENTOS         -->
+    <!-- =================================================================== -->
+    <div *ngIf="activeTab === 'live'">
+      <!-- GRÁFICAS EN VIVO APEXCHARTS -->
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-8">
+          <div class="card border shadow-sm h-100 mb-0">
+            <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+              <strong class="text-dark small">Latencia Real Medida (ms) vs Umbrales de Política (WARN / CRIT)</strong>
+              <span class="badge bg-primary">Live Telemetry</span>
+            </div>
+            <div class="card-body p-2">
+              <apx-chart
+                [series]="latencyChartOptions.series!"
+                [chart]="latencyChartOptions.chart!"
+                [xaxis]="latencyChartOptions.xaxis!"
+                [yaxis]="latencyChartOptions.yaxis!"
+                [stroke]="latencyChartOptions.stroke!"
+                [fill]="latencyChartOptions.fill!"
+                [colors]="latencyChartOptions.colors!"
+                [dataLabels]="latencyChartOptions.dataLabels!"
+                [annotations]="latencyChartOptions.annotations!"
+                [grid]="latencyChartOptions.grid!"
+                [legend]="latencyChartOptions.legend!"
+              ></apx-chart>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="card border shadow-sm h-100 mb-0">
+            <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+              <strong class="text-dark small">Clasificación de Eventos (ITIL 4)</strong>
+              <span class="badge bg-dark">{{ events.length }} total</span>
+            </div>
+            <div class="card-body p-2 d-flex align-items-center justify-content-center">
+              <apx-chart
+                [series]="classificationChartOptions.series!"
+                [chart]="classificationChartOptions.chart!"
+                [labels]="classificationChartOptions.labels!"
+                [colors]="classificationChartOptions.colors!"
+                [legend]="classificationChartOptions.legend!"
+                [dataLabels]="classificationChartOptions.dataLabels!"
+              ></apx-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLUJO BPMN 2.0 EJECUTABLE EN VIVO -->
+      <div class="card border shadow-sm mb-4">
+        <div class="card-header bg-dark text-white py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <span class="badge bg-info text-dark me-2">BPMN 2.0 EN EJECUCIÓN</span>
+            <strong class="text-white small">Traza Viva del Último Evento: {{ bpmnState.eventId }}</strong>
+          </div>
+          <span class="badge" [ngClass]="{
+            'bg-info text-dark': bpmnState.classification === 'INFO',
+            'bg-warning text-dark': bpmnState.classification === 'WARNING',
+            'bg-danger': bpmnState.classification === 'EXCEPTION'
+          }">{{ bpmnState.summary }}</span>
+        </div>
+        <div class="card-body p-3">
+          <div class="row g-2">
+            <div class="col-12 col-md-4 col-xl-2" *ngFor="let st of bpmnState.stepsLog">
+              <div class="p-2 rounded border h-100 bpmn-node" [ngClass]="{
+                'border-success bg-success-subtle': st.status === 'done',
+                'border-primary border-2 bg-primary-subtle': st.status === 'active',
+                'border-secondary bg-light opacity-75': st.status === 'skipped'
+              }">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="badge bg-dark small">{{ st.lane }}</span>
+                  <span class="badge small" [ngClass]="{
+                    'bg-success': st.status === 'done',
+                    'bg-primary': st.status === 'active',
+                    'bg-secondary': st.status === 'skipped'
+                  }">{{ st.status === 'active' ? 'ACTIVO' : (st.status === 'done' ? 'OK' : 'OMITIDO') }}</span>
+                </div>
+                <div class="fw-bold text-dark small">{{ st.label }}</div>
+                <div class="text-muted mt-1" style="font-size: 0.74rem;">{{ st.detail }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STREAM DE EVENTOS EN VIVO + INSPECTOR DE PAYLOAD JSON -->
+      <div class="row g-3">
+        <div class="col-12 col-xl-8">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <h6 class="fw-bold text-dark mb-0">Stream Técnico de Eventos ({{ filteredEvents.length }}/{{ events.length }})</h6>
+            <div class="d-flex gap-2 flex-wrap">
+              <select class="form-select form-select-sm" [(ngModel)]="filterClass" style="width: auto;">
+                <option value="TODOS">Todas las Clases</option>
+                <option value="INFO">INFO</option>
+                <option value="WARNING">WARNING</option>
+                <option value="EXCEPTION">EXCEPTION</option>
+              </select>
+              <select class="form-select form-select-sm" [(ngModel)]="filterSource" style="width: auto;">
+                <option value="TODOS">Todos los Orígenes</option>
+                <option value="Sonda Sintética">Sonda Sintética</option>
+                <option value="HTTP Telemetry Interceptor">HTTP Telemetry Interceptor</option>
+                <option value="Backend Render API">Backend Render API</option>
+                <option value="TiDB Cloud AWS">TiDB Cloud AWS</option>
+                <option value="Auth / Rate Limiter">Auth / Rate Limiter</option>
+                <option value="Vercel Frontend SPA">Vercel Frontend SPA</option>
+              </select>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="eventSearch" placeholder="Filtrar código, endpoint, INC..." style="width: 190px;" />
+              <button *ngIf="filterClass !== 'TODOS' || filterSource !== 'TODOS' || eventSearch" class="btn btn-sm btn-outline-secondary" (click)="resetEventFilters()">Limpiar</button>
+            </div>
+          </div>
+
+          <div class="table-responsive border rounded">
+            <table class="table table-sm table-hover align-middle mb-0 small">
+              <thead class="table-light">
+                <tr>
+                  <th>Evento / Hora</th>
+                  <th>Clase / Prio</th>
+                  <th>Origen &amp; Endpoint</th>
+                  <th>Métrica vs Umbral</th>
+                  <th>Disposición / Vínculo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let e of filteredEvents" (click)="selectedEvent = e" style="cursor: pointer;" [class.table-active]="selectedEvent?.id === e.id">
+                  <td>
+                    <div class="fw-bold text-dark"><code>{{ e.id }}</code></div>
+                    <div class="text-muted" style="font-size: 0.72rem;">{{ e.timestamp | date:'HH:mm:ss' }}</div>
+                  </td>
+                  <td>
+                    <span class="badge me-1" [ngClass]="{
+                      'bg-info text-dark': e.classification === 'INFO',
+                      'bg-warning text-dark': e.classification === 'WARNING',
+                      'bg-danger': e.classification === 'EXCEPTION'
+                    }">{{ e.classification }}</span>
+                    <div class="text-muted mt-1" style="font-size: 0.72rem;">{{ e.priority }}</div>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ e.source }}</div>
+                    <code class="text-primary" style="font-size: 0.72rem;">{{ e.endpoint }}</code>
+                  </td>
+                  <td>
+                    <div class="fw-semibold">{{ e.observedValue }}</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">{{ e.code }}</div>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'bg-danger': e.disposition === 'Escalado a Incidente',
+                      'bg-warning text-dark': e.disposition === 'Auto-Remediado',
+                      'bg-secondary': e.disposition === 'Suprimido (Deduplicado)',
+                      'bg-light text-dark border': e.disposition === 'Registrado (Log)'
+                    }">{{ e.disposition }}</span>
+                    <div class="mt-1 d-flex gap-1 flex-wrap">
+                      <a *ngIf="e.linkedIncidentId" routerLink="/dashboard/support-changes" class="badge bg-dark text-white text-decoration-none">
+                        {{ e.linkedIncidentId }}
+                      </a>
+                      <span *ngIf="e.matchedKbId" class="badge bg-success">{{ e.matchedKbId }}</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- INSPECTOR TÉCNICO JSON DEL EVENTO SELECCIONADO -->
+        <div class="col-12 col-xl-4">
+          <div class="card border shadow-sm h-100 mb-0" *ngIf="selectedEvent">
+            <div class="card-header bg-dark text-white py-2 px-3 d-flex justify-content-between align-items-center">
+              <strong class="small">Inspector Payload JSON &mdash; {{ selectedEvent.id }}</strong>
+              <span class="badge bg-secondary">HTTP {{ selectedEvent.httpStatus }}</span>
+            </div>
+            <div class="card-body p-3 small">
+              <div class="mb-2"><strong>Mensaje:</strong> {{ selectedEvent.message }}</div>
+              <div class="mb-2"><strong>Umbral Política:</strong> <code>{{ selectedEvent.thresholdValue }}</code></div>
+              <div class="mb-2">
+                <strong>Traza BPMN Ejecutada:</strong>
+                <ol class="ps-3 mb-0 mt-1">
+                  <li *ngFor="let step of selectedEvent.bpmnTrace">{{ step }}</li>
+                </ol>
+              </div>
+              <strong class="d-block mt-2 mb-1">Payload Estructurado (SIEM / NDJSON):</strong>
+              <pre class="bg-dark text-success p-2 rounded mb-0 small" style="max-height: 210px; overflow: auto;">{{ selectedEvent.rawPayload | json }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: MATRIZ CORTA DE PRIORIZACIÓN & POLÍTICAS EDITABLES EN VIVO   -->
+    <!-- =================================================================== -->
+    <div *ngIf="activeTab === 'policies'">
+      <div class="row g-3">
+        <!-- MATRIZ CORTA DE PRIORIZACIÓN -->
+        <div class="col-12 col-lg-6">
+          <div class="card border shadow-sm h-100 mb-0">
+            <div class="card-header bg-dark text-white py-2 px-3 d-flex justify-content-between align-items-center">
+              <strong class="small">Matriz Compacta de Priorización de Eventos (3 &times; 3)</strong>
+              <span class="badge bg-info text-dark">Ejecutable en Motor</span>
+            </div>
+            <div class="card-body p-3">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered text-center align-middle mb-2 small">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="text-start">Clase \ Criticidad</th>
+                      <th>Core (TiDB / Auth / Render)</th>
+                      <th>Negocio (Solicitudes / Yape)</th>
+                      <th>Soporte (UI / Reportes)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="text-start"><span class="badge bg-danger">EXCEPTION</span></td>
+                      <td class="table-danger"><strong>P1 Crítico</strong><br><span class="text-muted">Auto-INC + MTTA &le;15m</span></td>
+                      <td class="table-warning"><strong>P2 Alto</strong><br><span class="text-muted">Auto-INC + MTTA &le;30m</span></td>
+                      <td class="table-info"><strong>P3 Medio</strong><br><span class="text-muted">Ticket L1 + &le;2h</span></td>
+                    </tr>
+                    <tr>
+                      <td class="text-start"><span class="badge bg-warning text-dark">WARNING</span></td>
+                      <td class="table-warning"><strong>P2 Alto</strong><br><span class="text-muted">Auto-KeepAlive / 2x&rarr;INC</span></td>
+                      <td class="table-info"><strong>P3 Medio</strong><br><span class="text-muted">Correlacionar {{ policyForm.consecutiveWarnToIncident }}x</span></td>
+                      <td><strong>P4 Bajo</strong><br><span class="text-muted">Log + Métrica</span></td>
+                    </tr>
+                    <tr>
+                      <td class="text-start"><span class="badge bg-info text-dark">INFO</span></td>
+                      <td><strong>P4 / Log</strong><br><span class="text-muted">Telemetría SLO</span></td>
+                      <td><strong>P4 / Log</strong><br><span class="text-muted">Auditoría</span></td>
+                      <td><strong>P4 / Log</strong><br><span class="text-muted">Sin alerta</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="alert alert-light border small mb-0">
+                <strong>Regla de Correlación Anti-Fatiga:</strong> Los eventos <code>WARNING</code> repetidos <strong>{{ policyForm.consecutiveWarnToIncident }} veces</strong> consecutivas se promueven automáticamente a <code>EXCEPTION</code>; eventos idénticos en <strong>&lt; {{ policyForm.dedupWindowSec }}s</strong> se suprimen.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EDITOR DE POLÍTICAS EN VIVO (TESTEABLE EN DIRECTO) -->
+        <div class="col-12 col-lg-6">
+          <div class="card border shadow-sm h-100 mb-0">
+            <div class="card-header bg-primary text-white py-2 px-3 d-flex justify-content-between align-items-center">
+              <strong class="small">Políticas de Monitoreo en Vivo (Umbrales Reales del Motor)</strong>
+              <span *ngIf="policySavedBanner" class="badge bg-warning text-dark">Política Aplicada</span>
+            </div>
+            <div class="card-body p-3 small">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label fw-bold mb-1">Umbral Latencia WARNING (ms)</label>
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="policyForm.latencyWarnMs" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold mb-1">Umbral Latencia EXCEPTION (ms)</label>
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="policyForm.latencyCritMs" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold mb-1">Intervalo Sonda Automática (seg)</label>
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="policyForm.pollIntervalSec" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold mb-1">Correlación WARN &rarr; INC (veces)</label>
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="policyForm.consecutiveWarnToIncident" />
+                </div>
+                <div class="col-4">
+                  <label class="form-label fw-bold mb-1">Ventana Dedup (seg)</label>
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="policyForm.dedupWindowSec" />
+                </div>
+                <div class="col-4">
+                  <label class="form-label fw-bold mb-1">Máx HTTP 429 / min</label>
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="policyForm.max429PerMin" />
+                </div>
+                <div class="col-4">
+                  <label class="form-label fw-bold mb-1">Pool TiDB CRIT (%)</label>
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="policyForm.dbPoolCritPct" />
+                </div>
+                <div class="col-6 mt-2">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="swAutoInc" [(ngModel)]="policyForm.autoCreateIncidentOnException" />
+                    <label class="form-check-label fw-semibold" for="swAutoInc">Auto-crear INC ante EXCEPTION</label>
+                  </div>
+                </div>
+                <div class="col-6 mt-2">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="swKeepAlive" [(ngModel)]="policyForm.autoExecuteKeepAlive" />
+                    <label class="form-check-label fw-semibold" for="swKeepAlive">Auto-remediar KeepAlive en WARN</label>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                <span class="text-muted">Tip demo: baja WARN a <code>100ms</code> y pulsa <strong>Ejecutar Sonda Real</strong>.</span>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-secondary" (click)="resetPolicy()">Restablecer</button>
+                  <button class="btn btn-sm btn-primary fw-bold" (click)="savePolicy()">Aplicar Políticas</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: PLAN DE RESPUESTA ANTE EVENTOS (PLAYBOOKS EJECUTABLES)       -->
+    <!-- =================================================================== -->
+    <div *ngIf="activeTab === 'playbooks'">
+      <div class="row g-3">
+        <div class="col-12 col-xl-7">
+          <div class="row g-3">
+            <div class="col-12" *ngFor="let pb of monitor.PLAYBOOKS">
+              <div class="card border shadow-sm mb-0">
+                <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-dark">{{ pb.id }}</span>
+                    <span class="badge" [ngClass]="pb.classification === 'EXCEPTION' ? 'bg-danger' : 'bg-warning text-dark'">{{ pb.severity }}</span>
+                    <strong class="text-dark small">{{ pb.title }}</strong>
+                  </div>
+                  <div class="d-flex gap-1">
+                    <span class="badge bg-success">{{ pb.kbRef }}</span>
+                    <button class="btn btn-sm btn-primary py-0 px-2" (click)="executePlaybook(pb)">Ejecutar Playbook</button>
+                  </div>
+                </div>
+                <div class="card-body p-3 small">
+                  <div class="mb-1"><strong>Trigger:</strong> <code>{{ pb.triggerCode }}</code> &bull; <strong>Escalamiento:</strong> {{ pb.escalationPath }}</div>
+                  <div class="mb-2 text-primary"><strong>Acción Automática:</strong> {{ pb.autoAction }}</div>
+                  <pre class="bg-dark text-light p-2 rounded mb-1" style="white-space: pre-wrap;">{{ pb.commands.join('\n') }}</pre>
+                  <div class="d-flex justify-content-between align-items-center mt-1">
+                    <span class="text-muted"><strong>Verificación:</strong> <code>{{ pb.verificationCmd }}</code></span>
+                    <button class="btn btn-sm btn-outline-dark py-0 px-2" (click)="copyText(pb.commands.join('\n'), pb.id)">
+                      {{ copiedSnippet === pb.id ? 'Copiado' : 'Copiar CLI' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONSOLA DE TRAZA EN VIVO -->
+        <div class="col-12 col-xl-5">
+          <div class="card border-0 shadow-sm bg-dark text-light h-100 mb-0">
+            <div class="card-header bg-black text-info py-2 px-3 d-flex justify-content-between align-items-center">
+              <strong class="small font-monospace">finnova-noc-console:~$ live-trace</strong>
+              <button class="btn btn-sm btn-outline-info py-0 px-2" (click)="triggerLiveProbe()">Ping Real</button>
+            </div>
+            <div class="card-body p-3 font-monospace small" style="max-height: 540px; overflow-y: auto;">
+              <div *ngFor="let line of playbookTerminalLog" class="mb-1 text-light" style="word-break: break-word;">
+                {{ line }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: HERRAMIENTAS IMPLEMENTADAS & RECOMENDACIONES OPERATIVAS      -->
+    <!-- =================================================================== -->
+    <div *ngIf="activeTab === 'tooling'">
+      <div class="row g-3">
+        <div class="col-12 col-xl-7">
+          <div class="card border shadow-sm mb-0 h-100">
+            <div class="card-header bg-dark text-white py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <strong class="small">Implementaciones Reales en el Repositorio Finnova</strong>
+              <div class="btn-group btn-group-sm">
+                <button class="btn" [ngClass]="activeConfigTab === 'cli' ? 'btn-info text-dark fw-bold' : 'btn-outline-light'" (click)="activeConfigTab = 'cli'">Agente CLI</button>
+                <button class="btn" [ngClass]="activeConfigTab === 'promql' ? 'btn-info text-dark fw-bold' : 'btn-outline-light'" (click)="activeConfigTab = 'promql'">PromQL Rules</button>
+                <button class="btn" [ngClass]="activeConfigTab === 'github' ? 'btn-info text-dark fw-bold' : 'btn-outline-light'" (click)="activeConfigTab = 'github'">GitHub Cron</button>
+                <button class="btn" [ngClass]="activeConfigTab === 'interceptor' ? 'btn-info text-dark fw-bold' : 'btn-outline-light'" (click)="activeConfigTab = 'interceptor'">Interceptor Angular</button>
+              </div>
+            </div>
+            <div class="card-body p-3 small">
+              <div *ngIf="activeConfigTab === 'cli'">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <code>scripts/event-monitor.mjs + monitoring/event-policies.json</code>
+                  <button class="btn btn-sm btn-outline-dark py-0 px-2" (click)="copyText(snippetCli, 'cli')">{{ copiedSnippet === 'cli' ? 'Copiado' : 'Copiar' }}</button>
+                </div>
+                <pre class="bg-dark text-info p-3 rounded mb-0" style="white-space: pre-wrap;">{{ snippetCli }}</pre>
+              </div>
+              <div *ngIf="activeConfigTab === 'promql'">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <code>monitoring/prometheus/alert-rules.yml</code>
+                  <button class="btn btn-sm btn-outline-dark py-0 px-2" (click)="copyText(snippetPromql, 'promql')">{{ copiedSnippet === 'promql' ? 'Copiado' : 'Copiar' }}</button>
+                </div>
+                <pre class="bg-dark text-warning p-3 rounded mb-0" style="white-space: pre-wrap;">{{ snippetPromql }}</pre>
+              </div>
+              <div *ngIf="activeConfigTab === 'github'">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <code>.github/workflows/synthetic-monitor.yml</code>
+                  <button class="btn btn-sm btn-outline-dark py-0 px-2" (click)="copyText(snippetGithub, 'github')">{{ copiedSnippet === 'github' ? 'Copiado' : 'Copiar' }}</button>
+                </div>
+                <pre class="bg-dark text-success p-3 rounded mb-0" style="white-space: pre-wrap;">{{ snippetGithub }}</pre>
+              </div>
+              <div *ngIf="activeConfigTab === 'interceptor'">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <code>src/app/services/telemetry.interceptor.ts</code>
+                  <button class="btn btn-sm btn-outline-dark py-0 px-2" (click)="copyText(snippetInterceptor, 'int')">{{ copiedSnippet === 'int' ? 'Copiado' : 'Copiar' }}</button>
+                </div>
+                <pre class="bg-dark text-light p-3 rounded mb-0" style="white-space: pre-wrap;">{{ snippetInterceptor }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECOMENDACIONES TÉCNICAS OPERATIVAS -->
+        <div class="col-12 col-xl-5">
+          <div class="card border shadow-sm mb-0 h-100">
+            <div class="card-header bg-light py-2 px-3">
+              <strong class="text-dark small">Recomendaciones Técnicas de Mejora Operativa (Finnova SRE)</strong>
+            </div>
+            <div class="card-body p-3 small">
+              <div *ngFor="let r of recommendations" class="p-2 rounded border mb-2 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="badge bg-primary">{{ r.id }} &bull; {{ r.area }}</span>
+                  <span class="badge bg-success-subtle text-success border">{{ r.metric }}</span>
+                </div>
+                <div class="fw-bold text-dark">{{ r.title }}</div>
+                <div class="text-muted mt-1">{{ r.implementation }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

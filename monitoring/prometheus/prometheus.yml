@@ -1,0 +1,45 @@
+# Prometheus Scrape Configuration — Finnova Production Stack
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - "alert-rules.yml"
+
+scrape_configs:
+  - job_name: "finnova_backend_api"
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://backend-finnova.onrender.com/api/servicios/publicos
+        labels:
+          service: "backend-express-render"
+          criticality: "CORE"
+          database: "tidb-cloud-aws"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  - job_name: "finnova_frontend_spa"
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://finnova-nine.vercel.app
+        labels:
+          service: "frontend-angular-vercel"
+          criticality: "BUSINESS"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

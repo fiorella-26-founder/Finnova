@@ -12,7 +12,10 @@
     "test": "ng test",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
-    "prettier": "prettier --write ./src"
+    "prettier": "prettier --write ./src",
+    "monitor": "node scripts/event-monitor.mjs --once",
+    "monitor:watch": "node scripts/event-monitor.mjs --watch --interval=30",
+    "monitor:drill": "node scripts/event-monitor.mjs --simulate-p1"
   },
   "private": false,
   "dependencies": {

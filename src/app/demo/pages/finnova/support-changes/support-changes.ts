@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import {
   FinnovaDataService,
   SupportChangeTicket,
@@ -13,7 +14,6 @@ import {
   IncidentUrgency,
   IncidentImpact,
   IncidentEnvironment,
-  SlaStatus,
   AssignedRoleLevel,
   UserRole,
   computeIncidentSeverity
@@ -22,7 +22,7 @@ import { ConfirmDialogService } from 'src/app/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-support-changes',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './support-changes.html',
   styleUrl: './support-changes.scss'
 })
@@ -30,20 +30,34 @@ export class SupportChangesManagement implements OnInit {
   public dataService = inject(FinnovaDataService);
   private confirmService = inject(ConfirmDialogService);
 
-  // Pestaña activa
-  activeTab: 'incidentes' | 'bpmn-raci' | 'dimensiones' | 'bandeja' | 'pase-calendario' | 'pir-auditoria' = 'incidentes';
-  adminTab: 'dimensiones' | 'pase-calendario' | 'pir-auditoria' | 'bandeja' = 'dimensiones';
+  // Pestañas activas (incluye Base de Conocimiento KEDB para Soporte TI y Admin)
+  activeTab: 'incidentes' | 'kedb' | 'bpmn-raci' | 'bandeja' = 'incidentes';
+  adminTab: 'dimensiones' | 'pase-calendario' | 'pir-auditoria' | 'kedb' | 'bandeja' = 'dimensiones';
 
-  // Filtros de la bandeja unificada
+  // --- FILTROS INDEPENDIENTES POR BANDEJA (sin fugas entre pestañas) ---
+  // 1. Tablero de Incidentes (Soporte TI)
+  filterSeveridad: string = 'TODAS';
+  filterIncidenteEstado: string = 'TODOS';
+  filterIncidenteSoloKb: boolean = false;
+  incidentSearchTerm: string = '';
+
+  // 2. Bandeja Técnica Unificada / Bandeja Global (Soporte TI & Admin)
   filterDimension: string = 'TODAS';
   filterEstado: string = 'TODOS';
   filterAplica: string = 'TODOS';
   filterTipoTicket: string = 'TODOS';
-  searchTerm: string = '';
+  filterBandejaSeveridad: string = 'TODAS';
+  bandejaSearchTerm: string = '';
 
-  // Filtros del tablero de incidentes
-  filterSeveridad: string = 'TODAS';
-  filterIncidenteEstado: string = 'TODOS';
+  // 3. Base de Conocimiento de Incidencias (KEDB)
+  kbSearchTerm: string = '';
+  kbFilterTag: string = 'TODAS';
+  kbFilterDimension: string = 'TODAS';
+  copiedKbId: string | null = null;
+
+  // 4. Bandeja de Mis Solicitudes (Asesor / Cliente)
+  myFilterEstado: string = 'TODOS';
+  mySearchTerm: string = '';
 
   // Modales
   isNewTicketModalOpen = false;
@@ -66,7 +80,7 @@ export class SupportChangesManagement implements OnInit {
   newVentanaDirecta = 'Por definir en Comité CAB';
   newPlanRollbackDirecto = 'Instant Rollback en Vercel / Render ante anomalía en Smoke Test.';
 
-  // Campos Técnicos de Incidentes & SLA (Semana 14)
+  // Campos Técnicos de Incidentes & SLA
   newImpacto: IncidentImpact = 'Global (Toda la Plataforma)';
   newUrgencia: IncidentUrgency = 'Crítica';
   newSeveridad: IncidentSeverity = 'P1 - Crítico';
@@ -79,9 +93,6 @@ export class SupportChangesManagement implements OnInit {
   newWorkaround = '';
   newTieneWorkaround = true;
   newAsignadoRol: AssignedRoleLevel = 'Ingeniero TI L2';
-  newAtendidoPor = '';
-  newAprobadoPor = '';
-  newRcaCausaRaiz = '';
 
   // Formulario de Calificación / Triaje a Control de Cambios (CAB)
   qualifyCodigoJira = '';
@@ -95,15 +106,33 @@ export class SupportChangesManagement implements OnInit {
   qualifyDocPase = '';
   qualifyRollback = '';
   qualifyResolucion = '';
+  qualifyAccionesAplicadas = '';
+  qualifyComandos = '';
+  qualifyValidacionPost = '';
+  qualifyEtiquetasKb = '';
+  qualifyPublicarKb = true;
 
-  // Formulario de Workaround (Soporte TI L1/L2)
+  // Formulario de Workaround & Cierre Técnico KEDB (Soporte TI L1/L2)
   workaroundDiagnostico = '';
   workaroundSolucionTemporal = '';
   workaroundNuevoEstado: ChangeStatus = 'En Proceso';
+  workaroundAccionesAplicadas = '';
+  workaroundComandos = '';
+  workaroundArchivos = '';
+  workaroundValidacionPost = '';
+  workaroundLecciones = '';
+  workaroundEtiquetasKb = '';
+  workaroundPublicarKb = true;
 
-  // Formulario de Post-Mortem / PIR (Causa Raíz RCA)
+  // Formulario de Post-Mortem / PIR & KEDB (Causa Raíz RCA)
   pir5Whys = '';
   pirAccionCorrectiva = '';
+  pirComandos = '';
+  pirArchivos = '';
+  pirValidacionPost = '';
+  pirLecciones = '';
+  pirEtiquetasKb = '';
+  pirPublicarKb = true;
   pirResponsable = 'Fiorella Gamarra (Tech Lead & CAB)';
 
   ngOnInit() {
@@ -112,81 +141,159 @@ export class SupportChangesManagement implements OnInit {
       if (role === 'Soporte TI') {
         this.activeTab = 'incidentes';
       } else if (role === 'Administrador') {
-        if (this.activeTab === 'incidentes' || this.activeTab === 'bpmn-raci') {
-          this.activeTab = 'dimensiones';
-        }
+        this.adminTab = 'dimensiones';
       }
     });
   }
 
-  get myReportedTickets(): SupportChangeTicket[] {
-    if (this.isCliente) {
-      const list = this.allTickets.filter(t => 
-        t.solicitante_rol === 'Cliente' || 
-        (t.solicitante_nombre && (t.solicitante_nombre.toLowerCase().includes('maría') || t.solicitante_nombre.toLowerCase().includes('cliente')))
-      );
-      return list.length > 0 ? list : [this.allTickets.find(t => t.id_ticket === 'INC-2026-004') || this.allTickets[0]];
-    }
-    if (this.isAsesor) {
-      const list = this.allTickets.filter(t => 
-        t.solicitante_rol === 'Asesor' || 
-        (t.solicitante_nombre && (t.solicitante_nombre.toLowerCase().includes('asesor') || t.solicitante_nombre.toLowerCase().includes('juan')))
-      );
-      return list.length > 0 ? list : [this.allTickets.find(t => t.id_ticket === 'INC-2026-003') || this.allTickets[1]];
-    }
-    return this.allTickets;
+  // Normalización robusta (insensible a tildes, mayúsculas y espacios)
+  private normalize(val: unknown): string {
+    return String(val ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
-  get myReportedCount(): number {
-    return this.myReportedTickets.length;
+  private matchesSearch(ticket: SupportChangeTicket, term: string): boolean {
+    const q = this.normalize(term);
+    if (!q) return true;
+    const haystack = this.normalize([
+      ticket.id_ticket,
+      ticket.codigo_jira,
+      ticket.kb_id,
+      ticket.titulo,
+      ticket.descripcion,
+      ticket.codigo_error,
+      ticket.componente_afectado,
+      ticket.dimension_tecnica,
+      ticket.tipo_solicitud,
+      ticket.solicitante_nombre,
+      ticket.solucion_temporal_workaround,
+      ticket.resolucion_tecnica,
+      ticket.rca_causa_raiz,
+      ticket.sintoma_detectado,
+      ticket.diagnostico_tecnico,
+      ticket.comandos_ejecutados,
+      ticket.archivos_modificados,
+      ticket.validacion_post_cierre,
+      ticket.lecciones_aprendidas,
+      ...(ticket.acciones_aplicadas || []),
+      ...(ticket.etiquetas_kb || [])
+    ].join(' '));
+    return haystack.includes(q);
   }
 
-  get myInProgressCount(): number {
-    return this.myReportedTickets.filter(t => t.estado === 'En Proceso' || t.estado === 'Abierto').length;
+  private parseLines(text: string): string[] {
+    return (text || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
   }
 
-  get myResolvedCount(): number {
-    return this.myReportedTickets.filter(t => t.estado === 'Completado').length;
-  }
-
-  get criticalIncidentsForPir(): SupportChangeTicket[] {
-    return this.allIncidents.filter(i => 
-      i.severidad_sla === 'P1 - Crítico' || 
-      i.severidad_sla === 'P2 - Alto' || 
-      !!i.rca_causa_raiz ||
-      i.tipo_cambio_itil === 'Emergencia (CHE)'
-    );
+  private parseTags(text: string): string[] {
+    return (text || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
   }
 
   get allTickets(): SupportChangeTicket[] {
     return this.dataService.getSupportTickets();
   }
 
-  // --- FILTROS Y MÉTRICAS DE INCIDENTES (SEMANA 14) ---
+  // --- MIS REPORTES (ASESOR / CLIENTE) ---
+  get myReportedTicketsBase(): SupportChangeTicket[] {
+    if (this.isCliente) {
+      const list = this.allTickets.filter(t =>
+        t.solicitante_rol === 'Cliente' ||
+        (t.solicitante_nombre && (this.normalize(t.solicitante_nombre).includes('maria') || this.normalize(t.solicitante_nombre).includes('cliente')))
+      );
+      return list.length > 0 ? list : this.allTickets.slice(0, 2);
+    }
+    if (this.isAsesor) {
+      const list = this.allTickets.filter(t =>
+        t.solicitante_rol === 'Asesor' ||
+        (t.solicitante_nombre && (this.normalize(t.solicitante_nombre).includes('asesor') || this.normalize(t.solicitante_nombre).includes('juan')))
+      );
+      return list.length > 0 ? list : this.allTickets.slice(0, 2);
+    }
+    return this.allTickets;
+  }
+
+  get myReportedTickets(): SupportChangeTicket[] {
+    return this.myReportedTicketsBase.filter(t => {
+      if (this.myFilterEstado !== 'TODOS' && this.normalize(t.estado) !== this.normalize(this.myFilterEstado)) {
+        return false;
+      }
+      return this.matchesSearch(t, this.mySearchTerm);
+    });
+  }
+
+  resetMyFilters() {
+    this.myFilterEstado = 'TODOS';
+    this.mySearchTerm = '';
+  }
+
+  get myReportedCount(): number {
+    return this.myReportedTicketsBase.length;
+  }
+
+  get myInProgressCount(): number {
+    return this.myReportedTicketsBase.filter(t => t.estado === 'En Proceso' || t.estado === 'Abierto').length;
+  }
+
+  get myResolvedCount(): number {
+    return this.myReportedTicketsBase.filter(t => t.estado === 'Completado').length;
+  }
+
+  get criticalIncidentsForPir(): SupportChangeTicket[] {
+    return this.allIncidents.filter(i =>
+      i.severidad_sla === 'P1 - Crítico' ||
+      i.severidad_sla === 'P2 - Alto' ||
+      !!i.rca_causa_raiz ||
+      i.tipo_cambio_itil === 'Emergencia (CHE)'
+    );
+  }
+
+  // --- FILTROS Y MÉTRICAS DE INCIDENTES ---
   get allIncidents(): SupportChangeTicket[] {
     return this.allTickets.filter(t =>
-      t.tipo_solicitud === 'Incidente Técnico' ||
-      t.id_ticket.startsWith('INC-') ||
+      this.normalize(t.tipo_solicitud).includes('incidente') ||
+      (t.id_ticket || '').startsWith('INC-') ||
       t.severidad_sla !== undefined
     );
   }
 
   get filteredIncidents(): SupportChangeTicket[] {
     return this.allIncidents.filter(inc => {
-      if (this.filterSeveridad !== 'TODAS' && inc.severidad_sla !== this.filterSeveridad) return false;
-      if (this.filterIncidenteEstado !== 'TODOS' && inc.estado !== this.filterIncidenteEstado) return false;
-      if (this.searchTerm.trim()) {
-        const q = this.searchTerm.toLowerCase();
-        const match =
-          inc.id_ticket.toLowerCase().includes(q) ||
-          inc.codigo_jira.toLowerCase().includes(q) ||
-          inc.titulo.toLowerCase().includes(q) ||
-          (inc.codigo_error && inc.codigo_error.toLowerCase().includes(q)) ||
-          inc.componente_afectado.toLowerCase().includes(q);
-        if (!match) return false;
+      if (this.filterSeveridad !== 'TODAS' && this.normalize(inc.severidad_sla) !== this.normalize(this.filterSeveridad)) {
+        return false;
       }
-      return true;
+      if (this.filterIncidenteEstado !== 'TODOS' && this.normalize(inc.estado) !== this.normalize(this.filterIncidenteEstado)) {
+        return false;
+      }
+      if (this.filterIncidenteSoloKb && !(inc.estado === 'Completado' && inc.publicado_kb !== false)) {
+        return false;
+      }
+      return this.matchesSearch(inc, this.incidentSearchTerm);
     });
+  }
+
+  get hasActiveIncidentFilters(): boolean {
+    return (
+      this.filterSeveridad !== 'TODAS' ||
+      this.filterIncidenteEstado !== 'TODOS' ||
+      this.filterIncidenteSoloKb ||
+      this.incidentSearchTerm.trim().length > 0
+    );
+  }
+
+  resetIncidentFilters() {
+    this.filterSeveridad = 'TODAS';
+    this.filterIncidenteEstado = 'TODOS';
+    this.filterIncidenteSoloKb = false;
+    this.incidentSearchTerm = '';
   }
 
   get totalIncidentsCount(): number {
@@ -219,32 +326,124 @@ export class SupportChangesManagement implements OnInit {
   }
 
   get avgMttaMin(): number {
-    return 12; // MTTA Promedio calculado en Finnova: 12 min (Objetivo P1: <= 15 min)
+    const withReal = this.allIncidents.filter(i => typeof i.tiempo_mtta_real_min === 'number');
+    if (withReal.length === 0) return 12;
+    const avg = withReal.reduce((acc, i) => acc + (i.tiempo_mtta_real_min || 0), 0) / withReal.length;
+    return Math.round(avg);
   }
 
   get avgMttrHours(): number {
-    return 1.8; // MTTR Promedio calculado en Finnova: 1.8 h (Objetivo P1: <= 2.0 h)
+    const withReal = this.allIncidents.filter(i => typeof i.tiempo_mttr_real_horas === 'number');
+    if (withReal.length === 0) return 1.8;
+    const avg = withReal.reduce((acc, i) => acc + (i.tiempo_mttr_real_horas || 0), 0) / withReal.length;
+    return Math.round(avg * 10) / 10;
   }
 
-  // --- FILTROS DE BANDEJA GENERAL (SEMANA 10 & 11) ---
+  // --- FILTROS DE BANDEJA TÉCNICA UNIFICADA / BANDEJA GLOBAL ---
   get filteredTickets(): SupportChangeTicket[] {
     return this.allTickets.filter(t => {
-      if (this.filterDimension !== 'TODAS' && t.dimension_tecnica !== this.filterDimension) return false;
-      if (this.filterEstado !== 'TODOS' && t.estado !== this.filterEstado) return false;
-      if (this.filterAplica !== 'TODOS' && t.aplica_cambio !== this.filterAplica) return false;
-      if (this.filterTipoTicket !== 'TODOS' && t.tipo_solicitud !== this.filterTipoTicket) return false;
-      if (this.searchTerm.trim()) {
-        const q = this.searchTerm.toLowerCase();
-        const match =
-          t.id_ticket.toLowerCase().includes(q) ||
-          t.codigo_jira.toLowerCase().includes(q) ||
-          t.titulo.toLowerCase().includes(q) ||
-          t.dimension_tecnica.toLowerCase().includes(q) ||
-          t.solicitante_nombre.toLowerCase().includes(q);
-        if (!match) return false;
+      if (this.filterTipoTicket !== 'TODOS' && this.normalize(t.tipo_solicitud) !== this.normalize(this.filterTipoTicket)) {
+        return false;
       }
-      return true;
+      if (this.filterDimension !== 'TODAS' && this.normalize(t.dimension_tecnica) !== this.normalize(this.filterDimension)) {
+        return false;
+      }
+      if (this.filterEstado !== 'TODOS' && this.normalize(t.estado) !== this.normalize(this.filterEstado)) {
+        return false;
+      }
+      if (this.filterAplica !== 'TODOS' && this.normalize(t.aplica_cambio) !== this.normalize(this.filterAplica)) {
+        return false;
+      }
+      if (this.filterBandejaSeveridad !== 'TODAS' && this.normalize(t.severidad_sla) !== this.normalize(this.filterBandejaSeveridad)) {
+        return false;
+      }
+      return this.matchesSearch(t, this.bandejaSearchTerm);
     });
+  }
+
+  get hasActiveBandejaFilters(): boolean {
+    return (
+      this.filterTipoTicket !== 'TODOS' ||
+      this.filterDimension !== 'TODAS' ||
+      this.filterEstado !== 'TODOS' ||
+      this.filterAplica !== 'TODOS' ||
+      this.filterBandejaSeveridad !== 'TODAS' ||
+      this.bandejaSearchTerm.trim().length > 0
+    );
+  }
+
+  resetBandejaFilters() {
+    this.filterTipoTicket = 'TODOS';
+    this.filterDimension = 'TODAS';
+    this.filterEstado = 'TODOS';
+    this.filterAplica = 'TODOS';
+    this.filterBandejaSeveridad = 'TODAS';
+    this.bandejaSearchTerm = '';
+  }
+
+  // --- BASE DE CONOCIMIENTO DE INCIDENCIAS (KEDB / KB) ---
+  get allKnowledgeEntries(): SupportChangeTicket[] {
+    return this.dataService.getKnowledgeBaseEntries();
+  }
+
+  get allKnowledgeTags(): string[] {
+    const tags = new Set<string>();
+    for (const kb of this.allKnowledgeEntries) {
+      for (const tag of kb.etiquetas_kb || []) {
+        tags.add(tag);
+      }
+    }
+    return Array.from(tags).sort((a, b) => a.localeCompare(b));
+  }
+
+  get filteredKnowledgeEntries(): SupportChangeTicket[] {
+    return this.allKnowledgeEntries.filter(kb => {
+      if (this.kbFilterDimension !== 'TODAS' && this.normalize(kb.dimension_tecnica) !== this.normalize(this.kbFilterDimension)) {
+        return false;
+      }
+      if (this.kbFilterTag !== 'TODAS') {
+        const hasTag = (kb.etiquetas_kb || []).some(t => this.normalize(t) === this.normalize(this.kbFilterTag));
+        if (!hasTag) return false;
+      }
+      return this.matchesSearch(kb, this.kbSearchTerm);
+    });
+  }
+
+  get totalKbReuses(): number {
+    return this.allKnowledgeEntries.reduce((acc, kb) => acc + (kb.veces_reutilizada || 0), 0);
+  }
+
+  resetKbFilters() {
+    this.kbSearchTerm = '';
+    this.kbFilterTag = 'TODAS';
+    this.kbFilterDimension = 'TODAS';
+  }
+
+  copyKbCommands(kb: SupportChangeTicket) {
+    const text = kb.comandos_ejecutados || (kb.acciones_aplicadas || []).join('\n') || kb.resolucion_tecnica;
+    if (navigator.clipboard && text) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+    this.copiedKbId = kb.id_ticket;
+    setTimeout(() => {
+      if (this.copiedKbId === kb.id_ticket) this.copiedKbId = null;
+    }, 2000);
+  }
+
+  reuseKbSolution(kb: SupportChangeTicket) {
+    this.dataService.incrementKbReuse(kb.id_ticket);
+    // Abrir modal de nuevo incidente o aplicar sobre incidente abierto más reciente con workaround precargado
+    const openInc = this.allIncidents.find(i => i.estado !== 'Completado');
+    if (openInc && this.canApplyWorkaround) {
+      this.openWorkaroundModal(openInc);
+      this.workaroundDiagnostico = `[Reutilizado desde ${kb.kb_id || kb.id_ticket}] ${kb.diagnostico_tecnico || kb.rca_causa_raiz || ''}`;
+      this.workaroundSolucionTemporal = kb.solucion_temporal_workaround || kb.resolucion_tecnica;
+      this.workaroundAccionesAplicadas = (kb.acciones_aplicadas || []).join('\n');
+      this.workaroundComandos = kb.comandos_ejecutados || '';
+      this.workaroundValidacionPost = kb.validacion_post_cierre || '';
+    } else {
+      this.openDetailModal(kb);
+    }
   }
 
   get metricsByDimension(): DimensionMetricsRow[] {
@@ -460,8 +659,6 @@ export class SupportChangesManagement implements OnInit {
       resolucion_tecnica: isInc
         ? 'Incidente registrado en triaje L1. Notificado al Ingeniero de TI / DevOps.'
         : 'Solicitud registrada en bandeja.',
-
-      // Metadatos de Incidentes & SLA
       severidad_sla: isInc ? this.newSeveridad : undefined,
       urgencia: isInc ? this.newUrgencia : undefined,
       impacto: isInc ? this.newImpacto : undefined,
@@ -481,43 +678,81 @@ export class SupportChangesManagement implements OnInit {
     });
   }
 
-  // --- MODAL DE WORKAROUND (SOPORTE TI L1/L2) ---
+  // --- MODAL DE WORKAROUND & CIERRE KEDB (SOPORTE TI L1/L2) ---
   openWorkaroundModal(ticket: SupportChangeTicket) {
     this.selectedTicket = ticket;
-    this.workaroundDiagnostico = ticket.resolucion_tecnica || 'Análisis en logs de Render y TiDB Cloud.';
+    this.workaroundDiagnostico = ticket.diagnostico_tecnico || ticket.resolucion_tecnica || 'Análisis en logs de Render y TiDB Cloud.';
     this.workaroundSolucionTemporal = ticket.solucion_temporal_workaround || '';
-    this.workaroundNuevoEstado = 'En Proceso';
+    this.workaroundNuevoEstado = ticket.estado === 'Completado' ? 'Completado' : 'En Proceso';
+    this.workaroundAccionesAplicadas = (ticket.acciones_aplicadas || []).join('\n') || '1. Validación de logs y métricas del servicio afectado.\n2. Aplicación de ajuste técnico en configuración/código.\n3. Verificación de estabilidad post-cambio.';
+    this.workaroundComandos = ticket.comandos_ejecutados || 'curl -s -w "\\nHTTP %{http_code} - %{time_total}s\\n" https://backend-finnova.onrender.com/api/health';
+    this.workaroundArchivos = ticket.archivos_modificados || ticket.componente_afectado;
+    this.workaroundValidacionPost = ticket.validacion_post_cierre || 'Smoke test HTTP 200 validado sin errores 4xx/5xx en consola.';
+    this.workaroundLecciones = ticket.lecciones_aprendidas || 'Agregar regla de alerta preventiva en monitor de eventos para detectar anomalía antes del impacto a usuarios.';
+    this.workaroundEtiquetasKb = (ticket.etiquetas_kb || []).join(', ') || (ticket.codigo_error ? ticket.codigo_error.split(/[\s:]+/)[0] : 'Finnova');
+    this.workaroundPublicarKb = ticket.publicado_kb !== false;
     this.isWorkaroundModalOpen = true;
   }
 
   saveWorkaround() {
     if (!this.selectedTicket) return;
+    const isClosing = this.workaroundNuevoEstado === 'Completado';
+    const acciones = this.parseLines(this.workaroundAccionesAplicadas);
+    const tags = this.parseTags(this.workaroundEtiquetasKb);
+
     this.dataService.qualifySupportTicket(this.selectedTicket.id_ticket, {
       solucion_temporal_workaround: this.workaroundSolucionTemporal,
-      resolucion_tecnica: `[Workaround Aplicado por ${this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : 'Admin'}]: ${this.workaroundDiagnostico}`,
+      diagnostico_tecnico: this.workaroundDiagnostico,
+      resolucion_tecnica: `[${isClosing ? 'Cierre Técnico & KEDB' : 'Workaround'} por ${this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : 'Admin'}]: ${this.workaroundDiagnostico}`,
       estado: this.workaroundNuevoEstado,
       atendido_por: this.activeRole === 'Soporte TI' ? 'Ing. Carlos Mendoza (Soporte TI L2)' : this.selectedTicket.atendido_por,
-      cumplimiento_sla: 'Dentro de SLA'
+      cumplimiento_sla: 'Dentro de SLA',
+      sintoma_detectado: this.selectedTicket.sintoma_detectado || `${this.selectedTicket.codigo_error || 'Anomalía'} en ${this.selectedTicket.componente_afectado}`,
+      acciones_aplicadas: acciones.length ? acciones : undefined,
+      comandos_ejecutados: this.workaroundComandos.trim() || undefined,
+      archivos_modificados: this.workaroundArchivos.trim() || undefined,
+      validacion_post_cierre: this.workaroundValidacionPost.trim() || undefined,
+      lecciones_aprendidas: this.workaroundLecciones.trim() || undefined,
+      etiquetas_kb: tags.length ? tags : undefined,
+      publicado_kb: isClosing ? this.workaroundPublicarKb : this.selectedTicket.publicado_kb
     }, () => {
       this.closeAllModals();
     });
   }
 
-  // --- MODAL DE POST-MORTEM / PIR (ADMIN & TECH LEAD) ---
+  // --- MODAL DE POST-MORTEM / PIR & PUBLICACIÓN KEDB (ADMIN & TECH LEAD) ---
   openPirModal(ticket: SupportChangeTicket) {
     this.selectedTicket = ticket;
-    this.pir5Whys = ticket.rca_causa_raiz || `1. ¿Por qué ocurrió la saturación? Porque el pool tenía connectionLimit: 5.\n2. ¿Por qué 5 no fue suficiente? Porque hubo 50 solicitudes POST simultáneas por campaña Yape.\n3. ¿Por qué no se liberaron conexiones? Porque faltaba timeout de keep-alive en sockets TLS.\n4. ¿Por qué no se probó antes? Pruebas de carga previas solo simularon 10 usuarios concurrentes.\n5. Causa Raíz Definitiva: Falta de auto-escalado de pool y desconexión pasiva de clientes inactivos.`;
-    this.pirAccionCorrectiva = '1. Subir pool a connectionLimit: 15 (Completado en Pase FCC-102).\n2. Integrar monitoreo de conexiones activas en /api/health.\n3. Ejecutar pruebas de carga k6 con 100 VUs.';
+    this.pir5Whys = ticket.rca_causa_raiz || `1. ¿Por qué ocurrió la incidencia? Porque el umbral operativo fue superado en ${ticket.componente_afectado}.\n2. ¿Por qué no se contuvo antes? Faltaba control de umbral automático en la capa afectada.\n3. ¿Por qué ocurrió bajo carga? Picos simultáneos durante validación de solicitudes.\n4. ¿Por qué no se detectó en QA? Escenario de estrés no incluía concurrencia sostenida.\n5. Causa Raíz Definitiva: Falta de parametrización preventiva y regla de alerta proactiva.`;
+    this.pirAccionCorrectiva = (ticket.acciones_aplicadas || []).join('\n') || '1. Aplicación de parche definitivo en producción.\n2. Actualización de política de monitoreo de eventos.\n3. Incorporación a la Base de Conocimiento (KEDB).';
+    this.pirComandos = ticket.comandos_ejecutados || 'node scripts/event-monitor.mjs --once';
+    this.pirArchivos = ticket.archivos_modificados || ticket.componente_afectado;
+    this.pirValidacionPost = ticket.validacion_post_cierre || 'Smoke test productivo HTTP 200 y monitoreo estable durante 30 min.';
+    this.pirLecciones = ticket.lecciones_aprendidas || 'Se documenta runbook en KEDB y alerta automática en /dashboard/event-monitoring.';
+    this.pirEtiquetasKb = (ticket.etiquetas_kb || []).join(', ') || 'RCA, PostMortem, Finnova';
+    this.pirPublicarKb = true;
     this.isPirModalOpen = true;
   }
 
   savePir() {
     if (!this.selectedTicket) return;
+    const acciones = this.parseLines(this.pirAccionCorrectiva);
+    const tags = this.parseTags(this.pirEtiquetasKb);
+
     this.dataService.qualifySupportTicket(this.selectedTicket.id_ticket, {
       rca_causa_raiz: this.pir5Whys,
-      resolucion_tecnica: `${this.selectedTicket.resolucion_tecnica} | [PIR / Post-Mortem Aprobado]: ${this.pirAccionCorrectiva}`,
+      resolucion_tecnica: `${this.selectedTicket.resolucion_tecnica} | [PIR / Post-Mortem Aprobado]: ${acciones.join(' ; ')}`,
       aprobado_por: 'Fiorella Gamarra (Tech Lead & CAB)',
-      estado: 'Completado'
+      estado: 'Completado',
+      sintoma_detectado: this.selectedTicket.sintoma_detectado || `${this.selectedTicket.codigo_error || this.selectedTicket.titulo}`,
+      diagnostico_tecnico: this.selectedTicket.diagnostico_tecnico || this.pir5Whys,
+      acciones_aplicadas: acciones.length ? acciones : undefined,
+      comandos_ejecutados: this.pirComandos.trim() || undefined,
+      archivos_modificados: this.pirArchivos.trim() || undefined,
+      validacion_post_cierre: this.pirValidacionPost.trim() || undefined,
+      lecciones_aprendidas: this.pirLecciones.trim() || undefined,
+      etiquetas_kb: tags.length ? tags : undefined,
+      publicado_kb: this.pirPublicarKb
     }, () => {
       this.closeAllModals();
     });
@@ -534,7 +769,7 @@ export class SupportChangesManagement implements OnInit {
     }
   }
 
-  // --- MODAL CALIFICACIÓN CAB (SEMANA 11) ---
+  // --- MODAL CALIFICACIÓN CAB ---
   openQualifyModal(ticket: SupportChangeTicket) {
     this.selectedTicket = ticket;
     this.qualifyCodigoJira = ticket.codigo_jira;
@@ -548,6 +783,11 @@ export class SupportChangesManagement implements OnInit {
     this.qualifyDocPase = ticket.doc_pase_referencia;
     this.qualifyRollback = ticket.plan_rollback;
     this.qualifyResolucion = ticket.resolucion_tecnica;
+    this.qualifyAccionesAplicadas = (ticket.acciones_aplicadas || []).join('\n');
+    this.qualifyComandos = ticket.comandos_ejecutados || '';
+    this.qualifyValidacionPost = ticket.validacion_post_cierre || '';
+    this.qualifyEtiquetasKb = (ticket.etiquetas_kb || []).join(', ');
+    this.qualifyPublicarKb = ticket.publicado_kb !== false;
     this.isQualifyModalOpen = true;
   }
 
@@ -570,6 +810,9 @@ export class SupportChangesManagement implements OnInit {
 
   saveQualification() {
     if (!this.selectedTicket) return;
+    const acciones = this.parseLines(this.qualifyAccionesAplicadas);
+    const tags = this.parseTags(this.qualifyEtiquetasKb);
+
     this.dataService.qualifySupportTicket(this.selectedTicket.id_ticket, {
       codigo_jira: this.qualifyCodigoJira,
       aplica_cambio: this.qualifyAplicaCambio,
@@ -582,21 +825,15 @@ export class SupportChangesManagement implements OnInit {
       doc_pase_referencia: this.qualifyDocPase,
       plan_rollback: this.qualifyRollback,
       resolucion_tecnica: this.qualifyResolucion,
+      acciones_aplicadas: acciones.length ? acciones : this.selectedTicket.acciones_aplicadas,
+      comandos_ejecutados: this.qualifyComandos.trim() || this.selectedTicket.comandos_ejecutados,
+      validacion_post_cierre: this.qualifyValidacionPost.trim() || this.selectedTicket.validacion_post_cierre,
+      etiquetas_kb: tags.length ? tags : this.selectedTicket.etiquetas_kb,
+      publicado_kb: this.qualifyEstado === 'Completado' ? this.qualifyPublicarKb : this.selectedTicket.publicado_kb,
       aprobado_por: this.isAdmin ? 'Fiorella Gamarra (Admin / CAB)' : this.selectedTicket.aprobado_por
     }, () => {
       this.closeAllModals();
     });
-  }
-
-  quickCycleStatus(ticket: SupportChangeTicket) {
-    const nextMap: Record<ChangeStatus, ChangeStatus> = {
-      'Abierto': 'En Proceso',
-      'En Proceso': 'Completado',
-      'Completado': 'Abierto',
-      'Rechazado': 'Abierto'
-    };
-    const nextStatus = nextMap[ticket.estado] || 'En Proceso';
-    this.dataService.qualifySupportTicket(ticket.id_ticket, { estado: nextStatus });
   }
 
   openDetailModal(ticket: SupportChangeTicket) {
