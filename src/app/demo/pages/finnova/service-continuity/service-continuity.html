@@ -9,7 +9,7 @@
             <span class="badge font-monospace" [ngClass]="circuitState === 'CLOSED' ? 'pill-ok' : 'pill-warn'">
               Circuit: {{ circuitState }}
             </span>
-            <span class="badge bg-light text-dark border font-monospace">FinnovaContinuityDB</span>
+            <span class="badge bg-light text-dark border font-monospace">TiDB + FinnovaContinuityDB</span>
             <span *ngIf="statusToast" class="badge bg-dark text-white">{{ statusToast }}</span>
           </div>
           <h4 class="fw-bold text-dark mb-0">Continuidad del Servicio, Alta Disponibilidad y DRP</h4>
@@ -149,6 +149,11 @@
 
     <!-- TAB 2: ANÁLISIS DE RIESGOS -->
     <div *ngIf="activeTab === 'risks'">
+      <div *ngIf="lastRiskTestBanner" class="px-3 py-2 mb-2 rounded border bg-light d-flex justify-content-between align-items-center small">
+        <span class="fw-semibold text-dark">{{ lastRiskTestBanner }}</span>
+        <a routerLink="/dashboard/event-monitoring" class="btn btn-sm btn-outline-primary py-0 px-2">Ver Evento</a>
+      </div>
+
       <div class="table-responsive border rounded">
         <table class="table table-sm table-hover align-middle mb-0 small">
           <thead class="table-light">
@@ -162,6 +167,7 @@
               <th>Severidad</th>
               <th>Control de Continuidad / HA</th>
               <th>Residual</th>
+              <th class="text-end">Prueba</th>
             </tr>
           </thead>
           <tbody>
@@ -181,6 +187,11 @@
               </td>
               <td>{{ r.mitigationControl }}</td>
               <td><span class="badge pill-ok">{{ r.residualLevel }}</span></td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary py-0 px-2" (click)="runRiskTest(r.id)" [disabled]="isBusy">
+                  Probar
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>

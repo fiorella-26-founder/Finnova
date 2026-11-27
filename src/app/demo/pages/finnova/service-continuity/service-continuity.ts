@@ -33,6 +33,7 @@ export class ServiceContinuityComponent implements OnInit, OnDestroy {
   circuitState: CircuitState = 'CLOSED';
 
   selectedDrill: DrpDrillResult | null = null;
+  lastRiskTestBanner = '';
   isBusy = false;
   statusToast = '';
 
@@ -150,6 +151,19 @@ export class ServiceContinuityComponent implements OnInit, OnDestroy {
       this.selectedDrill = drill;
       this.activeTab = 'drp';
       this.flashToast(`${drill.id} completado • RTO ${drill.measuredRtoSec}s (Meta ≤ ${drill.targetRtoSec}s)`);
+    } finally {
+      this.isBusy = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async runRiskTest(riskId: string) {
+    if (this.isBusy) return;
+    this.isBusy = true;
+    try {
+      const res = await this.continuity.testRiskScenario(riskId);
+      this.lastRiskTestBanner = res.summary;
+      this.flashToast(`${res.riskId} validado → ${res.eventId}`);
     } finally {
       this.isBusy = false;
       this.cdr.detectChanges();

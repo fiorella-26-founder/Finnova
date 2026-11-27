@@ -241,7 +241,104 @@ export class EventMonitoringService {
   private eventSeq = 120;
 
   constructor() {
-    this.hydrateFromIndexedDb();
+    void this.hydrateFromIndexedDb().then(() => this.syncEventsFromTiDb());
+  }
+
+  public syncEventsFromTiDb(): void {
+    const ctx = new HttpContext().set(SKIP_TELEMETRY_PROBE, true);
+    this.http
+      .get<any[]>(`${this.baseUrl}/continuidad/eventos?limit=120`, { context: ctx })
+      .pipe(timeout(8000))
+      .subscribe({
+        next: rows => {
+          if (!Array.isArray(rows) || rows.length === 0) return;
+          const fromDb: MonitoringEvent[] = rows.map(r => {
+            let parsedPayload: Record<string, unknown> = {};
+            try {
+              parsedPayload = typeof r.payload_json === 'string' ? JSON.parse(r.payload_json) : (r.payload_json || {});
+            } catch {
+              parsedPayload = {};
+            }
+            const lat = Number(r.latencia_ms) || 0;
+            const st = Number(r.http_status) || 200;
+            return {
+              id: String(r.id_evento),
+              timestamp: r.fecha_evento ? new Date(r.fecha_evento).toISOString() : new Date().toISOString(),
+              source: (r.origen as EventSource) || 'Sonda Sintética',
+              endpoint: String(r.endpoint || '/api/servicios/publicos'),
+              classification: (r.clasificacion as EventClassification) || 'INFO',
+              priority: (r.prioridad as IncidentSeverity) || 'P4 - Bajo',
+              httpStatus: st,
+              latencyMs: lat,
+              metricName: 'tidb_persisted_telemetry',
+              observedValue: `${lat} ms (HTTP ${st})`,
+              thresholdValue: `WARN > ${this.policy.latencyWarnMs}ms | CRIT > ${this.policy.latencyCritMs}ms`,
+              code: String(r.codigo_evento || 'PROBE_OK'),
+              message: String((parsedPayload as any).message || `Evento sincronizado desde TiDB Cloud (${r.codigo_evento}).`),
+              correlatedCount: 1,
+              disposition: (r.disposicion as EventDisposition) || 'Registrado (Log)',
+              linkedIncidentId: r.id_incidente_vinculado || undefined,
+              matchedKbId: r.id_kedb || undefined,
+              bpmnTrace: ['1. Leído desde TiDB Cloud (finnova_db.eventos_monitoreo)', `2. Clasificación ${r.clasificacion}`, `3. Disposición: ${r.disposicion}`],
+              rawPayload: { ...parsedPayload, synced_from_tidb: true, id_evento: r.id_evento }
+            };
+          });
+
+          const mergedMap = new Map<string, MonitoringEvent>();
+          for (const ev of [...fromDb, ...this.eventsSubject.value]) {
+            if (!mergedMap.has(ev.id)) {
+              mergedMap.set(ev.id, ev);
+            }
+          }
+          const merged = Array.from(mergedMap.values())
+            .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+            .slice(0, 500);
+
+          const maxNum = merged.reduce((acc, ev) => {
+            const m = ev.id.match(/(\d+)$/);
+            return m ? Math.max(acc, Number(m[1])) : acc;
+          }, this.eventSeq);
+          this.eventSeq = Math.max(this.eventSeq, maxNum);
+
+          this.eventsSubject.next(merged);
+          this.persistEvents(merged);
+          this.updateStorageMeta(merged.length, 'TiDB Cloud + IndexedDB WAL');
+        },
+        error: () => {
+          // Si Render está suspendido o en failover, opera desde IndexedDB WAL sin error
+        }
+      });
+  }
+
+  private pushEventToTiDb(ev: MonitoringEvent): void {
+    // Evitar saturar BD con telemetría pasiva HTTP 200 repetitiva de navegación; guardar toda sonda, warning, exception y drill
+    if (ev.code === 'HTTP_200_TELEMETRY' || ev.code === 'SPA_HEALTH_OK') return;
+    const ctx = new HttpContext().set(SKIP_TELEMETRY_PROBE, true);
+    this.http
+      .post(
+        `${this.baseUrl}/continuidad/eventos`,
+        {
+          id_evento: ev.id,
+          fecha_evento: ev.timestamp,
+          origen: ev.source,
+          endpoint: ev.endpoint,
+          clasificacion: ev.classification,
+          prioridad: ev.priority,
+          http_status: ev.httpStatus,
+          latencia_ms: ev.latencyMs,
+          codigo_evento: ev.code,
+          disposicion: ev.disposition,
+          id_incidente_vinculado: ev.linkedIncidentId || null,
+          id_kedb: ev.matchedKbId || null,
+          payload_json: { ...ev.rawPayload, message: ev.message }
+        },
+        { context: ctx }
+      )
+      .pipe(timeout(8000))
+      .subscribe({
+        next: () => this.updateStorageMeta(this.eventsSubject.value.length, 'TiDB Cloud + IndexedDB WAL'),
+        error: () => {}
+      });
   }
 
   get storageMeta(): EventStorageMeta {
@@ -692,6 +789,7 @@ export class EventMonitoringService {
     const updated = [newEvent, ...this.eventsSubject.value].slice(0, 500);
     this.eventsSubject.next(updated);
     this.persistEvents(updated);
+    this.pushEventToTiDb(newEvent);
     this.updateLiveBpmn(newEvent, isDuplicate);
     return newEvent;
   }
