@@ -12,6 +12,9 @@
             <span class="badge" [ngClass]="autoPolling ? 'status-pill-ok' : 'bg-light text-secondary border'">
               {{ autoPolling ? 'Auto-Sonda: ' + policyForm.pollIntervalSec + 's' : 'Modo Manual' }}
             </span>
+            <span class="badge bg-light text-dark border font-monospace">
+              {{ storageMeta.dbName }}.{{ storageMeta.storeName }} ({{ storageMeta.persistedCount }})
+            </span>
             <span class="small text-muted">Última sonda: <strong>{{ lastProbeAt }}</strong></span>
           </div>
           <h4 class="fw-bold text-dark mb-1">Monitoreo de Eventos, Correlación y Respuesta</h4>
@@ -243,6 +246,8 @@
               </select>
               <input type="text" class="form-control form-control-sm" [(ngModel)]="eventSearch" placeholder="Buscar código o INC..." style="width: 170px;" />
               <button *ngIf="filterClass !== 'TODOS' || filterSource !== 'TODOS' || eventSearch" class="btn btn-sm btn-outline-secondary" (click)="resetEventFilters()">Limpiar</button>
+              <button class="btn btn-sm btn-outline-dark" (click)="downloadEventLog('ndjson')">NDJSON</button>
+              <button class="btn btn-sm btn-outline-primary" (click)="downloadEventLog('sql')">SQL TiDB</button>
             </div>
           </div>
 

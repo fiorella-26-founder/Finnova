@@ -130,6 +130,14 @@ export const NavigationItems: NavigationItem[] = [
         icon: 'dashboard'
       },
       {
+        id: 'service-continuity',
+        title: 'Continuidad & DRP',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/service-continuity',
+        icon: 'dashboard'
+      },
+      {
         id: 'test-view',
         title: 'Vista Test (Demo PR)',
         type: 'item',

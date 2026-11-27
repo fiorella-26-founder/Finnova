@@ -5,6 +5,7 @@ import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { AppRoutingModule } from './app/app-routing.module';
 import { AppComponent } from './app/app.component';
 import { authInterceptor } from './app/services/auth.interceptor';
+import { continuityInterceptor } from './app/services/continuity.interceptor';
 import { GlobalEventErrorHandler, telemetryInterceptor } from './app/services/telemetry.interceptor';
 
 if (environment.production) {
@@ -13,7 +14,7 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideHttpClient(withInterceptors([authInterceptor, telemetryInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, telemetryInterceptor, continuityInterceptor])),
     { provide: ErrorHandler, useClass: GlobalEventErrorHandler },
     importProvidersFrom(BrowserModule, AppRoutingModule)
   ]

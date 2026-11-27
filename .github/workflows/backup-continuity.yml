@@ -1,0 +1,44 @@
+name: Finnova 3-2-1 Backup & DRP Verification
+
+on:
+  schedule:
+    # Ejecución diaria 02:00 AM Hora Perú (07:00 UTC) fuera de horario pico
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup-and-drp-verify:
+    name: Snapshot SHA-256, Verificación & Drill DRP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repositorio
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 3. Ejecutar Sonda Pre-Respaldo y Persistir Eventos NDJSON
+        run: node scripts/event-monitor.mjs --once
+
+      - name: 4. Generar Snapshot Criptográfico SHA-256
+        run: node scripts/backup-drp-engine.mjs --backup
+
+      - name: 5. Verificar Integridad Criptográfica SHA-256
+        run: node scripts/backup-drp-engine.mjs --verify
+
+      - name: 6. Ejecutar Simulacro Automatizado de Restauración (RTO / RPO)
+        run: node scripts/backup-drp-engine.mjs --drill
+
+      - name: 7. Almacenar Copia Off-Site Inmutable (Regla 3-2-1 Copia #2)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: finnova-drp-snapshot-${{ github.run_number }}
+          path: |
+            backups/snapshots/latest-snapshot.json
+            backups/manifest.ndjson
+            monitoring/logs/events.ndjson
+          retention-days: 30

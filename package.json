@@ -15,7 +15,10 @@
     "prettier": "prettier --write ./src",
     "monitor": "node scripts/event-monitor.mjs --once",
     "monitor:watch": "node scripts/event-monitor.mjs --watch --interval=30",
-    "monitor:drill": "node scripts/event-monitor.mjs --simulate-p1"
+    "monitor:drill": "node scripts/event-monitor.mjs --simulate-p1",
+    "backup:run": "node scripts/backup-drp-engine.mjs --backup",
+    "backup:verify": "node scripts/backup-drp-engine.mjs --verify",
+    "drp:drill": "node scripts/backup-drp-engine.mjs --drill"
   },
   "private": false,
   "dependencies": {

@@ -1,0 +1,2 @@
+{"snapshot_id":"BKP-CLI-20261127-1783","created_at":"2026-11-27T17:55:01.782Z","source_mode":"LIVE_TIDB_RENDER_API","records_count":2,"size_bytes":3343,"duration_ms":61,"sha256":"e1a9f9dc660df3a5e8adb3359a15cc21aeebbca7aa4883bf912f808ef7dceb37","verified":true}
+{"snapshot_id":"BKP-CLI-20261127-1269","created_at":"2026-11-27T17:55:31.268Z","source_mode":"STANDBY_LOCAL_REPLICA","records_count":6,"size_bytes":3877,"duration_ms":61,"sha256":"c206c95852af31661ed692cae29752606b3b9cfe2e5b0a3b300ede51686ecc12","verified":true}

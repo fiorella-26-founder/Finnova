@@ -91,6 +91,14 @@ export interface BpmnLiveState {
   payloadPreview: Record<string, unknown>;
 }
 
+export interface EventStorageMeta {
+  engine: string;
+  dbName: string;
+  storeName: string;
+  persistedCount: number;
+  lastWriteAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -101,6 +109,10 @@ export class EventMonitoringService {
 
   private readonly STORAGE_KEY_POLICY = 'finnova_event_monitoring_policy_v1';
   private readonly STORAGE_KEY_EVENTS = 'finnova_event_monitoring_stream_v1';
+  private readonly IDB_NAME = 'FinnovaTelemetryDB';
+  private readonly IDB_VERSION = 1;
+  private readonly IDB_STORE = 'events_wal';
+  private idbPromise: Promise<IDBDatabase | null> | null = null;
 
   public readonly DEFAULT_POLICY: MonitoringPolicy = {
     pollIntervalSec: 30,
@@ -214,10 +226,27 @@ export class EventMonitoringService {
   private bpmnStateSubject = new BehaviorSubject<BpmnLiveState>(this.buildInitialBpmnState());
   public bpmnState$: Observable<BpmnLiveState> = this.bpmnStateSubject.asObservable();
 
+  private storageMetaSubject = new BehaviorSubject<EventStorageMeta>({
+    engine: 'IndexedDB WAL + NDJSON',
+    dbName: 'FinnovaTelemetryDB',
+    storeName: 'events_wal',
+    persistedCount: 0,
+    lastWriteAt: new Date().toISOString()
+  });
+  public storageMeta$: Observable<EventStorageMeta> = this.storageMetaSubject.asObservable();
+
   private consecutiveWarnCounter = new Map<string, number>();
   private lastEventSignatureTs = new Map<string, number>();
   private probeRunning = false;
   private eventSeq = 120;
+
+  constructor() {
+    this.hydrateFromIndexedDb();
+  }
+
+  get storageMeta(): EventStorageMeta {
+    return this.storageMetaSubject.value;
+  }
 
   get policy(): MonitoringPolicy {
     return this.policySubject.value;
@@ -426,12 +455,101 @@ export class EventMonitoringService {
     ];
   }
 
+  private openTelemetryDb(): Promise<IDBDatabase | null> {
+    if (typeof indexedDB === 'undefined') return Promise.resolve(null);
+    if (this.idbPromise) return this.idbPromise;
+
+    this.idbPromise = new Promise(resolve => {
+      try {
+        const req = indexedDB.open(this.IDB_NAME, this.IDB_VERSION);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(this.IDB_STORE)) {
+            const store = db.createObjectStore(this.IDB_STORE, { keyPath: 'id' });
+            store.createIndex('by_timestamp', 'timestamp', { unique: false });
+            store.createIndex('by_classification', 'classification', { unique: false });
+            store.createIndex('by_source', 'source', { unique: false });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      } catch {
+        resolve(null);
+      }
+    });
+    return this.idbPromise;
+  }
+
+  private async hydrateFromIndexedDb(): Promise<void> {
+    const db = await this.openTelemetryDb();
+    if (!db) {
+      this.updateStorageMeta(this.eventsSubject.value.length, 'localStorage Fallback');
+      return;
+    }
+    try {
+      const records = await new Promise<MonitoringEvent[]>(resolve => {
+        const tx = db.transaction(this.IDB_STORE, 'readonly');
+        const store = tx.objectStore(this.IDB_STORE);
+        const getAllReq = store.getAll();
+        getAllReq.onsuccess = () => resolve((getAllReq.result as MonitoringEvent[]) || []);
+        getAllReq.onerror = () => resolve([]);
+      });
+
+      if (records.length > 0) {
+        const sorted = records.sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 500);
+        const maxNum = sorted.reduce((acc, ev) => {
+          const m = ev.id.match(/(\d+)$/);
+          return m ? Math.max(acc, Number(m[1])) : acc;
+        }, this.eventSeq);
+        this.eventSeq = Math.max(this.eventSeq, maxNum);
+        this.eventsSubject.next(sorted);
+        this.updateStorageMeta(sorted.length);
+      } else {
+        // Seed initial events into IndexedDB WAL so DevTools shows populated table immediately
+        const initial = this.eventsSubject.value;
+        await this.syncListToIndexedDb(initial);
+      }
+    } catch {
+      this.updateStorageMeta(this.eventsSubject.value.length);
+    }
+  }
+
+  private async syncListToIndexedDb(list: MonitoringEvent[]): Promise<void> {
+    const db = await this.openTelemetryDb();
+    if (!db) return;
+    await new Promise<void>(resolve => {
+      try {
+        const tx = db.transaction(this.IDB_STORE, 'readwrite');
+        const store = tx.objectStore(this.IDB_STORE);
+        for (const ev of list.slice(0, 500)) {
+          store.put(ev);
+        }
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch {
+        resolve();
+      }
+    });
+    this.updateStorageMeta(list.length);
+  }
+
+  private updateStorageMeta(count: number, engine = 'IndexedDB WAL + NDJSON') {
+    this.storageMetaSubject.next({
+      engine,
+      dbName: this.IDB_NAME,
+      storeName: this.IDB_STORE,
+      persistedCount: count,
+      lastWriteAt: new Date().toISOString()
+    });
+  }
+
   private persistEvents(list: MonitoringEvent[]) {
     try {
-      localStorage.setItem(this.STORAGE_KEY_EVENTS, JSON.stringify(list.slice(0, 80)));
+      localStorage.setItem(this.STORAGE_KEY_EVENTS, JSON.stringify(list.slice(0, 200)));
     } catch {
       // ignore
     }
+    void this.syncListToIndexedDb(list);
   }
 
   private nextEventId(): string {
@@ -571,7 +689,7 @@ export class EventMonitoringService {
       }
     };
 
-    const updated = [newEvent, ...this.eventsSubject.value].slice(0, 80);
+    const updated = [newEvent, ...this.eventsSubject.value].slice(0, 500);
     this.eventsSubject.next(updated);
     this.persistEvents(updated);
     this.updateLiveBpmn(newEvent, isDuplicate);
@@ -959,8 +1077,84 @@ export class EventMonitoringService {
     });
   }
 
-  clearEvents() {
+  exportEventsNdjson(): string {
+    return this.eventsSubject.value
+      .map(ev =>
+        JSON.stringify({
+          event_id: ev.id,
+          timestamp: ev.timestamp,
+          source: ev.source,
+          endpoint: ev.endpoint,
+          classification: ev.classification,
+          priority: ev.priority,
+          http_status: ev.httpStatus,
+          latency_ms: ev.latencyMs,
+          code: ev.code,
+          disposition: ev.disposition,
+          linked_incident: ev.linkedIncidentId || null,
+          matched_kedb: ev.matchedKbId || null,
+          playbook_id: ev.playbookId || null,
+          message: ev.message
+        })
+      )
+      .join('\n') + '\n';
+  }
+
+  exportEventsSql(): string {
+    const esc = (v: unknown) => String(v ?? '').replace(/'/g, "''");
+    const header = [
+      '-- Persistencia Transaccional de Eventos Finnova (TiDB Cloud / MySQL 8.0)',
+      'CREATE TABLE IF NOT EXISTS eventos_monitoreo (',
+      '  id_evento VARCHAR(32) PRIMARY KEY,',
+      '  fecha_evento DATETIME NOT NULL,',
+      '  origen VARCHAR(64) NOT NULL,',
+      '  endpoint VARCHAR(180) NOT NULL,',
+      '  clasificacion ENUM(\'INFO\',\'WARNING\',\'EXCEPTION\') NOT NULL,',
+      '  prioridad VARCHAR(24) NOT NULL,',
+      '  http_status INT NOT NULL,',
+      '  latencia_ms INT NOT NULL,',
+      '  codigo_evento VARCHAR(64) NOT NULL,',
+      '  disposicion VARCHAR(64) NOT NULL,',
+      '  id_incidente_vinculado VARCHAR(32) NULL,',
+      '  id_kedb VARCHAR(32) NULL,',
+      '  payload_json JSON NOT NULL,',
+      '  INDEX idx_eventos_fecha (fecha_evento),',
+      '  INDEX idx_eventos_clase (clasificacion)',
+      ');',
+      ''
+    ].join('\n');
+
+    const rows = this.eventsSubject.value.map(ev => {
+      const dt = ev.timestamp.replace('T', ' ').slice(0, 19);
+      const inc = ev.linkedIncidentId ? `'${esc(ev.linkedIncidentId)}'` : 'NULL';
+      const kb = ev.matchedKbId ? `'${esc(ev.matchedKbId)}'` : 'NULL';
+      const jsonStr = esc(JSON.stringify(ev.rawPayload));
+      return `REPLACE INTO eventos_monitoreo VALUES ('${esc(ev.id)}', '${dt}', '${esc(ev.source)}', '${esc(ev.endpoint)}', '${ev.classification}', '${esc(ev.priority)}', ${ev.httpStatus}, ${ev.latencyMs}, '${esc(ev.code)}', '${esc(ev.disposition)}', ${inc}, ${kb}, '${jsonStr}');`;
+    });
+
+    return header + rows.join('\n') + '\n';
+  }
+
+  restoreEventsFromBackup(events: MonitoringEvent[]) {
+    if (!Array.isArray(events) || events.length === 0) return;
+    const sorted = [...events].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 500);
+    this.eventsSubject.next(sorted);
+    this.persistEvents(sorted);
+  }
+
+  async clearEvents() {
     localStorage.removeItem(this.STORAGE_KEY_EVENTS);
-    this.eventsSubject.next(this.loadInitialEvents());
+    const db = await this.openTelemetryDb();
+    if (db) {
+      await new Promise<void>(resolve => {
+        const tx = db.transaction(this.IDB_STORE, 'readwrite');
+        tx.objectStore(this.IDB_STORE).clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      });
+    }
+    const fresh = this.loadInitialEvents();
+    this.eventsSubject.next(fresh);
+    await this.syncListToIndexedDb(fresh);
   }
 }

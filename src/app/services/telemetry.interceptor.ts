@@ -3,10 +3,7 @@ import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn, HttpResponse } 
 import { tap } from 'rxjs/operators';
 import { EventMonitoringService } from './event-monitoring.service';
 
-/**
- * Token client-side (no envía cabeceras HTTP ni dispara CORS preflight)
- * para evitar doble registro de las sondas sintéticas lanzadas desde el NOC.
- */
+
 export const SKIP_TELEMETRY_PROBE = new HttpContextToken<boolean>(() => false);
 
 /**
@@ -38,10 +35,7 @@ export const telemetryInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
-/**
- * Manejador global de excepciones de Angular:
- * Captura errores no controlados en el Frontend SPA y los envía como eventos EXCEPTION al NOC.
- */
+
 @Injectable()
 export class GlobalEventErrorHandler implements ErrorHandler {
   private injector = inject(Injector);

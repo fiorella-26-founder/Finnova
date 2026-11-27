@@ -8,6 +8,7 @@ import {
   BpmnLiveState,
   EventClassification,
   EventMonitoringService,
+  EventStorageMeta,
   LatencySample,
   MonitoringEvent,
   MonitoringPolicy,
@@ -57,6 +58,7 @@ export class EventMonitoringComponent implements OnInit, OnDestroy {
   events: MonitoringEvent[] = [];
   latencySeries: LatencySample[] = [];
   bpmnState: BpmnLiveState = this.monitor.bpmnState;
+  storageMeta: EventStorageMeta = this.monitor.storageMeta;
 
   // Opciones de ApexCharts
   latencyChartOptions: Partial<ApexOptions> = {};
@@ -186,6 +188,9 @@ export const telemetryInterceptor: HttpInterceptorFn = (req, next) => {
       this.monitor.policy$.subscribe(pol => {
         this.policyForm = { ...pol };
         this.rebuildLatencyChart();
+      }),
+      this.monitor.storageMeta$.subscribe(meta => {
+        this.storageMeta = meta;
       })
     );
   }
@@ -328,6 +333,20 @@ export const telemetryInterceptor: HttpInterceptorFn = (req, next) => {
     setTimeout(() => {
       if (this.copiedSnippet === id) this.copiedSnippet = null;
     }, 1800);
+  }
+
+  downloadEventLog(format: 'ndjson' | 'sql') {
+    const content = format === 'ndjson' ? this.monitor.exportEventsNdjson() : this.monitor.exportEventsSql();
+    const mime = format === 'ndjson' ? 'application/x-ndjson;charset=utf-8' : 'application/sql;charset=utf-8';
+    const ext = format === 'ndjson' ? 'events.ndjson' : 'eventos_monitoreo_tidb.sql';
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `finnova_${new Date().toISOString().slice(0, 10)}_${ext}`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.appendTerminal(`[STORAGE] Exportado registro persistente (${this.events.length} eventos) en formato .${format.toUpperCase()}.`);
   }
 
   private appendTerminal(line: string) {

@@ -128,6 +128,14 @@ const SoporteTINavigationItems: NavigationItem[] = [
         icon: 'dashboard'
       },
       {
+        id: 'service-continuity',
+        title: 'Continuidad & DRP',
+        type: 'item',
+        classes: 'nav-item',
+        url: '/dashboard/service-continuity',
+        icon: 'dashboard'
+      },
+      {
         id: 'reports',
         title: 'Reportes y Rendimiento',
         type: 'item',

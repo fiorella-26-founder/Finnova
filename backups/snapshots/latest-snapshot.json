@@ -1,0 +1,175 @@
+{
+  "snapshot_id": "BKP-CLI-20261127-1269",
+  "created_at": "2026-11-27T17:55:31.268Z",
+  "type": "FULL",
+  "source_mode": "STANDBY_LOCAL_REPLICA",
+  "records_count": 6,
+  "size_bytes": 3877,
+  "duration_ms": 61,
+  "sha256": "c206c95852af31661ed692cae29752606b3b9cfe2e5b0a3b300ede51686ecc12",
+  "payload": {
+    "metadata": {
+      "snapshot_id": "BKP-CLI-20261127-1269",
+      "created_at": "2026-11-27T17:55:31.268Z",
+      "strategy": "3-2-1 (Copy1: TiDB Cloud AWS PITR | Copy2: GitHub Actions Artifact | Copy3: Local Repo Snapshot)",
+      "source_mode": "STANDBY_LOCAL_REPLICA",
+      "api_probe_status": 0,
+      "api_probe_latency_ms": 58
+    },
+    "servicios_publicos": [
+      {
+        "id_servicio": 1,
+        "titulo": "Asesoría de Retiro y Optimización AFP",
+        "categoria": "Pensiones",
+        "precio_tarifa": 120,
+        "estado": "Activo"
+      },
+      {
+        "id_servicio": 2,
+        "titulo": "Gestión de Bono de Reconocimiento ONP",
+        "categoria": "Pensiones",
+        "precio_tarifa": 150,
+        "estado": "Activo"
+      },
+      {
+        "id_servicio": 3,
+        "titulo": "Evaluación de Seguros de Vida e Inversión",
+        "categoria": "Seguros",
+        "precio_tarifa": 180,
+        "estado": "Activo"
+      },
+      {
+        "id_servicio": 4,
+        "titulo": "Reestructuración Tributaria y Financiera MYPE",
+        "categoria": "Empresarial",
+        "precio_tarifa": 250,
+        "estado": "Activo"
+      }
+    ],
+    "monitoring_policies": {
+      "service": "finnova-production",
+      "version": "1.0.0",
+      "slo": {
+        "availabilityTargetPct": 99.9,
+        "p95LatencyTargetMs": 1500
+      },
+      "thresholds": {
+        "latencyWarnMs": 1500,
+        "latencyCritMs": 4000,
+        "timeoutMs": 12000,
+        "consecutiveWarnToIncident": 2,
+        "dedupWindowSec": 60,
+        "max429PerMin": 5,
+        "dbPoolWarnPct": 70,
+        "dbPoolCritPct": 90
+      },
+      "targets": [
+        {
+          "id": "finnova-backend-api",
+          "name": "Backend Express Render + TiDB Cloud",
+          "criticality": "CORE",
+          "url": "https://backend-finnova.onrender.com/api/servicios/publicos",
+          "method": "GET",
+          "expectedStatus": [
+            200
+          ]
+        },
+        {
+          "id": "finnova-frontend-spa",
+          "name": "Frontend Angular Vercel Edge",
+          "criticality": "BUSINESS",
+          "url": "https://finnova-nine.vercel.app",
+          "method": "GET",
+          "expectedStatus": [
+            200
+          ]
+        }
+      ],
+      "kedbCatalog": [
+        {
+          "kbId": "KEDB-FIN-001",
+          "matchTokens": [
+            "ER_CON_COUNT_ERROR",
+            "500",
+            "pool",
+            "tidb"
+          ],
+          "playbookId": "PB-001",
+          "action": "Elevar DB_CONNECTION_LIMIT=15 en Render, habilitar keepAlive TLS en db.js y purgar sockets Sleep en TiDB."
+        },
+        {
+          "kbId": "KEDB-FIN-002",
+          "matchTokens": [
+            "429",
+            "rate_limit",
+            "proxy"
+          ],
+          "playbookId": "PB-002",
+          "action": "Verificar app.set('trust proxy', 1) en server.js y reiniciar memoria del middleware authLimiter."
+        },
+        {
+          "kbId": "KEDB-FIN-003",
+          "matchTokens": [
+            "504",
+            "timeout",
+            "cold_start",
+            "latency",
+            "abort"
+          ],
+          "playbookId": "PB-003",
+          "action": "Disparar sonda Keep-Alive inmediata y validar cron */15 en .github/workflows/synthetic-monitor.yml."
+        },
+        {
+          "kbId": "KEDB-FIN-004",
+          "matchTokens": [
+            "413",
+            "payload",
+            "voucher"
+          ],
+          "playbookId": "PB-004",
+          "action": "Validar límite express.json y compresión client-side de comprobantes Yape."
+        }
+      ]
+    },
+    "eventos_monitoreo_wal": [
+      {
+        "event_id": "EVT-CLI-241947",
+        "timestamp": "2026-11-24T04:57:21.947Z",
+        "target_id": "finnova-backend-api",
+        "service": "Backend Express Render + TiDB Cloud",
+        "url": "https://backend-finnova.onrender.com/api/servicios/publicos",
+        "criticality": "CORE",
+        "http_status": 500,
+        "latency_ms": 5420,
+        "classification": "EXCEPTION",
+        "priority": "P1 - Crítico",
+        "code": "ER_CON_COUNT_ERROR",
+        "correlated_count": 1,
+        "action": "CREATE_INCIDENT (P1 - Crítico) -> KEDB-FIN-001 / PB-001",
+        "matched_kedb": "KEDB-FIN-001",
+        "playbook_id": "PB-001",
+        "recommended_remediation": "Elevar DB_CONNECTION_LIMIT=15 en Render, habilitar keepAlive TLS en db.js y purgar sockets Sleep en TiDB.",
+        "detail": "SIMULACRO P1: Pool de conexiones SSL TiDB Cloud saturado (50 peticiones concurrentes Yape)."
+      },
+      {
+        "event_id": "EVT-CLI-094792",
+        "timestamp": "2026-11-27T17:54:54.792Z",
+        "target_id": "finnova-backend-api",
+        "service": "Backend Express Render + TiDB Cloud",
+        "url": "https://backend-finnova.onrender.com/api/servicios/publicos",
+        "criticality": "CORE",
+        "http_status": 500,
+        "latency_ms": 5420,
+        "classification": "EXCEPTION",
+        "priority": "P1 - Crítico",
+        "code": "ER_CON_COUNT_ERROR",
+        "correlated_count": 1,
+        "action": "CREATE_INCIDENT (P1 - Crítico) -> KEDB-FIN-001 / PB-001",
+        "matched_kedb": "KEDB-FIN-001",
+        "playbook_id": "PB-001",
+        "recommended_remediation": "Elevar DB_CONNECTION_LIMIT=15 en Render, habilitar keepAlive TLS en db.js y purgar sockets Sleep en TiDB.",
+        "detail": "SIMULACRO P1: Pool de conexiones SSL TiDB Cloud saturado (50 peticiones concurrentes Yape)."
+      }
+    ]
+  }
+}

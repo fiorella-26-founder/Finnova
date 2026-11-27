@@ -1,0 +1,311 @@
+<div class="row g-3 mb-3">
+  <!-- CABECERA COMPACTA -->
+  <div class="col-12">
+    <div class="card shadow-sm continuity-hero mb-0">
+      <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="badge pill-info fw-semibold">ITSCM • ISO 22301</span>
+            <span class="badge font-monospace" [ngClass]="circuitState === 'CLOSED' ? 'pill-ok' : 'pill-warn'">
+              Circuit: {{ circuitState }}
+            </span>
+            <span class="badge bg-light text-dark border font-monospace">FinnovaContinuityDB</span>
+            <span *ngIf="statusToast" class="badge bg-dark text-white">{{ statusToast }}</span>
+          </div>
+          <h4 class="fw-bold text-dark mb-0">Continuidad del Servicio, Alta Disponibilidad y DRP</h4>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-primary fw-semibold" (click)="runHealthCheck()" [disabled]="isBusy">
+            Health Check HA
+          </button>
+          <button class="btn btn-sm btn-outline-primary fw-semibold" (click)="triggerBackup('FULL')" [disabled]="isBusy">
+            + Snapshot SHA-256
+          </button>
+          <button class="btn btn-sm fw-semibold" [ngClass]="circuitState === 'OPEN_FAILOVER' ? 'btn-warning' : 'btn-outline-secondary'" (click)="toggleFailoverMode()">
+            {{ circuitState === 'OPEN_FAILOVER' ? 'Volver a Primario' : 'Conmutar Standby' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 KPIS MINIMALISTAS -->
+  <div class="col-6 col-xl-3">
+    <div class="kpi-box p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="small text-muted fw-semibold">SLO Continuidad</span>
+        <span class="badge pill-ok">Multi-Capa</span>
+      </div>
+      <div class="kpi-num fw-bold text-success">99.95%</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-box p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="small text-muted fw-semibold">RTO Medido</span>
+        <span class="badge pill-info">Meta &le; 5m</span>
+      </div>
+      <div class="kpi-num fw-bold text-primary">{{ latestMeasuredRto }}</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-box p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="small text-muted fw-semibold">RPO Efectivo</span>
+        <span class="badge pill-ok">Raft / WAL</span>
+      </div>
+      <div class="kpi-num fw-bold text-dark">{{ latestMeasuredRpo }}</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-box p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="small text-muted fw-semibold">Respaldos 3-2-1</span>
+        <span class="badge pill-ok">SHA-256 OK</span>
+      </div>
+      <div class="kpi-num fw-bold text-dark">{{ verifiedBackupsCount }} / {{ backups.length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- PESTAÑAS LIMPIAS -->
+<div class="card border shadow-sm mb-3">
+  <div class="card-header bg-white border-bottom py-2 px-3">
+    <ul class="nav nav-pills gap-2 flex-wrap">
+      <li class="nav-item">
+        <button class="nav-link fw-semibold py-1 px-3" [class.active]="activeTab === 'bia'" (click)="activeTab = 'bia'">
+          1. Servicios Críticos &amp; RTO/RPO
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold py-1 px-3" [class.active]="activeTab === 'risks'" (click)="activeTab = 'risks'">
+          2. Análisis de Riesgos
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold py-1 px-3" [class.active]="activeTab === 'backups'" (click)="activeTab = 'backups'">
+          3. Respaldos 3-2-1
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold py-1 px-3" [class.active]="activeTab === 'drp'" (click)="activeTab = 'drp'">
+          4. Simulacro DRP &amp; HA
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body p-3">
+    <!-- TAB 1: SERVICIOS CRÍTICOS, RTO, RPO Y ARQUITECTURA HA -->
+    <div *ngIf="activeTab === 'bia'">
+      <div class="table-responsive border rounded">
+        <table class="table table-sm table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Servicio</th>
+              <th>Componente</th>
+              <th>Clasificación</th>
+              <th>RTO</th>
+              <th>RPO</th>
+              <th>MTD</th>
+              <th>Estrategia Alta Disponibilidad</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of services">
+              <td><code>{{ s.id }}</code></td>
+              <td class="fw-semibold text-dark">{{ s.name }}</td>
+              <td>
+                <div>{{ s.component }}</div>
+                <code class="text-muted" style="font-size: 0.7rem;">{{ s.endpoint }}</code>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'pill-crit': s.tier.startsWith('Tier 0'),
+                  'pill-warn': s.tier.startsWith('Tier 1'),
+                  'pill-info': s.tier.startsWith('Tier 2'),
+                  'bg-light text-secondary border': s.tier.startsWith('Tier 3')
+                }">{{ s.tier }}</span>
+              </td>
+              <td class="fw-semibold">{{ s.rtoTarget }}</td>
+              <td class="fw-semibold">{{ s.rpoTarget }}</td>
+              <td class="text-muted">{{ s.mtd }}</td>
+              <td>{{ s.haMechanism }}</td>
+              <td>
+                <span class="badge" [ngClass]="s.status === 'Operativo' ? 'pill-ok' : 'pill-warn'">{{ s.status }}</span>
+                <div class="text-muted" style="font-size: 0.7rem;">{{ s.lastLatencyMs }} ms</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: ANÁLISIS DE RIESGOS -->
+    <div *ngIf="activeTab === 'risks'">
+      <div class="table-responsive border rounded">
+        <table class="table table-sm table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Escenario de Riesgo</th>
+              <th>Activo</th>
+              <th class="text-center">P</th>
+              <th class="text-center">I</th>
+              <th class="text-center">P&times;I</th>
+              <th>Severidad</th>
+              <th>Control de Continuidad / HA</th>
+              <th>Residual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of risks">
+              <td><code>{{ r.id }}</code></td>
+              <td class="fw-semibold text-dark">{{ r.threat }}</td>
+              <td>{{ r.affectedAsset }}</td>
+              <td class="text-center">{{ r.probability }}</td>
+              <td class="text-center">{{ r.impact }}</td>
+              <td class="text-center fw-bold">{{ r.score }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'pill-crit': r.level === 'Crítico',
+                  'pill-warn': r.level === 'Alto',
+                  'pill-info': r.level === 'Medio'
+                }">{{ r.level }}</span>
+              </td>
+              <td>{{ r.mitigationControl }}</td>
+              <td><span class="badge pill-ok">{{ r.residualLevel }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: PLAN DE RESPALDOS CRIPTOGRÁFICOS SHA-256 -->
+    <div *ngIf="activeTab === 'backups'">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge bg-light text-dark border">Regla 3-2-1</span>
+          <span class="badge bg-light text-dark border font-monospace">Cron Diario 02:00 UTC-5</span>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-primary" (click)="triggerBackup('FULL')" [disabled]="isBusy">Respaldo Full</button>
+          <button class="btn btn-sm btn-outline-primary" (click)="triggerBackup('INCREMENTAL')" [disabled]="isBusy">Incremental</button>
+        </div>
+      </div>
+
+      <div class="table-responsive border rounded">
+        <table class="table table-sm table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th>Snapshot</th>
+              <th>Fecha UTC</th>
+              <th>Tipo</th>
+              <th>Registros</th>
+              <th>Tamaño</th>
+              <th>Checksum SHA-256</th>
+              <th>Estado</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let b of backups">
+              <td><code class="fw-bold">{{ b.id }}</code></td>
+              <td>{{ b.createdAt | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+              <td><span class="badge pill-info">{{ b.type }}</span></td>
+              <td>{{ b.recordsCount }}</td>
+              <td>{{ formatBytes(b.sizeBytes) }}</td>
+              <td><code class="text-muted">{{ b.sha256.slice(0, 18) }}...</code></td>
+              <td>
+                <span class="badge" [ngClass]="b.verified ? 'pill-ok' : 'pill-crit'">{{ b.integrityStatus }}</span>
+              </td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-secondary py-0 px-2" (click)="verifySnapshot(b.id)">Verificar</button>
+                  <button class="btn btn-outline-primary py-0 px-2" (click)="restoreSnapshot(b.id)">Restaurar</button>
+                  <button class="btn btn-light border py-0 px-2" (click)="downloadBackup(b.id, 'json')">JSON</button>
+                  <button class="btn btn-light border py-0 px-2" (click)="downloadBackup(b.id, 'sql')">SQL</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: SIMULACRO DRP & FAILOVER EN VIVO -->
+    <div *ngIf="activeTab === 'drp'">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-drill-crit" (click)="executeDrill('render-outage')" [disabled]="isBusy">
+            Drill 1: Caída Render 503
+          </button>
+          <button class="btn btn-sm btn-drill-crit" (click)="executeDrill('tidb-pitr')" [disabled]="isBusy">
+            Drill 2: Restauración TiDB PITR
+          </button>
+          <button class="btn btn-sm btn-drill-warn" (click)="executeDrill('vercel-rollback')" [disabled]="isBusy">
+            Drill 3: Rollback Vercel Edge
+          </button>
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" routerLink="/dashboard/event-monitoring">Ver Traza NOC</a>
+      </div>
+
+      <div class="row g-3" *ngIf="selectedDrill">
+        <div class="col-12 col-xl-6">
+          <div class="border rounded p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <strong class="small text-dark">{{ selectedDrill.id }} &mdash; {{ selectedDrill.scenarioName }}</strong>
+              <span class="badge pill-ok">RTO: {{ selectedDrill.measuredRtoSec }}s / &le;{{ selectedDrill.targetRtoSec }}s</span>
+            </div>
+            <div class="d-flex flex-column gap-2">
+              <div *ngFor="let st of selectedDrill.steps" class="p-2 rounded border bg-light d-flex justify-content-between align-items-center gap-2 small">
+                <div>
+                  <div class="fw-semibold text-dark">{{ st.phase }}</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">{{ st.detail }}</div>
+                </div>
+                <span class="badge bg-white text-dark border font-monospace">{{ st.elapsedMs }} ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-xl-6">
+          <div class="table-responsive border rounded h-100">
+            <table class="table table-sm table-hover align-middle mb-0 small">
+              <thead class="table-light">
+                <tr>
+                  <th>Drill</th>
+                  <th>Código</th>
+                  <th>Snapshot</th>
+                  <th>RTO Real</th>
+                  <th>RPO Real</th>
+                  <th>SLA</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let d of drills" (click)="selectedDrill = d" style="cursor: pointer;" [class.table-primary]="selectedDrill?.id === d.id">
+                  <td><code>{{ d.id }}</code></td>
+                  <td><code>{{ d.triggerCode }}</code></td>
+                  <td><code>{{ d.snapshotUsed }}</code></td>
+                  <td class="fw-bold text-primary">{{ d.measuredRtoSec }} s</td>
+                  <td>{{ d.measuredRpoMin }} min</td>
+                  <td>
+                    <span class="badge" [ngClass]="d.compliant ? 'pill-ok' : 'pill-crit'">
+                      {{ d.compliant ? 'Cumple' : 'Excede' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

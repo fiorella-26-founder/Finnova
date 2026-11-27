@@ -116,6 +116,12 @@ const routes: Routes = [
         loadComponent: () => import('./demo/pages/finnova/event-monitoring/event-monitoring').then((c) => c.EventMonitoringComponent)
       },
       {
+        path: 'service-continuity',
+        canActivate: [authGuard],
+        data: { roles: ['Administrador', 'Soporte TI'] },
+        loadComponent: () => import('./demo/pages/finnova/service-continuity/service-continuity').then((c) => c.ServiceContinuityComponent)
+      },
+      {
         path: 'test-view',
         canActivate: [authGuard],
         data: { roles: ['Administrador', 'Asesor', 'Cliente'] },

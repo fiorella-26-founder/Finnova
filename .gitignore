@@ -1,6 +1,9 @@
 # Logs
 logs
 *.log
+!monitoring/logs/
+!monitoring/logs/*.ndjson
+backups/restored-staging/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
