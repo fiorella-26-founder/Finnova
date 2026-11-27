@@ -1104,7 +1104,8 @@ export class EventMonitoringService {
     const esc = (v: unknown) => String(v ?? '').replace(/'/g, "''");
     const header = [
       '-- Persistencia Transaccional de Eventos Finnova (TiDB Cloud / MySQL 8.0)',
-      'CREATE TABLE IF NOT EXISTS eventos_monitoreo (',
+      'USE `finnova_db`;',
+      'CREATE TABLE IF NOT EXISTS `finnova_db`.`eventos_monitoreo` (',
       '  id_evento VARCHAR(32) PRIMARY KEY,',
       '  fecha_evento DATETIME NOT NULL,',
       '  origen VARCHAR(64) NOT NULL,',
@@ -1129,7 +1130,7 @@ export class EventMonitoringService {
       const inc = ev.linkedIncidentId ? `'${esc(ev.linkedIncidentId)}'` : 'NULL';
       const kb = ev.matchedKbId ? `'${esc(ev.matchedKbId)}'` : 'NULL';
       const jsonStr = esc(JSON.stringify(ev.rawPayload));
-      return `REPLACE INTO eventos_monitoreo VALUES ('${esc(ev.id)}', '${dt}', '${esc(ev.source)}', '${esc(ev.endpoint)}', '${ev.classification}', '${esc(ev.priority)}', ${ev.httpStatus}, ${ev.latencyMs}, '${esc(ev.code)}', '${esc(ev.disposition)}', ${inc}, ${kb}, '${jsonStr}');`;
+      return `REPLACE INTO \`finnova_db\`.\`eventos_monitoreo\` VALUES ('${esc(ev.id)}', '${dt}', '${esc(ev.source)}', '${esc(ev.endpoint)}', '${ev.classification}', '${esc(ev.priority)}', ${ev.httpStatus}, ${ev.latencyMs}, '${esc(ev.code)}', '${esc(ev.disposition)}', ${inc}, ${kb}, '${jsonStr}');`;
     });
 
     return header + rows.join('\n') + '\n';

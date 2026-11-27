@@ -597,11 +597,11 @@ export class ServiceContinuityService {
     return [
       `-- FINNOVA DRP SNAPSHOT RESTORE SCRIPT (${snap.id})`,
       `-- Fecha Snapshot: ${snap.createdAt} | SHA-256: ${snap.sha256}`,
-      `-- Estrategia: TiDB Point-In-Time Recovery (PITR) + Restauración Lógica`,
+      `USE \`finnova_db\`;`,
       `SET SESSION tidb_snapshot = '${snap.createdAt.replace('T', ' ').slice(0, 19)}';`,
       `-- Recuperación instantánea ante borrado accidental en TiDB Cloud:`,
-      `-- FLASHBACK TABLE solicitudes TO solicitud_pre_incidente;`,
-      `INSERT INTO auditoria_respaldos_drp (id_snapshot, tipo, registros, bytes_size, sha256_hash, estado_verificacion, fecha_creacion)`,
+      `-- FLASHBACK TABLE \`finnova_db\`.\`solicitudes\` TO solicitud_pre_incidente;`,
+      `REPLACE INTO \`finnova_db\`.\`auditoria_respaldos_drp\` (id_snapshot, tipo, registros, bytes_size, sha256_hash, estado_verificacion, fecha_creacion)`,
       `VALUES ('${snap.id}', '${snap.type}', ${snap.recordsCount}, ${snap.sizeBytes}, '${snap.sha256}', '${snap.integrityStatus}', '${snap.createdAt.replace('T', ' ').slice(0, 19)}');`,
       '',
       this.monitor.exportEventsSql()
